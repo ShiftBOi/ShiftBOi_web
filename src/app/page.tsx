@@ -1,69 +1,100 @@
-import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import { SiteHeader, Hero } from "@/components/web/hero";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function HomePage() {
+  const projects = await prisma.project.findMany({
+    where: { published: true },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    take: 6,
+  });
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="flex-1">
+      <SiteHeader />
+      <Hero />
+
+      <section
+        id="architecture"
+        className="border-t border-[var(--color-border-subtle)] px-5 py-20 md:px-10"
+      >
+        <p className="text-[length:var(--font-size-sm)] uppercase tracking-[0.16em] text-[var(--color-text-tertiary)]">
+          Architecture
+        </p>
+        <h2 className="mt-3 max-w-2xl text-[length:var(--font-size-4xl)] tracking-tight">
+          One Next.js app. Web + CMS + API. Postgres via Prisma.
+        </h2>
+        <ul className="mt-10 grid gap-6 md:grid-cols-3">
+          {[
+            ["Web", "Public marketing surface at / with HydraDB design tokens."],
+            ["CMS", "Admin console at /cms — OTP and passkey only."],
+            ["Backend", "Route handlers + Prisma models for projects and auth."],
+          ].map(([title, body]) => (
+            <li key={title} className="border-t border-[var(--color-border-default)] pt-4">
+              <h3 className="text-[length:var(--font-size-2xl)]">{title}</h3>
+              <p className="mt-2 text-[length:var(--font-size-lg)] leading-relaxed text-[var(--color-text-inverse)]">
+                {body}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section
+        id="work"
+        className="border-t border-[var(--color-border-subtle)] px-5 py-20 md:px-10"
+      >
+        <p className="text-[length:var(--font-size-sm)] uppercase tracking-[0.16em] text-[var(--color-text-tertiary)]">
+          Work
+        </p>
+        <h2 className="mt-3 text-[length:var(--font-size-4xl)] tracking-tight">
+          Published projects
+        </h2>
+        {projects.length === 0 ? (
+          <p className="mt-8 max-w-lg text-[length:var(--font-size-xl)] text-[var(--color-text-inverse)]">
+            No published projects yet. Sign in to the CMS to add the first one.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        ) : (
+          <ul className="mt-10 grid gap-8 md:grid-cols-2">
+            {projects.map((project) => (
+              <li
+                key={project.id}
+                className="border-t border-[var(--color-border-default)] pt-5"
+              >
+                <div className="flex items-baseline justify-between gap-4">
+                  <h3 className="text-[length:var(--font-size-3xl)] tracking-tight">
+                    {project.title}
+                  </h3>
+                  {project.year ? (
+                    <span className="text-[length:var(--font-size-md)] text-[var(--color-text-tertiary)]">
+                      {project.year}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-3 text-[length:var(--font-size-lg)] leading-relaxed text-[var(--color-text-inverse)]">
+                  {project.summary}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section
+        id="contact"
+        className="border-t border-[var(--color-border-subtle)] px-5 py-20 md:px-10"
+      >
+        <h2 className="text-[length:var(--font-size-4xl)] tracking-tight">Contact</h2>
+        <p className="mt-4 max-w-lg text-[length:var(--font-size-xl)] text-[var(--color-text-inverse)]">
+          CMS access is restricted to the allowlisted admin email via OTP or
+          passkey — no password login.
+        </p>
+      </section>
+
+      <footer className="border-t border-[var(--color-border-subtle)] px-5 py-8 text-[length:var(--font-size-sm)] text-[var(--color-text-tertiary)] md:px-10">
+        WebPort v2 · design tokens from Design.md · reference hydradb.com
+      </footer>
+    </main>
   );
 }
