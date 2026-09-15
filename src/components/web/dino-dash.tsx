@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   DINO_HURT_FRAMES,
   DINO_JUMP_FRAMES,
@@ -11,23 +18,25 @@ import {
 
 type Pose = "run" | "jump" | "hurt";
 type ObstacleKind = "cactus1" | "cactus2" | "cactus3";
+type JumpPlan = "clear" | "late" | "none";
 
 type Obstacle = {
   id: number;
   kind: ObstacleKind;
-  /** lane x: 0 left → 1 right */
   x: number;
   width: number;
   hit: boolean;
-  /** pre-rolled: ~70% true → auto jump clears this hazard */
-  clearable: boolean;
-  /** jump already triggered for this obstacle */
-  jumped: boolean;
+  /** ~80% clear, ~12% late misjump, ~8% no-jump */
+  plan: JumpPlan;
+  reacted: boolean;
 };
 
-const DINO_SIZE = 168;
+const DINO_SIZE = 220;
 const PARTICLE_DIV = 2;
 const GRID = 24 * PARTICLE_DIV;
+const PIX_FONT = "Pix32, ui-monospace, monospace";
+/** Chrome ratio: cactus shorter than dino */
+const SCALE_CACTUS = 7;
 
 const GEN_CHARS = Array.from("01<>{}[]/\\|#*+=.:;░▒▓█@%xoXO*!^~$");
 const SETTLE_CHARS: Record<DinoTone, string> = {
@@ -53,7 +62,6 @@ const POSE_FRAMES = {
   hurt: DINO_HURT_FRAMES,
 } as const;
 
-/** Pixel masks for ASCII cacti (# = body) */
 const CACTUS_MASKS: Record<ObstacleKind, string[]> = {
   cactus1: [
     "....##......",
@@ -63,8 +71,6 @@ const CACTUS_MASKS: Record<ObstacleKind, string[]> = {
     "..#.##.#....",
     "..#.##......",
     "..####......",
-    "....##......",
-    "....##......",
     "....##......",
     "....##......",
     "....##......",
@@ -86,8 +92,6 @@ const CACTUS_MASKS: Record<ObstacleKind, string[]> = {
     "...##.....##...",
     "...##.....##...",
     "...##.....##...",
-    "...##.....##...",
-    "...##.....##...",
   ],
   cactus3: [
     "..##....",
@@ -99,14 +103,13 @@ const CACTUS_MASKS: Record<ObstacleKind, string[]> = {
     "..##....",
     "..##....",
     "..##....",
-    "..##....",
   ],
 };
 
 const OBSTACLE_LANE_W: Record<ObstacleKind, number> = {
-  cactus1: 0.055,
-  cactus2: 0.08,
-  cactus3: 0.045,
+  cactus1: 0.05,
+  cactus2: 0.075,
+  cactus3: 0.04,
 };
 
 function randomChar() {
@@ -158,7 +161,6 @@ function AsciiGlyphs({
   const [glyphs, setGlyphs] = useState<string[]>(() =>
     cells.map((c) => SETTLE_CHARS[c.tone]),
   );
-
   const maxX = cells.reduce((m, c) => Math.max(m, c.x), 0) + 1;
   const maxY = cells.reduce((m, c) => Math.max(m, c.y), 0) + 1;
 
@@ -192,12 +194,12 @@ function AsciiGlyphs({
     >
       {cells.map((cell, i) => (
         <text
-          key={`${cell.x}-${cell.y}-${i}`}
+          key={`${cell.x}-${cell.y}`}
           x={cell.x + 0.5}
           y={cell.y + 0.78}
           textAnchor="middle"
           fill={TONE_FILL[cell.tone]}
-          fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+          fontFamily={PIX_FONT}
           fontSize="0.95"
           style={{ userSelect: "none" }}
         >
@@ -222,37 +224,17 @@ function AsciiDino({
   const sheet = POSE_FRAMES[pose];
   const source = sheet[frame % sheet.length] ?? sheet[0]!;
   const cells = useMemo(() => densify(source), [source]);
-
-  return (
-    <svg
-      viewBox={`0 0 ${GRID} ${GRID}`}
-      width={DINO_SIZE}
-      height={DINO_SIZE}
-      aria-hidden
-      className="block"
-    >
-      <AsciiDinoInner cells={cells} scramble={scramble} reduced={reduced} />
-    </svg>
-  );
-}
-
-/** Inner text layer so densified dino keeps fixed 72 viewBox */
-function AsciiDinoInner({
-  cells,
-  scramble,
-  reduced,
-}: {
-  cells: DinoCell[];
-  scramble: boolean;
-  reduced: boolean;
-}) {
   const [glyphs, setGlyphs] = useState<string[]>(() =>
     cells.map((c) => SETTLE_CHARS[c.tone]),
   );
+  const cellsKeyRef = useRef("");
 
   useEffect(() => {
+    const key = `${pose}:${frame}:${cells.length}`;
+    if (key === cellsKeyRef.current) return;
+    cellsKeyRef.current = key;
     setGlyphs(cells.map((c) => (reduced ? SETTLE_CHARS[c.tone] : randomChar())));
-  }, [cells, reduced]);
+  }, [cells, frame, pose, reduced]);
 
   useEffect(() => {
     if (reduced || !scramble) {
@@ -265,29 +247,37 @@ function AsciiDinoInner({
           Math.random() > 0.88 ? SETTLE_CHARS[cell.tone] : randomChar(),
         ),
       );
-    }, 32);
+    }, 40);
     return () => window.clearInterval(tick);
   }, [cells, reduced, scramble]);
 
   return (
-    <>
+    <svg
+      viewBox={`0 0 ${GRID} ${GRID}`}
+      width={DINO_SIZE}
+      height={DINO_SIZE}
+      aria-hidden
+      className="block"
+    >
       {cells.map((cell, i) => (
         <text
-          key={`${cell.x}-${cell.y}-${i}`}
+          key={`${cell.x}-${cell.y}`}
           x={cell.x + 0.5}
           y={cell.y + 0.78}
           textAnchor="middle"
           fill={TONE_FILL[cell.tone]}
-          fontFamily="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+          fontFamily={PIX_FONT}
           fontSize="0.9"
           style={{ userSelect: "none" }}
         >
           {glyphs[i] ?? SETTLE_CHARS[cell.tone]}
         </text>
       ))}
-    </>
+    </svg>
   );
 }
+
+const AsciiDinoView = memo(AsciiDino);
 
 function AsciiCactus({
   kind,
@@ -312,41 +302,59 @@ function AsciiCactus({
   );
 }
 
-const SCALE_CACTUS = 6;
-
 function spawnObstacle(id: number): Obstacle {
   const roll = Math.random();
   const kind: ObstacleKind =
-    roll < 0.45 ? "cactus1" : roll < 0.75 ? "cactus3" : "cactus2";
+    roll < 0.5 ? "cactus1" : roll < 0.78 ? "cactus3" : "cactus2";
+  const r = Math.random();
+  const plan: JumpPlan = r < 0.8 ? "clear" : r < 0.92 ? "late" : "none";
+
   return {
     id,
     kind,
-    x: 1.12,
+    x: 1.15,
     width: OBSTACLE_LANE_W[kind],
     hit: false,
-    // 70% jump-pass, 30% hurt
-    clearable: Math.random() < 0.7,
-    jumped: false,
+    plan,
+    reacted: false,
   };
 }
 
-function useChromeDinoLoop(enabled: boolean) {
+/**
+ * Chrome-like auto runner with ASCII sprites.
+ * Jump lift via DOM (smooth projectile, no SVG remount blink).
+ * One locked air frame + ASCII scramble stays on during jump.
+ */
+function useChromeDinoLoop(
+  enabled: boolean,
+  onJumpLift?: (lift01: number) => void,
+  onObstaclesPaint?: (obstacles: Obstacle[]) => void,
+) {
   const [pose, setPose] = useState<Pose>("run");
   const [frame, setFrame] = useState(0);
-  const [jumpY, setJumpY] = useState(0);
-  const [obstacles, setObstacles] = useState<Obstacle[]>([]);
+  const [obstacleSnapshot, setObstacleSnapshot] = useState<Obstacle[]>([]);
 
   const poseRef = useRef<Pose>("run");
   const frameRef = useRef(0);
-  const jumpTRef = useRef(0);
-  const hurtTRef = useRef(0);
   const obstaclesRef = useRef<Obstacle[]>([]);
-  const speedRef = useRef(0.28);
-  const nextSpawnRef = useRef(1.1);
+  const speedRef = useRef(0.24);
+  const nextSpawnRef = useRef(2.5);
   const idRef = useRef(1);
   const animAccRef = useRef(0);
-  /** while jumping for a clearable obstacle, ignore hurt */
-  const clearingRef = useRef(false);
+  const runningTimeRef = useRef(0);
+  const velYRef = useRef(0);
+  const yRef = useRef(0);
+  const clearingIdRef = useRef<number | null>(null);
+  const jumpPowerRef = useRef<"full" | "weak">("full");
+  const lastObstacleKeyRef = useRef("");
+
+  const JUMP_V = 3.2;
+  const JUMP_V_WEAK = 1.05;
+  const GRAVITY = 6.0;
+  const CLEAR_Y = 0.3;
+  const DINO_X = 0.12;
+  const DINO_W = 0.065;
+  const AIR_FRAME = 1;
 
   useEffect(() => {
     poseRef.current = pose;
@@ -357,62 +365,103 @@ function useChromeDinoLoop(enabled: boolean) {
 
     let raf = 0;
     let last = performance.now();
+    let hurtUntil = 0;
 
-    const startJump = () => {
-      poseRef.current = "jump";
-      setPose("jump");
-      jumpTRef.current = 0;
+    const setPoseNow = (next: Pose) => {
+      poseRef.current = next;
+      setPose(next);
+      animAccRef.current = 0;
+    };
+
+    const paintLift = (lift01: number) => {
+      onJumpLift?.(lift01);
+    };
+
+    const syncObstacles = (moved: Obstacle[], force = false) => {
+      onObstaclesPaint?.(moved);
+      const key = moved
+        .map((o) => `${o.id}:${o.kind}:${o.hit ? 1 : 0}`)
+        .join("|");
+      if (force || key !== lastObstacleKeyRef.current) {
+        lastObstacleKeyRef.current = key;
+        setObstacleSnapshot(moved.map((o) => ({ ...o })));
+      }
+    };
+
+    const startJump = (power: "full" | "weak") => {
+      if (poseRef.current !== "run") return false;
+      jumpPowerRef.current = power;
+      velYRef.current = power === "full" ? JUMP_V : JUMP_V_WEAK;
+      yRef.current = 0.002;
+      setPoseNow("jump");
+      frameRef.current = AIR_FRAME;
+      setFrame(AIR_FRAME);
+      return true;
+    };
+
+    const triggerHurt = (o: Obstacle, nowMs: number) => {
+      o.hit = true;
+      clearingIdRef.current = null;
+      velYRef.current = 0;
+      yRef.current = 0;
+      paintLift(0);
+      setPoseNow("hurt");
       frameRef.current = 0;
       setFrame(0);
+      hurtUntil = nowMs + 850;
     };
 
     const step = (now: number) => {
-      const dt = Math.min(0.05, (now - last) / 1000);
+      const dt = Math.min(0.04, (now - last) / 1000);
       last = now;
+      runningTimeRef.current += dt;
 
-      speedRef.current = Math.min(0.45, speedRef.current + dt * 0.004);
+      speedRef.current = Math.min(0.4, speedRef.current + dt * 0.0032);
 
       let poseNow = poseRef.current;
       const frameCount = POSE_FRAMES[poseNow].length;
+      const speed = speedRef.current;
+      const timeToPeak = JUMP_V / GRAVITY;
+      const goodDist = Math.min(0.26, Math.max(0.13, speed * timeToPeak * 0.98));
 
-      if (poseNow === "jump") {
-        jumpTRef.current += dt / 0.55;
-        const t = Math.min(1, jumpTRef.current);
-        setJumpY(4 * t * (1 - t));
-
-        animAccRef.current += dt;
-        if (animAccRef.current >= 0.08) {
-          animAccRef.current = 0;
-          frameRef.current = (frameRef.current + 1) % frameCount;
-          setFrame(frameRef.current);
-        }
-
-        if (t >= 1) {
-          poseNow = "run";
-          poseRef.current = "run";
-          setPose("run");
-          setJumpY(0);
-          jumpTRef.current = 0;
-          clearingRef.current = false;
-          frameRef.current = 0;
-          setFrame(0);
-        }
-      } else if (poseNow === "hurt") {
-        hurtTRef.current += dt;
+      if (poseNow === "hurt") {
         animAccRef.current += dt;
         if (animAccRef.current >= 0.1) {
           animAccRef.current = 0;
           frameRef.current = (frameRef.current + 1) % frameCount;
           setFrame(frameRef.current);
         }
-        if (hurtTRef.current >= 0.85) {
-          poseNow = "run";
-          poseRef.current = "run";
-          setPose("run");
-          hurtTRef.current = 0;
+        if (now >= hurtUntil) {
+          obstaclesRef.current = obstaclesRef.current.filter((o) => !o.hit);
+          syncObstacles(obstaclesRef.current, true);
+          yRef.current = 0;
+          velYRef.current = 0;
+          paintLift(0);
+          clearingIdRef.current = null;
+          setPoseNow("run");
           frameRef.current = 0;
           setFrame(0);
-          obstaclesRef.current = obstaclesRef.current.filter((o) => !o.hit);
+          poseNow = "run";
+        }
+      } else if (poseNow === "jump") {
+        velYRef.current -= GRAVITY * dt;
+        yRef.current += velYRef.current * dt;
+
+        const peak =
+          jumpPowerRef.current === "full"
+            ? (JUMP_V * JUMP_V) / (2 * GRAVITY)
+            : (JUMP_V_WEAK * JUMP_V_WEAK) / (2 * GRAVITY);
+
+        if (yRef.current <= 0) {
+          yRef.current = 0;
+          velYRef.current = 0;
+          paintLift(0);
+          setPoseNow("run");
+          frameRef.current = 0;
+          setFrame(0);
+          poseNow = "run";
+        } else {
+          paintLift(Math.min(1, yRef.current / Math.max(0.35, peak)));
         }
       } else {
         animAccRef.current += dt;
@@ -423,106 +472,82 @@ function useChromeDinoLoop(enabled: boolean) {
         }
       }
 
-      const scrollMul = poseNow === "hurt" ? 0.12 : 1;
+      const scrollMul = poseNow === "hurt" ? 0.08 : 1;
       const moved = obstaclesRef.current
         .map((o) => ({
           ...o,
-          x: o.x - speedRef.current * dt * scrollMul,
+          x: o.x - speed * dt * scrollMul,
         }))
         .filter((o) => o.x > -0.2);
 
       nextSpawnRef.current -= dt;
-      if (nextSpawnRef.current <= 0 && poseNow !== "hurt") {
+      if (
+        nextSpawnRef.current <= 0 &&
+        poseNow !== "hurt" &&
+        runningTimeRef.current > 2.2
+      ) {
         const lastX = moved.reduce((m, o) => Math.max(m, o.x), 0);
-        if (lastX < 0.68) {
+        const minGap = 0.7 + speed * 0.65;
+        if (lastX < 1.1 - minGap) {
           moved.push(spawnObstacle(idRef.current++));
-          nextSpawnRef.current = 1.0 + Math.random() * 1.5;
+          nextSpawnRef.current = 1.05 + Math.random() * 1.15;
         } else {
-          nextSpawnRef.current = 0.25;
+          nextSpawnRef.current = 0.12;
         }
       }
 
-      const DINO_X = 0.1;
-      const DINO_W = 0.09;
-
       for (const o of moved) {
-        const approaching = o.x < DINO_X + 0.32 && o.x > DINO_X + 0.04;
+        const dist = o.x - DINO_X;
         const overlap =
           o.x < DINO_X + DINO_W && o.x + o.width > DINO_X - 0.01;
 
-        // 70% clearable → jump early and never hurt on this cactus
-        if (
-          poseNow === "run" &&
-          approaching &&
-          o.clearable &&
-          !o.jumped
-        ) {
-          o.jumped = true;
-          clearingRef.current = true;
-          startJump();
-          poseNow = "jump";
-          break;
-        }
-
-        // 30% fail → either miss jump or jump too late → hurt
-        if (poseNow === "run" && approaching && !o.clearable && !o.jumped) {
-          // sometimes attempt a late/bad jump (still hits), sometimes no jump
-          o.jumped = true;
-          if (Math.random() < 0.35) {
-            clearingRef.current = false;
-            startJump();
-            poseNow = "jump";
+        if (!o.reacted && poseNow === "run" && dist > 0) {
+          if (o.plan === "clear" && dist <= goodDist && dist > goodDist * 0.6) {
+            o.reacted = true;
+            if (startJump("full")) {
+              clearingIdRef.current = o.id;
+              poseNow = "jump";
+            }
+          } else if (o.plan === "late" && dist <= goodDist * 0.28) {
+            o.reacted = true;
+            if (startJump("weak")) poseNow = "jump";
+          } else if (o.plan === "none" && dist <= goodDist) {
+            o.reacted = true;
           }
-          break;
         }
 
-        if (!overlap || poseNow === "hurt" || o.hit) continue;
-
-        if (o.clearable || clearingRef.current) {
-          // successful pass — no hurt
+        if (clearingIdRef.current === o.id) {
+          if (o.x + o.width < DINO_X - 0.03) {
+            clearingIdRef.current = null;
+          }
           continue;
         }
 
-        // failed encounter
-        o.hit = true;
-        poseNow = "hurt";
-        poseRef.current = "hurt";
-        setPose("hurt");
-        hurtTRef.current = 0;
-        setJumpY(0);
-        clearingRef.current = false;
-        frameRef.current = 0;
-        setFrame(0);
-        break;
-      }
-
-      // rare idle hop only when lane is empty
-      if (
-        poseNow === "run" &&
-        moved.length === 0 &&
-        Math.random() < dt * 0.04
-      ) {
-        clearingRef.current = true;
-        startJump();
-        poseNow = "jump";
+        if (overlap && !o.hit && poseNow !== "hurt" && yRef.current < CLEAR_Y) {
+          triggerHurt(o, now);
+          poseNow = "hurt";
+          break;
+        }
       }
 
       obstaclesRef.current = moved;
-      setObstacles([...moved]);
-
+      syncObstacles(moved);
       raf = requestAnimationFrame(step);
     };
 
     raf = requestAnimationFrame(step);
     return () => cancelAnimationFrame(raf);
-  }, [enabled]);
+  }, [enabled, onJumpLift, onObstaclesPaint]);
 
-  return { pose, frame, jumpY, obstacles };
+  return { pose, frame, obstacles: obstacleSnapshot };
 }
 
 export function DinoDashStage() {
   const [reduced, setReduced] = useState(false);
   const [ready, setReady] = useState(false);
+  const liftRef = useRef<HTMLDivElement>(null);
+  const obstacleLayerRef = useRef<HTMLDivElement>(null);
+  const groundNudge = DINO_SIZE * 0.16;
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -533,21 +558,45 @@ export function DinoDashStage() {
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  const enabled = ready && !reduced;
-  const { pose, frame, jumpY, obstacles } = useChromeDinoLoop(enabled);
+  const onJumpLift = useCallback(
+    (lift01: number) => {
+      const el = liftRef.current;
+      if (!el) return;
+      const liftPx = lift01 * (DINO_SIZE * 0.62);
+      el.style.transform = `translate3d(0, ${groundNudge - liftPx}px, 0)`;
+    },
+    [groundNudge],
+  );
 
-  const liftPx = jumpY * (DINO_SIZE * 0.55);
-  const groundNudge = DINO_SIZE * 0.14;
+  const onObstaclesPaint = useCallback((list: Obstacle[]) => {
+    const root = obstacleLayerRef.current;
+    if (!root) return;
+    for (const node of root.querySelectorAll<HTMLElement>("[data-oid]")) {
+      const id = Number(node.dataset.oid);
+      const o = list.find((item) => item.id === id);
+      if (!o) continue;
+      node.style.left = `${o.x * 100}%`;
+      node.style.opacity = o.hit ? "0.35" : "1";
+    }
+  }, []);
+
+  const enabled = ready && !reduced;
+  const { pose, frame, obstacles } = useChromeDinoLoop(
+    enabled,
+    onJumpLift,
+    onObstaclesPaint,
+  );
 
   return (
     <div
       aria-label="Dino run"
-      className="pointer-events-none absolute bottom-[14px] left-[36%] right-4 z-[1] hidden h-[200px] md:block"
+      className="pointer-events-none absolute bottom-[14px] left-[36%] right-4 z-[1] hidden h-[280px] md:block"
     >
-      <div className="absolute inset-0 overflow-hidden">
+      <div ref={obstacleLayerRef} className="absolute inset-0 overflow-hidden">
         {obstacles.map((o) => (
           <div
             key={o.id}
+            data-oid={o.id}
             className="absolute bottom-[2px]"
             style={{ left: `${o.x * 100}%` }}
           >
@@ -562,12 +611,11 @@ export function DinoDashStage() {
       </div>
 
       <div
+        ref={liftRef}
         className="absolute bottom-0 left-0 will-change-transform"
-        style={{
-          transform: `translateY(${groundNudge - liftPx}px)`,
-        }}
+        style={{ transform: `translate3d(0, ${groundNudge}px, 0)` }}
       >
-        <AsciiDino
+        <AsciiDinoView
           pose={pose}
           frame={frame}
           scramble={enabled}
@@ -578,6 +626,7 @@ export function DinoDashStage() {
   );
 }
 
+/** Thin purple horizon — ground for the dino */
 export function DinoDashHorizon() {
   return (
     <div
