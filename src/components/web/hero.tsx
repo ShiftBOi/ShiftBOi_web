@@ -1,47 +1,161 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import gsap from "gsap";
 
 const nav = [
   { href: "#architecture", label: "Architecture" },
   { href: "#work", label: "Work" },
   { href: "#contact", label: "Contact" },
+  { href: "#architecture", label: "Resources" },
 ];
 
 export function SiteHeader() {
   return (
-    <header className="relative z-20 flex items-center justify-between gap-6 px-5 py-5 md:px-10">
-      <Link
-        href="/"
-        className="text-[length:var(--font-size-lg)] tracking-tight text-[var(--color-text-primary)]"
-      >
-        WebPort
-      </Link>
-      <nav aria-label="Primary" className="hidden items-center gap-7 md:flex">
-        {nav.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className="text-[length:var(--font-size-md)] text-[var(--color-text-inverse)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-text-primary)]"
-          >
-            {item.label}
-          </a>
-        ))}
-      </nav>
-      <Link
-        href="/cms"
-        className="text-[length:var(--font-size-md)] text-[var(--color-text-tertiary)] transition-colors duration-[var(--motion-fast)] hover:text-[var(--color-text-primary)]"
-      >
-        CMS
-      </Link>
+    <header className="sticky top-0 z-40 border-y border-[var(--color-border-default)] bg-black/90 backdrop-blur-md">
+      <div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between gap-6 px-5 md:h-[84px] md:px-10">
+        <Link
+          href="/"
+          className="flex shrink-0 items-center gap-3 text-[22px] font-medium tracking-tight text-white md:text-[24px]"
+        >
+          <span aria-hidden className="grid size-8 grid-cols-2 gap-0.5 md:size-9 md:gap-1">
+            <span className="bg-[var(--color-accent-purple)]" />
+            <span className="bg-[var(--color-accent-purple-bright)]" />
+            <span className="bg-[var(--color-accent-purple-bright)]" />
+            <span className="bg-[var(--color-accent-purple)]" />
+          </span>
+          ShiftBOi
+        </Link>
+
+        <nav
+          aria-label="Primary"
+          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 lg:flex"
+        >
+          {nav.map((item) => (
+            <a
+              key={item.label}
+              href={item.href}
+              className="text-[14px] leading-none text-[var(--color-nav-link)] transition-colors duration-[var(--motion-fast)] hover:text-white"
+            >
+              {item.label}
+            </a>
+          ))}
+        </nav>
+
+        <Link
+          href="/cms/login"
+          className="shrink-0 text-[14px] leading-none text-white transition-opacity hover:opacity-80"
+        >
+          Log In
+        </Link>
+      </div>
     </header>
+  );
+}
+
+function TalkToUsButton({ href = "#contact" }: { href?: string }) {
+  const rootRef = useRef<HTMLAnchorElement>(null);
+  const frameRef = useRef<HTMLSpanElement>(null);
+  const labelRef = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const root = rootRef.current;
+    const frame = frameRef.current;
+    const label = labelRef.current;
+    if (!root || !frame || !label) return;
+
+    gsap.set(frame, {
+      opacity: 0,
+      scaleX: 0.92,
+      scaleY: 0.88,
+      transformOrigin: "left center",
+    });
+    gsap.set(label, { x: 0, y: 0 });
+
+    const enter = () => {
+      gsap.killTweensOf([frame, label, root]);
+      gsap.to(frame, {
+        opacity: 1,
+        scaleX: 1,
+        scaleY: 1,
+        duration: 0.28,
+        ease: "power2.out",
+      });
+      gsap.to(label, {
+        x: -0.5,
+        y: -0.5,
+        duration: 0.22,
+        ease: "power2.out",
+      });
+      gsap.to(root, {
+        scale: 1.02,
+        duration: 0.22,
+        ease: "power2.out",
+      });
+    };
+
+    const leave = () => {
+      gsap.killTweensOf([frame, label, root]);
+      gsap.to(frame, {
+        opacity: 0,
+        scaleX: 0.92,
+        scaleY: 0.88,
+        duration: 0.2,
+        ease: "power2.inOut",
+      });
+      gsap.to(label, {
+        x: 0,
+        y: 0,
+        duration: 0.2,
+        ease: "power2.inOut",
+      });
+      gsap.to(root, {
+        scale: 1,
+        duration: 0.2,
+        ease: "power2.inOut",
+      });
+    };
+
+    root.addEventListener("mouseenter", enter);
+    root.addEventListener("mouseleave", leave);
+    root.addEventListener("focus", enter);
+    root.addEventListener("blur", leave);
+
+    return () => {
+      root.removeEventListener("mouseenter", enter);
+      root.removeEventListener("mouseleave", leave);
+      root.removeEventListener("focus", enter);
+      root.removeEventListener("blur", leave);
+      gsap.killTweensOf([frame, label, root]);
+    };
+  }, []);
+
+  return (
+    <a
+      ref={rootRef}
+      href={href}
+      className="relative inline-flex min-h-11 items-center justify-center bg-white px-5 text-[15px] font-medium text-[#000000] outline-none will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+    >
+      <span
+        ref={frameRef}
+        aria-hidden
+        className="pointer-events-none absolute -inset-y-px -left-px -right-[4px] z-0 bg-[var(--color-violet)]"
+      />
+      <span
+        ref={labelRef}
+        className="relative z-[1] bg-white px-5 py-[0.65rem] text-[#000000] will-change-transform"
+      >
+        Talk to us
+      </span>
+    </a>
   );
 }
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[calc(100vh-72px)] flex-col justify-end px-5 pb-16 pt-24 md:px-10 md:pb-24">
+    <section className="relative flex min-h-[calc(100vh-68px-100px)] flex-col justify-start px-5 pb-20 pt-24 md:px-10 md:pb-24 md:pt-28">
       <motion.div
         aria-hidden
         className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -49,23 +163,22 @@ export function Hero() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <div className="absolute -right-24 top-16 h-[420px] w-[420px] rounded-full border border-white/5" />
-        <div className="absolute -right-8 top-40 h-[280px] w-[280px] rounded-full border border-white/10" />
-        <div className="absolute bottom-24 left-[12%] h-32 w-32 border border-white/10" />
+        <div className="absolute -right-16 top-10 h-[480px] w-[480px] rounded-full border border-white/5" />
+        <div className="absolute -right-2 top-36 h-[300px] w-[300px] rounded-full border border-[var(--color-accent-purple)]/20" />
+        <div className="absolute bottom-28 left-[10%] h-28 w-28 border border-white/10" />
       </motion.div>
 
       <motion.p
-        className="mb-4 max-w-xl text-[length:var(--font-size-sm)] uppercase tracking-[0.18em] text-[var(--color-text-tertiary)]"
+        className="mb-4 max-w-2xl text-[14px] text-[var(--color-text-secondary)]"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.45 }}
       >
-        HydraDB-inspired portfolio surface
+        Data connectors now live: Slack, Notion, GitHub, Gmail, and more →
       </motion.p>
 
       <motion.h1
-        className="max-w-4xl text-[clamp(2.4rem,7vw,5.5rem)] font-medium leading-[0.95] tracking-[-0.04em] text-[var(--color-text-primary)]"
+        className="max-w-4xl text-[clamp(2.6rem,7vw,5.25rem)] font-medium leading-[0.95] tracking-[-0.04em] text-white"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.05 }}
@@ -73,34 +186,26 @@ export function Hero() {
         The Graph AI Runs On.
       </motion.h1>
 
-      <motion.p
-        className="mt-6 max-w-xl text-[length:var(--font-size-2xl)] leading-relaxed text-[var(--color-text-inverse)]"
+      <motion.div
+        className="mt-5 max-w-xl space-y-3 text-[16px] leading-[1.45] text-[var(--color-text-secondary)]"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.12 }}
       >
-        Minimal marketing shell for WebPort v2 — Postgres, Prisma, Next.js web +
-        CMS under <span className="text-[var(--color-text-primary)]">/cms</span>.
-      </motion.p>
+        <p>
+          GraphDB built on object storage: 10x cheaper, ultra fast, and
+          purpose-built for modern AI workloads.
+        </p>
+        <p>Build ontologies, agent memory, company brains, and context graphs.</p>
+      </motion.div>
 
       <motion.div
-        className="mt-10 flex flex-wrap items-center gap-4"
+        className="mt-8 flex flex-wrap items-center gap-3"
         initial={{ opacity: 0, y: 18 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.55, delay: 0.2 }}
       >
-        <a
-          href="#work"
-          className="inline-flex min-h-11 items-center justify-center border border-white bg-[var(--color-text-primary)] px-5 text-[length:var(--font-size-lg)] text-black transition-[transform,opacity] duration-[var(--motion-fast)] hover:opacity-90 active:scale-[0.98] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-        >
-          View work
-        </a>
-        <a
-          href="#contact"
-          className="inline-flex min-h-11 items-center justify-center border border-[var(--color-border-default)] px-5 text-[length:var(--font-size-lg)] text-[var(--color-text-primary)] transition-colors duration-[var(--motion-fast)] hover:border-white"
-        >
-          Talk to us
-        </a>
+        <TalkToUsButton />
       </motion.div>
     </section>
   );
