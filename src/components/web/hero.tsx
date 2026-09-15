@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
-import { DinoDashHorizon } from "@/components/web/dino-dash";
+import { DinoDashHorizon, DinoDashStage } from "@/components/web/dino-dash";
 
 const nav = [
   { href: "#architecture", label: "Architecture" },
@@ -171,7 +171,7 @@ export function Hero() {
         </motion.div>
 
         <motion.p
-          className="mb-4 max-w-2xl text-[14px] text-[var(--color-text-secondary)]"
+          className="relative z-[2] mb-4 max-w-2xl text-[14px] text-[var(--color-text-secondary)]"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
@@ -180,7 +180,7 @@ export function Hero() {
         </motion.p>
 
         <motion.h1
-          className="max-w-4xl text-[clamp(2.6rem,7vw,5.25rem)] font-medium leading-[0.95] tracking-[-0.04em] text-white"
+          className="relative z-[2] max-w-4xl text-[clamp(2.6rem,7vw,5.25rem)] font-medium leading-[0.95] tracking-[-0.04em] text-white"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.05 }}
@@ -189,7 +189,7 @@ export function Hero() {
         </motion.h1>
 
         <motion.div
-          className="mt-5 max-w-xl space-y-3 text-[16px] leading-[1.45] text-[var(--color-text-secondary)]"
+          className="relative z-[2] mt-5 max-w-xl space-y-3 text-[16px] leading-[1.45] text-[var(--color-text-secondary)]"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.12 }}
@@ -202,7 +202,7 @@ export function Hero() {
         </motion.div>
 
         <motion.div
-          className="mt-8 flex flex-wrap items-center gap-3"
+          className="relative z-[2] mt-8 flex flex-wrap items-center gap-3"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.2 }}
@@ -211,6 +211,7 @@ export function Hero() {
         </motion.div>
       </div>
 
+      <DinoDashStage />
       <DinoDashHorizon />
     </section>
   );
