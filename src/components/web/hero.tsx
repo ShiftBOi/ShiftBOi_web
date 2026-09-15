@@ -144,7 +144,7 @@ export function Hero() {
         </motion.p>
 
         <motion.h1
-          className="relative z-[2] max-w-4xl text-[clamp(2.6rem,7vw,5.25rem)] font-medium leading-[0.95] tracking-[-0.04em] text-white"
+          className="relative z-[2] max-w-4xl font-airmail text-[clamp(2.6rem,7vw,5.25rem)] font-normal leading-[1.05] tracking-normal text-white"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.05 }}

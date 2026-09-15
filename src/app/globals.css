@@ -8,6 +8,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Airmail";
+  src: url("/fonts/airmail.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Brand palette: black + violet · text white / gray */
   --color-surface-base: #000000;
@@ -37,6 +45,7 @@
   /* Typography tokens */
   --font-family-primary: "Aeonik TRIAL Regular", "Aeonik TRIAL Regular Placeholder",
     var(--font-aeonik-fallback), sans-serif;
+  --font-family-airmail: "Airmail", var(--font-aeonik-fallback), sans-serif;
   --font-size-xs: 11px;
   --font-size-sm: 12px;
   --font-size-md: 13px;
@@ -78,6 +87,10 @@
   --color-border: var(--color-border-default);
   --color-elevated: var(--color-surface-elevated);
   --font-sans: var(--font-family-primary);
+}
+
+.font-airmail {
+  font-family: var(--font-family-airmail);
 }
 
 * {

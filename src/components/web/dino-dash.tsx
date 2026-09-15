@@ -108,8 +108,22 @@ const CACTUS_MASKS: Record<ObstacleKind, string[]> = {
 
 const OBSTACLE_LANE_W: Record<ObstacleKind, number> = {
   cactus1: 0.05,
-  cactus2: 0.075,
+  cactus2: 0.09, // double cluster — wider hitbox
   cactus3: 0.04,
+};
+
+/** Extra lead distance so wide clusters get an earlier / farther jump */
+const JUMP_LEAD: Record<ObstacleKind, number> = {
+  cactus1: 1,
+  cactus2: 1.45,
+  cactus3: 0.92,
+};
+
+/** Jump power boost for clearing wide 2-asset clusters */
+const JUMP_POWER: Record<ObstacleKind, number> = {
+  cactus1: 1,
+  cactus2: 1.22,
+  cactus3: 0.95,
 };
 
 function randomChar() {
@@ -346,6 +360,7 @@ function useChromeDinoLoop(
   const yRef = useRef(0);
   const clearingIdRef = useRef<number | null>(null);
   const jumpPowerRef = useRef<"full" | "weak">("full");
+  const jumpKindRef = useRef<ObstacleKind>("cactus1");
   const lastObstacleKeyRef = useRef("");
 
   const JUMP_V = 3.2;
@@ -388,10 +403,14 @@ function useChromeDinoLoop(
       }
     };
 
-    const startJump = (power: "full" | "weak") => {
+    const startJump = (power: "full" | "weak", kind: ObstacleKind = "cactus1") => {
       if (poseRef.current !== "run") return false;
       jumpPowerRef.current = power;
-      velYRef.current = power === "full" ? JUMP_V : JUMP_V_WEAK;
+      jumpKindRef.current = kind;
+      const boost = power === "full" ? JUMP_POWER[kind] : 1;
+      velYRef.current =
+        (power === "full" ? JUMP_V : JUMP_V_WEAK) * boost;
+      // slightly lower gravity on wide clears = longer / farther hang time
       yRef.current = 0.002;
       setPoseNow("jump");
       frameRef.current = AIR_FRAME;
@@ -422,7 +441,14 @@ function useChromeDinoLoop(
       const frameCount = POSE_FRAMES[poseNow].length;
       const speed = speedRef.current;
       const timeToPeak = JUMP_V / GRAVITY;
-      const goodDist = Math.min(0.26, Math.max(0.13, speed * timeToPeak * 0.98));
+      const baseDist = Math.min(0.26, Math.max(0.13, speed * timeToPeak * 0.98));
+      // Wide double-cactus: lower gravity while clearing for farther hang
+      const gravNow =
+        poseNow === "jump" &&
+        jumpPowerRef.current === "full" &&
+        jumpKindRef.current === "cactus2"
+          ? GRAVITY * 0.82
+          : GRAVITY;
 
       if (poseNow === "hurt") {
         animAccRef.current += dt;
@@ -444,13 +470,14 @@ function useChromeDinoLoop(
           poseNow = "run";
         }
       } else if (poseNow === "jump") {
-        velYRef.current -= GRAVITY * dt;
+        velYRef.current -= gravNow * dt;
         yRef.current += velYRef.current * dt;
 
-        const peak =
+        const peakV =
           jumpPowerRef.current === "full"
-            ? (JUMP_V * JUMP_V) / (2 * GRAVITY)
-            : (JUMP_V_WEAK * JUMP_V_WEAK) / (2 * GRAVITY);
+            ? JUMP_V * JUMP_POWER[jumpKindRef.current]
+            : JUMP_V_WEAK;
+        const peak = (peakV * peakV) / (2 * gravNow);
 
         if (yRef.current <= 0) {
           yRef.current = 0;
@@ -502,15 +529,20 @@ function useChromeDinoLoop(
           o.x < DINO_X + DINO_W && o.x + o.width > DINO_X - 0.01;
 
         if (!o.reacted && poseNow === "run" && dist > 0) {
-          if (o.plan === "clear" && dist <= goodDist && dist > goodDist * 0.6) {
+          const goodDist = Math.min(
+            0.36,
+            Math.max(0.13, baseDist * JUMP_LEAD[o.kind]),
+          );
+
+          if (o.plan === "clear" && dist <= goodDist && dist > goodDist * 0.55) {
             o.reacted = true;
-            if (startJump("full")) {
+            if (startJump("full", o.kind)) {
               clearingIdRef.current = o.id;
               poseNow = "jump";
             }
           } else if (o.plan === "late" && dist <= goodDist * 0.28) {
             o.reacted = true;
-            if (startJump("weak")) poseNow = "jump";
+            if (startJump("weak", o.kind)) poseNow = "jump";
           } else if (o.plan === "none" && dist <= goodDist) {
             o.reacted = true;
           }
