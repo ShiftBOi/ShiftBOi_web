@@ -16,12 +16,15 @@ const nav = [
 export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-y border-[var(--color-border-default)] bg-black/90 backdrop-blur-md">
-      <div className="mx-auto flex h-20 max-w-[1400px] items-center justify-between gap-6 px-5 md:h-[84px] md:px-10">
+      <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-6 px-5 md:h-16 md:px-10">
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-3 text-[22px] font-medium tracking-tight text-white md:text-[24px]"
+          className="flex shrink-0 items-center gap-2.5 text-[24px] font-semibold leading-none tracking-tight text-white md:text-[26px]"
         >
-          <span aria-hidden className="grid size-8 grid-cols-2 gap-0.5 md:size-9 md:gap-1">
+          <span
+            aria-hidden
+            className="grid h-[1em] w-[1.2em] shrink-0 grid-cols-2 gap-px self-center"
+          >
             <span className="bg-[var(--color-accent-purple)]" />
             <span className="bg-[var(--color-accent-purple-bright)]" />
             <span className="bg-[var(--color-accent-purple-bright)]" />
@@ -32,13 +35,14 @@ export function SiteHeader() {
 
         <nav
           aria-label="Primary"
-          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-8 lg:flex"
+          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 lg:flex"
         >
           {nav.map((item) => (
             <a
               key={item.label}
               href={item.href}
-              className="text-[14px] leading-none text-[var(--color-nav-link)] transition-colors duration-[var(--motion-fast)] hover:text-white"
+              style={{ color: "#999999" }}
+              className="site-nav-link text-[14px] leading-none transition-colors duration-[var(--motion-fast)]"
             >
               {item.label}
             </a>
@@ -58,63 +62,32 @@ export function SiteHeader() {
 
 function TalkToUsButton({ href = "#contact" }: { href?: string }) {
   const rootRef = useRef<HTMLAnchorElement>(null);
-  const frameRef = useRef<HTMLSpanElement>(null);
-  const labelRef = useRef<HTMLSpanElement>(null);
 
   useEffect(() => {
     const root = rootRef.current;
-    const frame = frameRef.current;
-    const label = labelRef.current;
-    if (!root || !frame || !label) return;
+    if (!root) return;
 
-    gsap.set(frame, {
-      opacity: 0,
-      scaleX: 0.92,
-      scaleY: 0.88,
-      transformOrigin: "left center",
-    });
-    gsap.set(label, { x: 0, y: 0 });
+    const restShadow = "inset 0 0 0 0px transparent";
+    const hoverShadow = "inset 0 0 0 1.5px #7c3aed";
+
+    gsap.set(root, { boxShadow: restShadow, scale: 1 });
 
     const enter = () => {
-      gsap.killTweensOf([frame, label, root]);
-      gsap.to(frame, {
-        opacity: 1,
-        scaleX: 1,
-        scaleY: 1,
-        duration: 0.28,
-        ease: "power2.out",
-      });
-      gsap.to(label, {
-        x: -0.5,
-        y: -0.5,
-        duration: 0.22,
-        ease: "power2.out",
-      });
+      gsap.killTweensOf(root);
       gsap.to(root, {
-        scale: 1.02,
-        duration: 0.22,
+        boxShadow: hoverShadow,
+        scale: 1.01,
+        duration: 0.2,
         ease: "power2.out",
       });
     };
 
     const leave = () => {
-      gsap.killTweensOf([frame, label, root]);
-      gsap.to(frame, {
-        opacity: 0,
-        scaleX: 0.92,
-        scaleY: 0.88,
-        duration: 0.2,
-        ease: "power2.inOut",
-      });
-      gsap.to(label, {
-        x: 0,
-        y: 0,
-        duration: 0.2,
-        ease: "power2.inOut",
-      });
+      gsap.killTweensOf(root);
       gsap.to(root, {
+        boxShadow: restShadow,
         scale: 1,
-        duration: 0.2,
+        duration: 0.16,
         ease: "power2.inOut",
       });
     };
@@ -129,7 +102,7 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
       root.removeEventListener("mouseleave", leave);
       root.removeEventListener("focus", enter);
       root.removeEventListener("blur", leave);
-      gsap.killTweensOf([frame, label, root]);
+      gsap.killTweensOf(root);
     };
   }, []);
 
@@ -137,27 +110,18 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
     <a
       ref={rootRef}
       href={href}
-      className="relative inline-flex min-h-11 items-center justify-center bg-white px-5 text-[15px] font-medium text-[#000000] outline-none will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+      style={{ color: "#000000", backgroundColor: "#ffffff" }}
+      className="inline-flex min-h-11 items-center justify-center px-5 text-[15px] font-medium outline-none will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
     >
-      <span
-        ref={frameRef}
-        aria-hidden
-        className="pointer-events-none absolute -inset-y-px -left-px -right-[4px] z-0 bg-[var(--color-violet)]"
-      />
-      <span
-        ref={labelRef}
-        className="relative z-[1] bg-white px-5 py-[0.65rem] text-[#000000] will-change-transform"
-      >
-        Talk to us
-      </span>
+      Talk to us
     </a>
   );
 }
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[calc(100vh-68px-100px)] flex-col">
-      <div className="relative flex flex-1 flex-col justify-start px-5 pb-16 pt-24 md:px-10 md:pb-20 md:pt-28">
+    <section className="relative flex min-h-[calc(100dvh-4rem-146px)] flex-col">
+      <div className="relative z-[1] mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-start px-5 pb-8 pt-16 md:px-10 md:pb-10 md:pt-20">
         <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -189,7 +153,7 @@ export function Hero() {
         </motion.h1>
 
         <motion.div
-          className="relative z-[2] mt-5 max-w-xl space-y-3 text-[16px] leading-[1.45] text-[var(--color-text-secondary)]"
+          className="relative z-[2] mt-10 max-w-xl space-y-3 text-[18px] leading-[1.5] text-[var(--color-text-secondary)] md:text-[20px]"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.12 }}
@@ -198,11 +162,13 @@ export function Hero() {
             GraphDB built on object storage: 10x cheaper, ultra fast, and
             purpose-built for modern AI workloads.
           </p>
-          <p>Build ontologies, agent memory, company brains, and context graphs.</p>
+          <p>
+            Build ontologies, agent memory, company brains, and context graphs.
+          </p>
         </motion.div>
 
         <motion.div
-          className="relative z-[2] mt-8 flex flex-wrap items-center gap-3"
+          className="relative z-[2] mt-6 flex flex-wrap items-center gap-3"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.2 }}

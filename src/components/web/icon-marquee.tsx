@@ -6,14 +6,11 @@ type MarqueeItem = {
   mark: React.ReactNode;
 };
 
+const iconSvgClass = "h-full w-full text-[#c4c4c4]";
+
 function CannonMark() {
   return (
-    <svg
-      viewBox="0 0 40 28"
-      className="h-12 w-[4.25rem] text-[#c4c4c4]"
-      aria-hidden
-      fill="currentColor"
-    >
+    <svg viewBox="0 0 40 28" className={iconSvgClass} aria-hidden fill="currentColor">
       <rect x="2" y="12" width="22" height="7" rx="0.5" />
       <rect x="22" y="13.5" width="14" height="4" />
       <rect x="0" y="9" width="7" height="5" />
@@ -28,7 +25,7 @@ function DroneMark() {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 32 32"
-      className="h-12 w-12 text-[#c4c4c4]"
+      className={iconSvgClass}
       aria-hidden
     >
       <path d="M0 0h32v32H0z" fill="none" />
@@ -57,7 +54,7 @@ function DinoMark() {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 12 12"
-      className="h-12 w-12 text-[#c4c4c4]"
+      className={iconSvgClass}
       aria-hidden
     >
       <path d="M0 0h12v12H0z" fill="none" />
@@ -69,24 +66,63 @@ function DinoMark() {
   );
 }
 
+function TvMark() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      className={iconSvgClass}
+      aria-hidden
+    >
+      <path d="M0 0h24v24H0z" fill="none" />
+      <g fill="none" stroke="currentColor" strokeWidth="1.5">
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M7 21h10M13.5 7v4m0 2v-2m0 0l1.37-1.566M17 7l-2.13 2.434m0 0L17 13M9.5 7l-3 4.5H10V13"
+        />
+        <path d="M2 16.4V3.6a.6.6 0 0 1 .6-.6h18.8a.6.6 0 0 1 .6.6v12.8a.6.6 0 0 1-.6.6H2.6a.6.6 0 0 1-.6-.6Z" />
+      </g>
+    </svg>
+  );
+}
+
+function ThailandMapMark() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 15 15"
+      className={iconSvgClass}
+      aria-hidden
+    >
+      <path d="M0 0h15v15H0z" fill="none" />
+      <path fill="currentColor" d="M11 0v2h2v6h-2v4H9v3H6v-3H4V8H2V2h2V0zM9 3H6v3h3z" />
+    </svg>
+  );
+}
+
 const ITEMS: MarqueeItem[] = [
-  { id: "cannon", label: "Cannon", mark: <CannonMark /> },
-  { id: "drone", label: "Drone", mark: <DroneMark /> },
-  { id: "dino", label: "Dino", mark: <DinoMark /> },
+  { id: "cannon", label: "FDC", mark: <CannonMark /> },
+  { id: "drone", label: "DC", mark: <DroneMark /> },
+  { id: "dino", label: "Vibesaur", mark: <DinoMark /> },
+  { id: "tv", label: "Seenpi", mark: <TvMark /> },
+  { id: "thailand", label: "Tastesiam", mark: <ThailandMapMark /> },
 ];
 
 function MarqueeRow({ keyPrefix }: { keyPrefix: string }) {
-  const cells = [...ITEMS, ...ITEMS, ...ITEMS, ...ITEMS];
+  const cells = [...ITEMS, ...ITEMS];
 
   return (
-    <ul className="flex h-[120px] shrink-0 items-stretch" aria-hidden={keyPrefix !== "a"}>
+    <ul className="flex h-[132px] shrink-0 items-stretch" aria-hidden={keyPrefix !== "a"}>
       {cells.map((item, index) => (
         <li
           key={`${keyPrefix}-${item.id}-${index}`}
-          className="flex w-[240px] shrink-0 flex-col items-center justify-center gap-3 border-r border-[#2a2a2a] px-6"
+          className="grid w-[168px] shrink-0 grid-rows-[56px_20px] content-center items-center justify-items-center gap-2 border-r border-[#2a2a2a] px-3"
         >
-          {item.mark}
-          <span className="text-[15px] font-medium tracking-[-0.01em] text-[#c4c4c4]">
+          <span className="flex h-14 w-14 items-center justify-center">
+            {item.mark}
+          </span>
+          <span className="flex h-5 w-full items-center justify-center truncate text-center text-[13px] font-medium leading-none tracking-[-0.01em] text-[#c4c4c4]">
             {item.label}
           </span>
         </li>
@@ -97,8 +133,13 @@ function MarqueeRow({ keyPrefix }: { keyPrefix: string }) {
 
 export function IconVelocityMarquee() {
   return (
-    <section aria-label="Featured icons" className="relative border-t border-[var(--color-border-subtle)] bg-black">
-      <div className="overflow-hidden">
+    <section aria-label="Featured icons" className="relative -mt-2 bg-black">
+      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-[6px]">
+        <div className="h-px w-full bg-[var(--color-violet)]" />
+        <div className="h-px w-full bg-[var(--color-violet)]" />
+      </div>
+
+      <div className="overflow-hidden pt-[14px]">
         <div className="icon-marquee-track flex w-max">
           <MarqueeRow keyPrefix="a" />
           <MarqueeRow keyPrefix="b" />
