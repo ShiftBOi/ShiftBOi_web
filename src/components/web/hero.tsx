@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
+import { DinoDashHorizon } from "@/components/web/dino-dash";
 
 const nav = [
   { href: "#architecture", label: "Architecture" },
@@ -155,58 +156,62 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[calc(100vh-68px-100px)] flex-col justify-start px-5 pb-20 pt-24 md:px-10 md:pb-24 md:pt-28">
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 overflow-hidden"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="absolute -right-16 top-10 h-[480px] w-[480px] rounded-full border border-white/5" />
-        <div className="absolute -right-2 top-36 h-[300px] w-[300px] rounded-full border border-[var(--color-accent-purple)]/20" />
-        <div className="absolute bottom-28 left-[10%] h-28 w-28 border border-white/10" />
-      </motion.div>
+    <section className="relative flex min-h-[calc(100vh-68px-100px)] flex-col">
+      <div className="relative flex flex-1 flex-col justify-start px-5 pb-16 pt-24 md:px-10 md:pb-20 md:pt-28">
+        <motion.div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 overflow-hidden"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
+          <div className="absolute -right-16 top-10 h-[480px] w-[480px] rounded-full border border-white/5" />
+          <div className="absolute -right-2 top-36 h-[300px] w-[300px] rounded-full border border-[var(--color-accent-purple)]/20" />
+          <div className="absolute bottom-28 left-[10%] h-28 w-28 border border-white/10" />
+        </motion.div>
 
-      <motion.p
-        className="mb-4 max-w-2xl text-[14px] text-[var(--color-text-secondary)]"
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.45 }}
-      >
-        Data connectors now live: Slack, Notion, GitHub, Gmail, and more →
-      </motion.p>
+        <motion.p
+          className="mb-4 max-w-2xl text-[14px] text-[var(--color-text-secondary)]"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45 }}
+        >
+          Data connectors now live: Slack, Notion, GitHub, Gmail, and more →
+        </motion.p>
 
-      <motion.h1
-        className="max-w-4xl text-[clamp(2.6rem,7vw,5.25rem)] font-medium leading-[0.95] tracking-[-0.04em] text-white"
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, delay: 0.05 }}
-      >
-        The Graph AI Runs On.
-      </motion.h1>
+        <motion.h1
+          className="max-w-4xl text-[clamp(2.6rem,7vw,5.25rem)] font-medium leading-[0.95] tracking-[-0.04em] text-white"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.05 }}
+        >
+          The Graph AI Runs On.
+        </motion.h1>
 
-      <motion.div
-        className="mt-5 max-w-xl space-y-3 text-[16px] leading-[1.45] text-[var(--color-text-secondary)]"
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, delay: 0.12 }}
-      >
-        <p>
-          GraphDB built on object storage: 10x cheaper, ultra fast, and
-          purpose-built for modern AI workloads.
-        </p>
-        <p>Build ontologies, agent memory, company brains, and context graphs.</p>
-      </motion.div>
+        <motion.div
+          className="mt-5 max-w-xl space-y-3 text-[16px] leading-[1.45] text-[var(--color-text-secondary)]"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.12 }}
+        >
+          <p>
+            GraphDB built on object storage: 10x cheaper, ultra fast, and
+            purpose-built for modern AI workloads.
+          </p>
+          <p>Build ontologies, agent memory, company brains, and context graphs.</p>
+        </motion.div>
 
-      <motion.div
-        className="mt-8 flex flex-wrap items-center gap-3"
-        initial={{ opacity: 0, y: 18 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55, delay: 0.2 }}
-      >
-        <TalkToUsButton />
-      </motion.div>
+        <motion.div
+          className="mt-8 flex flex-wrap items-center gap-3"
+          initial={{ opacity: 0, y: 18 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, delay: 0.2 }}
+        >
+          <TalkToUsButton />
+        </motion.div>
+      </div>
+
+      <DinoDashHorizon />
     </section>
   );
 }

@@ -97,13 +97,8 @@ function MarqueeRow({ keyPrefix }: { keyPrefix: string }) {
 
 export function IconVelocityMarquee() {
   return (
-    <section aria-label="Featured icons" className="relative bg-black">
-      <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-[6px]">
-        <div className="h-px w-full bg-[var(--color-violet)]" />
-        <div className="h-px w-full bg-[var(--color-violet)]" />
-      </div>
-
-      <div className="overflow-hidden pt-[14px]">
+    <section aria-label="Featured icons" className="relative border-t border-[var(--color-border-subtle)] bg-black">
+      <div className="overflow-hidden">
         <div className="icon-marquee-track flex w-max">
           <MarqueeRow keyPrefix="a" />
           <MarqueeRow keyPrefix="b" />

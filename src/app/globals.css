@@ -143,3 +143,31 @@ a {
     animation: none;
   }
 }
+
+/* Dino dash — ASCII-glyph SVG sprite on purple horizon */
+@keyframes dino-dash-run {
+  from {
+    transform: translate3d(-10%, 0, 0);
+  }
+  to {
+    transform: translate3d(105%, 0, 0);
+  }
+}
+
+.dino-dash-sprite {
+  display: block;
+  flex-shrink: 0;
+}
+
+.dino-dash-runner {
+  animation: dino-dash-run 8.5s linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dino-dash-runner {
+    animation: none;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
