@@ -101,6 +101,15 @@ a {
   text-decoration: none;
 }
 
+a.site-nav-link {
+  color: #999999;
+}
+
+a.site-nav-link:hover,
+a.site-nav-link:focus-visible {
+  color: #ffffff;
+}
+
 :focus {
   outline: none;
 }
@@ -134,7 +143,7 @@ a {
 }
 
 .icon-marquee-track {
-  animation: icon-marquee-scroll 48s linear infinite;
+  animation: icon-marquee-scroll 72s linear infinite;
   will-change: transform;
 }
 
