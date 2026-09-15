@@ -144,8 +144,8 @@ a {
   }
 }
 
-/* Dino dash — ASCII sprite stays put; run cycle is frame-only */
-.dino-dash-sprite {
-  display: block;
-  flex-shrink: 0;
+/* Pixel dino game sprites */
+.dino-pixel {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
 }
