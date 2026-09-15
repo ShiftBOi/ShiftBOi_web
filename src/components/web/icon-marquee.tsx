@@ -1,5 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+import gsap from "gsap";
+
 type MarqueeItem = {
   id: string;
   label: string;
@@ -109,11 +112,26 @@ const ITEMS: MarqueeItem[] = [
   { id: "thailand", label: "Tastesiam", mark: <ThailandMapMark /> },
 ];
 
-function MarqueeRow({ keyPrefix }: { keyPrefix: string }) {
-  const cells = [...ITEMS, ...ITEMS];
+/** Enough copies so one segment is always wider than the viewport */
+const SEGMENT_COPIES = 4;
+
+function MarqueeSegment({
+  copies,
+  keyPrefix,
+  segmentRef,
+}: {
+  copies: number;
+  keyPrefix: string;
+  segmentRef?: React.RefObject<HTMLUListElement | null>;
+}) {
+  const cells = Array.from({ length: copies }, () => ITEMS).flat();
 
   return (
-    <ul className="flex h-[132px] shrink-0 items-stretch" aria-hidden={keyPrefix !== "a"}>
+    <ul
+      ref={segmentRef}
+      className="flex h-[132px] shrink-0 items-stretch"
+      aria-hidden={keyPrefix !== "a"}
+    >
       {cells.map((item, index) => (
         <li
           key={`${keyPrefix}-${item.id}-${index}`}
@@ -132,6 +150,51 @@ function MarqueeRow({ keyPrefix }: { keyPrefix: string }) {
 }
 
 export function IconVelocityMarquee() {
+  const trackRef = useRef<HTMLDivElement>(null);
+  const segmentRef = useRef<HTMLUListElement>(null);
+  const tweenRef = useRef<gsap.core.Tween | null>(null);
+
+  useEffect(() => {
+    const track = trackRef.current;
+    const segment = segmentRef.current;
+    if (!track || !segment) return;
+
+    const prefersReduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    if (prefersReduced) return;
+
+    const start = () => {
+      tweenRef.current?.kill();
+      gsap.set(track, { x: 0 });
+
+      const distance = segment.offsetWidth;
+      if (!distance) return;
+
+      // ~40px/s keeps pace similar to the old 72s CSS loop on a long track
+      const duration = Math.max(distance / 40, 20);
+
+      tweenRef.current = gsap.to(track, {
+        x: -distance,
+        duration,
+        ease: "none",
+        repeat: -1,
+      });
+    };
+
+    start();
+
+    const onResize = () => start();
+    window.addEventListener("resize", onResize);
+
+    return () => {
+      window.removeEventListener("resize", onResize);
+      tweenRef.current?.kill();
+      tweenRef.current = null;
+    };
+  }, []);
+
   return (
     <section aria-label="Featured icons" className="relative -mt-2 bg-black">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-[6px]">
@@ -140,9 +203,14 @@ export function IconVelocityMarquee() {
       </div>
 
       <div className="overflow-hidden pt-[14px]">
-        <div className="icon-marquee-track flex w-max">
-          <MarqueeRow keyPrefix="a" />
-          <MarqueeRow keyPrefix="b" />
+        <div ref={trackRef} className="flex w-max will-change-transform">
+          <MarqueeSegment
+            keyPrefix="a"
+            copies={SEGMENT_COPIES}
+            segmentRef={segmentRef}
+          />
+          {/* Exact duplicate — seamless when x resets by segment width */}
+          <MarqueeSegment keyPrefix="b" copies={SEGMENT_COPIES} />
         </div>
       </div>
     </section>

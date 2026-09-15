@@ -133,23 +133,14 @@ a.site-nav-link:focus-visible {
 }
 
 /* Full-strip horizontal velocity marquee (icons + gray cell dividers) */
-@keyframes icon-marquee-scroll {
-  from {
-    transform: translate3d(0, 0, 0);
-  }
-  to {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
+/* Marquee motion is driven by GSAP (pixel-perfect loop). Keep reduced-motion fallback. */
 .icon-marquee-track {
-  animation: icon-marquee-scroll 72s linear infinite;
   will-change: transform;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .icon-marquee-track {
-    animation: none;
+    transform: none !important;
   }
 }
 
