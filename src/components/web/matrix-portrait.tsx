@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import styles from "./matrix-portrait.module.css";
 
 /** Classic ASCII density ramp (dark → bright) */
@@ -65,8 +65,6 @@ export function MatrixPortrait() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glowRef = useRef<HTMLCanvasElement>(null);
-  const [paused, setPaused] = useState(false);
-  const [unavailable, setUnavailable] = useState(false);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -277,7 +275,7 @@ export function MatrixPortrait() {
     const tick = () => {
       if (disposed) return;
       paint();
-      if (!paused && visible && !document.hidden && !motion.matches) {
+      if (visible && !document.hidden && !motion.matches) {
         raf = requestAnimationFrame(tick);
       }
     };
@@ -285,7 +283,7 @@ export function MatrixPortrait() {
     const sync = () => {
       if (disposed) return;
       cancelAnimationFrame(raf);
-      if (paused || !visible || document.hidden || motion.matches) {
+      if (!visible || document.hidden || motion.matches) {
         video.pause();
         paint();
         return;
@@ -298,7 +296,7 @@ export function MatrixPortrait() {
     };
 
     const restartLoop = () => {
-      if (disposed || paused || !visible || motion.matches) return;
+      if (disposed || !visible || motion.matches) return;
       try {
         video.currentTime = 0;
       } catch {
@@ -342,7 +340,7 @@ export function MatrixPortrait() {
       video.removeEventListener("play", sync);
       video.pause();
     };
-  }, [paused]);
+  }, []);
 
   return (
     <div ref={rootRef} className={styles.root}>
@@ -357,7 +355,6 @@ export function MatrixPortrait() {
         muted
         playsInline
         preload="auto"
-        onError={() => setUnavailable(true)}
       />
       <canvas ref={glowRef} className={styles.glow} aria-hidden />
       <canvas
@@ -366,28 +363,6 @@ export function MatrixPortrait() {
         aria-label="ASCII neural portrait hologram"
         role="img"
       />
-      <span className={styles.caption} aria-hidden>
-        NEURAL PORTRAIT / ASCII
-      </span>
-      {!unavailable && (
-        <button
-          type="button"
-          className={styles.playback}
-          onClick={() => setPaused((value) => !value)}
-          aria-label={paused ? "Resume hologram animation" : "Pause hologram animation"}
-          aria-pressed={paused}
-        >
-          {paused ? (
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden>
-              <path d="M3 1.5 10 6 3 10.5Z" />
-            </svg>
-          ) : (
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" aria-hidden>
-              <path d="M2 1h3v10H2zm5 0h3v10H7z" />
-            </svg>
-          )}
-        </button>
-      )}
     </div>
   );
 }
