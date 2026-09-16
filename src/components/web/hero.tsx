@@ -62,17 +62,94 @@ export function SiteHeader() {
 
 function TalkToUsButton({ href = "#contact" }: { href?: string }) {
   const rootRef = useRef<HTMLAnchorElement>(null);
+  const dustRef = useRef<HTMLSpanElement>(null);
+  const hoveringRef = useRef(false);
+  const emitTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     const root = rootRef.current;
-    if (!root) return;
+    const dust = dustRef.current;
+    if (!root || !dust) return;
 
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const restShadow = "inset 0 0 0 0px transparent";
     const hoverShadow = "inset 0 0 0 1.5px #7c3aed";
 
     gsap.set(root, { boxShadow: restShadow, scale: 1 });
 
+    const spawnDust = () => {
+      if (!hoveringRef.current || reduced) return;
+
+      const w = root.offsetWidth;
+      const h = root.offsetHeight;
+      if (!w || !h) return;
+
+      const side = Math.floor(Math.random() * 4);
+      let x = 0;
+      let y = 0;
+      if (side === 0) {
+        x = Math.random() * w;
+        y = 0;
+      } else if (side === 1) {
+        x = w;
+        y = Math.random() * h;
+      } else if (side === 2) {
+        x = Math.random() * w;
+        y = h;
+      } else {
+        x = 0;
+        y = Math.random() * h;
+      }
+
+      const size = 2 + Math.random() * 3.5;
+      const angle = Math.atan2(y - h / 2, x - w / 2) + (Math.random() - 0.5) * 0.9;
+      const dist = 18 + Math.random() * 36;
+      const colors = ["#8b5cf6", "#a78bfa", "#c4b5fd", "#ffffff"];
+
+      const mote = document.createElement("span");
+      mote.className = "talk-dust-mote";
+      mote.style.width = `${size}px`;
+      mote.style.height = `${size}px`;
+      mote.style.background = colors[Math.floor(Math.random() * colors.length)]!;
+      mote.style.left = "0";
+      mote.style.top = "0";
+      dust.appendChild(mote);
+
+      gsap.fromTo(
+        mote,
+        {
+          x: x - size / 2,
+          y: y - size / 2,
+          opacity: 0.85 + Math.random() * 0.15,
+          scale: 0.6 + Math.random() * 0.5,
+        },
+        {
+          x: x - size / 2 + Math.cos(angle) * dist,
+          y: y - size / 2 + Math.sin(angle) * dist,
+          opacity: 0,
+          scale: 0.2 + Math.random() * 0.35,
+          duration: 0.95 + Math.random() * 1.1,
+          ease: "power1.out",
+          onComplete: () => mote.remove(),
+        },
+      );
+    };
+
+    const startEmit = () => {
+      if (emitTimerRef.current || reduced) return;
+      for (let i = 0; i < 6; i++) spawnDust();
+      emitTimerRef.current = setInterval(spawnDust, 70);
+    };
+
+    const stopEmit = () => {
+      if (emitTimerRef.current) {
+        clearInterval(emitTimerRef.current);
+        emitTimerRef.current = null;
+      }
+    };
+
     const enter = () => {
+      hoveringRef.current = true;
       gsap.killTweensOf(root);
       gsap.to(root, {
         boxShadow: hoverShadow,
@@ -80,9 +157,12 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
         duration: 0.2,
         ease: "power2.out",
       });
+      startEmit();
     };
 
     const leave = () => {
+      hoveringRef.current = false;
+      stopEmit();
       gsap.killTweensOf(root);
       gsap.to(root, {
         boxShadow: restShadow,
@@ -98,23 +178,29 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
     root.addEventListener("blur", leave);
 
     return () => {
+      hoveringRef.current = false;
+      stopEmit();
       root.removeEventListener("mouseenter", enter);
       root.removeEventListener("mouseleave", leave);
       root.removeEventListener("focus", enter);
       root.removeEventListener("blur", leave);
       gsap.killTweensOf(root);
+      dust.replaceChildren();
     };
   }, []);
 
   return (
-    <a
-      ref={rootRef}
-      href={href}
-      style={{ color: "#000000", backgroundColor: "#ffffff" }}
-      className="inline-flex min-h-11 items-center justify-center px-5 text-[15px] font-medium outline-none will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-    >
-      Talk to us
-    </a>
+    <div className="talk-dust-wrap relative inline-flex">
+      <span ref={dustRef} className="talk-dust-layer" aria-hidden />
+      <a
+        ref={rootRef}
+        href={href}
+        style={{ color: "#000000", backgroundColor: "#ffffff" }}
+        className="relative z-[1] inline-flex min-h-11 items-center justify-center px-5 text-[15px] font-medium outline-none will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+      >
+        Talk to us
+      </a>
+    </div>
   );
 }
 
@@ -144,7 +230,7 @@ export function Hero() {
         </motion.p>
 
         <motion.h1
-          className="relative z-[2] max-w-4xl font-airmail text-[clamp(2.6rem,7vw,5.25rem)] font-normal leading-[1.05] tracking-normal text-white"
+          className="relative z-[2] max-w-4xl font-pixel text-[clamp(2.6rem,7vw,5.25rem)] font-normal leading-[1.05] tracking-[-0.01em] text-white"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.05 }}

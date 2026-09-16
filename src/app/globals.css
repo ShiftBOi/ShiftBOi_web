@@ -139,6 +139,31 @@
   font-family: var(--font-family-airmail);
 }
 
+.font-pixel {
+  font-family: var(--font-family-pixel);
+}
+
+/* Talk to us — square dust motes on hover (scatter outside button) */
+.talk-dust-wrap {
+  isolation: isolate;
+}
+
+.talk-dust-layer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: visible;
+}
+
+.talk-dust-mote {
+  position: absolute;
+  display: block;
+  border-radius: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
 * {
   box-sizing: border-box;
 }
