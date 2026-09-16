@@ -37,6 +37,7 @@ export const auth = betterAuth({
       expiresIn: 600,
       allowedAttempts: 5,
       disableSignUp: false,
+      storeOTP: "plain",
       sendVerificationOTP: async ({ email, otp, type }) => {
         if (!isAllowedAdminEmail(email)) {
           throw new Error("This email is not authorized for CMS access.");
