@@ -622,7 +622,7 @@ export function DinoDashStage() {
   return (
     <div
       aria-label="Dino run"
-      className="pointer-events-none absolute bottom-[14px] left-[36%] right-4 z-[1] hidden h-[280px] md:block"
+      className="pointer-events-none absolute bottom-[14px] left-[44%] right-4 z-[1] hidden h-[280px] md:block"
     >
       <div ref={obstacleLayerRef} className="absolute inset-0 overflow-hidden">
         {obstacles.map((o) => (
@@ -658,17 +658,12 @@ export function DinoDashStage() {
   );
 }
 
-/** Thin purple horizon — ground for the dino */
+/** Thin spacer — ground for the dino above the velocity strip */
 export function DinoDashHorizon() {
   return (
     <div
       aria-hidden
       className="relative h-[14px] shrink-0 overflow-hidden bg-black"
-    >
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col gap-[6px]">
-        <div className="h-px w-full bg-[var(--color-violet)]" />
-        <div className="h-px w-full bg-[var(--color-violet)]" />
-      </div>
-    </div>
+    />
   );
 }

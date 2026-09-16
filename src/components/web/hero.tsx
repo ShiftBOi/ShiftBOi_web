@@ -120,8 +120,8 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-[calc(100dvh-4rem-146px)] flex-col">
-      <div className="relative z-[1] mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-start px-5 pb-8 pt-16 md:px-10 md:pb-10 md:pt-20">
+    <section className="relative flex min-h-0 flex-1 flex-col">
+      <div className="relative z-[1] mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-start px-5 pb-8 pt-12 md:px-10 md:pb-10 md:pt-16">
         <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0 overflow-hidden"

@@ -170,3 +170,74 @@ a.site-nav-link:focus-visible {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
+
+/* CMS OTP — pixel digit cells */
+.otp-pixel-cell {
+  width: 2.85rem;
+  height: 2.85rem;
+  flex: 1 1 0;
+  max-width: 3.4rem;
+  border: 2px solid #333333;
+  background:
+    linear-gradient(#1a1a1a, #1a1a1a) padding-box,
+    repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(255, 255, 255, 0.03) 3px,
+        rgba(255, 255, 255, 0.03) 4px
+      )
+      border-box;
+  background-color: #121212;
+  color: #ffffff;
+  text-align: center;
+  font-family: "Pix32", ui-monospace, monospace;
+  font-size: 1.45rem;
+  line-height: 1;
+  letter-spacing: 0;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  caret-color: var(--color-violet-bright);
+  transition:
+    border-color var(--motion-fast) ease,
+    background-color var(--motion-fast) ease,
+    box-shadow var(--motion-fast) ease;
+  border-radius: 0;
+  outline: none;
+  box-shadow:
+    2px 2px 0 #000000,
+    inset 1px 1px 0 rgba(255, 255, 255, 0.06);
+  -moz-appearance: textfield;
+}
+
+.otp-pixel-cell::-webkit-outer-spin-button,
+.otp-pixel-cell::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.otp-pixel-cell.is-filled {
+  background-color: #0a0a0a;
+  border-color: #52525b;
+}
+
+.otp-pixel-cell.is-active,
+.otp-pixel-cell:focus {
+  border-color: var(--color-violet-bright);
+  background-color: #0a0a0a;
+  box-shadow:
+    2px 2px 0 #3b0764,
+    inset 0 0 0 1px var(--color-violet-bright);
+}
+
+.otp-pixel-cell:disabled {
+  opacity: 0.55;
+}
+
+@media (min-width: 400px) {
+  .otp-pixel-cell {
+    width: 3.15rem;
+    height: 3.15rem;
+    font-size: 1.65rem;
+  }
+}

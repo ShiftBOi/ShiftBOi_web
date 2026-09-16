@@ -13,9 +13,12 @@ export default async function HomePage() {
 
   return (
     <main className="flex-1">
-      <SiteHeader />
-      <Hero />
-      <IconVelocityMarquee />
+      {/* First viewport: navbar + hero + velocity strip */}
+      <div className="flex min-h-dvh flex-col">
+        <SiteHeader />
+        <Hero />
+        <IconVelocityMarquee />
+      </div>
 
       <section
         id="architecture"
