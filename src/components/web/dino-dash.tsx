@@ -622,7 +622,7 @@ export function DinoDashStage() {
   return (
     <div
       aria-label="Dino run"
-      className="pointer-events-none absolute bottom-[14px] left-[36%] right-4 z-[1] hidden h-[280px] md:block"
+      className="pointer-events-none absolute bottom-[14px] left-[44%] right-4 z-[1] hidden h-[280px] md:block"
     >
       <div ref={obstacleLayerRef} className="absolute inset-0 overflow-hidden">
         {obstacles.map((o) => (
