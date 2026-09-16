@@ -147,7 +147,7 @@ const PRICING = [
 
 function AccuracyVisual() {
   return (
-    <div className="hydra-accuracy-panel" data-hydra-reveal>
+    <div className="hydra-accuracy-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.25">
       <p className="hydra-accuracy-value">90.79%</p>
       <p className="hydra-accuracy-label">Accuracy</p>
     </div>
@@ -156,7 +156,7 @@ function AccuracyVisual() {
 
 function TierVisual() {
   return (
-    <div className="hydra-tier-panel" data-hydra-reveal>
+    <div className="hydra-tier-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.3">
       <p className="hydra-tier-label">In Memory → SSD → Object Storage</p>
       <span className="hydra-tier-flow" aria-hidden />
       <span className="hydra-tier-cap is-left" aria-hidden />
@@ -172,7 +172,7 @@ function TierVisual() {
 
 function RecallVisual() {
   return (
-    <div className="hydra-recall-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.2">
+    <div className="hydra-recall-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.45">
       <svg viewBox="0 0 400 250" fill="none" aria-hidden>
         <g stroke="rgba(255,255,255,0.35)" strokeWidth="0.6" strokeDasharray="3 3">
           <path d="M40 210 L200 40 L360 210" />
@@ -218,7 +218,7 @@ function RecallVisual() {
 
 function LatencyVisual() {
   return (
-    <div data-hydra-reveal>
+    <div data-hydra-reveal data-hydra-parallax data-parallax-speed="0.28">
       <p className="hydra-latency-metric">&lt; 200ms</p>
       <div className="hydra-latency-bars">
         <div className="hydra-latency-row">
@@ -310,7 +310,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
           <p className="hydra-eyebrow" data-hydra-reveal-x>
             // Use Cases //
           </p>
-          <h2 className="hydra-use-case-title mt-4 max-w-3xl text-white" data-hydra-reveal-x>
+          <h2 className="hydra-use-case-title mt-4 max-w-3xl text-white" data-hydra-reveal-x data-hydra-drift data-drift-amount="24">
             What Engineers Are Building With HydraDB
           </h2>
 
@@ -412,7 +412,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
       {/* Features — 2×2 grid; top H-line full viewport */}
       <section id="features" className="hydra-section">
         <div className="hydra-container py-[72px] md:py-[100px] lg:pb-0 lg:pt-[120px]">
-          <div className="hydra-section-title-wrap" data-hydra-reveal>
+          <div className="hydra-section-title-wrap" data-hydra-reveal data-hydra-drift data-drift-amount="28">
             <h3 className="hydra-h3-features text-center text-white">
               Everything You Need To Compound Intelligence
             </h3>
@@ -485,10 +485,10 @@ export function SiteBody({ projects }: { projects: Project[] }) {
               </ul>
             </div>
             <div
-              className="relative min-h-[280px] p-6 md:min-h-[340px] md:p-8"
+              className="relative min-h-[280px] overflow-hidden p-6 md:min-h-[340px] md:p-8"
               data-hydra-reveal
               data-hydra-parallax
-              data-parallax-speed="0.2"
+              data-parallax-speed="0.4"
             >
               <p className="hydra-accent-label-sm mb-4">Accuracy vs Context Length</p>
               <svg viewBox="0 0 420 220" className="h-auto w-full" aria-hidden>

@@ -148,6 +148,30 @@ html {
   color: var(--color-text-primary);
 }
 
+/* Lenis smooth scroll (HydraDB-style) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+[data-hydra-parallax],
+[data-hydra-drift] {
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
 body {
   margin: 0;
   min-height: 100vh;
@@ -1014,6 +1038,7 @@ a.site-nav-link:focus-visible {
   margin-top: auto;
   padding-top: 28px;
   width: 100%;
+  overflow: hidden;
 }
 
 /* Accuracy gradient panel — purple instead of orange */
