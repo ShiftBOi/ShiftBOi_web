@@ -984,9 +984,9 @@ a.site-nav-link:focus-visible {
   }
 }
 
-/* Recall degradation — no section top border (gap handled by double-rule); bottom H-line full bleed */
+/* Recall degradation — full-bleed H-lines top + bottom (extend to screen edges) */
 .hydra-recall-band {
-  border-top: none;
+  border-top: 1px solid #353535;
   border-bottom: 1px solid #353535;
 }
 

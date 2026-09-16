@@ -458,10 +458,10 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         <HydraTripleRule />
       </div>
 
-      {/* Recall degradation — bottom H-line full viewport */}
+      {/* Recall degradation — full-bleed H-lines top + bottom */}
       <section className="hydra-recall-band">
         <div className="hydra-container">
-          <div className="grid border border-[#353535] lg:grid-cols-2">
+          <div className="grid border-x border-[#353535] lg:grid-cols-2">
             <div
               className="border-b border-[#353535] p-8 md:p-10 lg:border-b-0 lg:border-r lg:p-12"
               data-hydra-reveal-x
