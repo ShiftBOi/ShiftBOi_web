@@ -713,7 +713,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
                 title: "Resources",
                 links: [
                   ["Docs", "https://hydradb.com"],
-                  ["GitHub", "https://github.com"],
+                  ["GitHub", "https://github.com/ShiftBOi"],
                   ["Contact", "#contact"],
                 ],
               },

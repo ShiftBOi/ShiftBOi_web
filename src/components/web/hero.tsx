@@ -5,6 +5,7 @@ import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { DinoDashHorizon, DinoDashStage } from "@/components/web/dino-dash";
+import { useSiteChat } from "@/components/web/site-chat";
 
 const nav = [
   { href: "#architecture", label: "Architecture" },
@@ -15,8 +16,8 @@ const nav = [
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-y border-[var(--color-border-default)] bg-black/90 backdrop-blur-md">
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-6 px-5 md:h-16 md:px-10">
+    <header className="fixed inset-x-0 top-0 z-50 border-y border-[var(--color-border-default)] bg-black/90 backdrop-blur-md">
+      <div className="mx-auto flex h-12 max-w-[1400px] items-center justify-between gap-6 px-5 md:h-14 md:px-10">
         <Link
           href="/"
           className="flex shrink-0 items-center gap-2.5 text-[24px] font-semibold leading-none tracking-tight text-white md:text-[26px]"
@@ -35,14 +36,14 @@ export function SiteHeader() {
 
         <nav
           aria-label="Primary"
-          className="absolute left-1/2 hidden -translate-x-1/2 items-center gap-7 lg:flex"
+          className="absolute left-1/2 top-0 bottom-0 hidden -translate-x-1/2 items-stretch gap-7 lg:flex"
         >
           {nav.map((item) => (
             <a
               key={item.label}
               href={item.href}
               style={{ color: "#999999" }}
-              className="site-nav-link text-[14px] leading-none transition-colors duration-[var(--motion-fast)]"
+              className="site-nav-link text-[14px] leading-none"
             >
               {item.label}
             </a>
@@ -60,32 +61,30 @@ export function SiteHeader() {
   );
 }
 
-function TalkToUsButton({ href = "#contact" }: { href?: string }) {
-  const rootRef = useRef<HTMLAnchorElement>(null);
+function TalkToUsButton() {
+  const { openChat } = useSiteChat();
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const rootRef = useRef<HTMLButtonElement>(null);
   const dustRef = useRef<HTMLSpanElement>(null);
   const hoveringRef = useRef(false);
   const emitTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    const wrap = wrapRef.current;
     const root = rootRef.current;
     const dust = dustRef.current;
-    if (!root || !dust) return;
+    if (!wrap || !root || !dust) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const frame = { inset: 0, scale: 1 };
+    const frame = { inset: 0 };
     const PURPLE = "#7c3aed";
     const INSET_MAX = 14;
 
     const paintFrame = () => {
-      const inset = frame.inset;
-      root.style.boxShadow =
-        inset <= 0.05
-          ? "inset 0 0 0 0px transparent"
-          : `inset 0 0 0 ${inset}px ${PURPLE}`;
-      root.style.transform = `scale(${frame.scale})`;
+      root.style.boxShadow = `inset 0 0 0 ${frame.inset}px ${PURPLE}`;
     };
 
-    gsap.set(frame, { inset: 0, scale: 1 });
+    gsap.set(frame, { inset: 0 });
     paintFrame();
 
     const spawnDust = () => {
@@ -160,42 +159,43 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
     };
 
     const enter = () => {
+      if (hoveringRef.current) return;
       hoveringRef.current = true;
       gsap.killTweensOf(frame);
-      // Purple band creeps inward from the edge, thickening into the button fill
       gsap.to(frame, {
         inset: INSET_MAX,
-        scale: 1.015,
-        duration: reduced ? 0.01 : 0.55,
-        ease: "power2.inOut",
+        duration: reduced ? 0.01 : 0.5,
+        ease: "power2.out",
+        overwrite: "auto",
         onUpdate: paintFrame,
       });
       startEmit();
     };
 
     const leave = () => {
+      if (!hoveringRef.current) return;
       hoveringRef.current = false;
       stopEmit();
       gsap.killTweensOf(frame);
       gsap.to(frame, {
         inset: 0,
-        scale: 1,
-        duration: reduced ? 0.01 : 0.35,
-        ease: "power2.inOut",
+        duration: reduced ? 0.01 : 0.4,
+        ease: "power2.out",
+        overwrite: "auto",
         onUpdate: paintFrame,
       });
     };
 
-    root.addEventListener("mouseenter", enter);
-    root.addEventListener("mouseleave", leave);
+    wrap.addEventListener("pointerenter", enter);
+    wrap.addEventListener("pointerleave", leave);
     root.addEventListener("focus", enter);
     root.addEventListener("blur", leave);
 
     return () => {
       hoveringRef.current = false;
       stopEmit();
-      root.removeEventListener("mouseenter", enter);
-      root.removeEventListener("mouseleave", leave);
+      wrap.removeEventListener("pointerenter", enter);
+      wrap.removeEventListener("pointerleave", leave);
       root.removeEventListener("focus", enter);
       root.removeEventListener("blur", leave);
       gsap.killTweensOf(frame);
@@ -204,16 +204,17 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
   }, []);
 
   return (
-    <div className="talk-dust-wrap relative inline-flex">
+    <div ref={wrapRef} className="talk-dust-wrap relative inline-flex">
       <span ref={dustRef} className="talk-dust-layer" aria-hidden />
-      <a
+      <button
         ref={rootRef}
-        href={href}
+        type="button"
+        onClick={openChat}
         style={{ color: "#000000", backgroundColor: "#ffffff" }}
-        className="relative z-[1] inline-flex min-h-11 items-center justify-center px-5 text-[15px] font-medium outline-none will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+        className="relative z-[1] inline-flex min-h-11 cursor-pointer items-center justify-center px-5 text-[15px] font-medium outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
       >
         Talk to us
-      </a>
+      </button>
     </div>
   );
 }

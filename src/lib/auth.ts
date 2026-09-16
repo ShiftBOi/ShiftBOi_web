@@ -6,10 +6,20 @@ import { prisma } from "@/lib/prisma";
 import { sendOtpEmail } from "@/lib/email";
 import { ADMIN_EMAIL, isAllowedAdminEmail } from "@/lib/constants";
 
+const appUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export const auth = betterAuth({
   appName: "WebPort v2",
-  baseURL: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL,
+  baseURL: appUrl,
   secret: process.env.BETTER_AUTH_SECRET,
+  // Dev often runs on :3001 when :3000 is busy — trust both local origins
+  trustedOrigins: [
+    appUrl,
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:3001",
+  ].filter((v, i, arr) => Boolean(v) && arr.indexOf(v) === i),
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
@@ -48,7 +58,7 @@ export const auth = betterAuth({
     passkey({
       rpID: process.env.PASSKEY_RP_ID || "localhost",
       rpName: process.env.PASSKEY_RP_NAME || "WebPort v2",
-      origin: process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL,
+      origin: appUrl,
     }),
   ],
 });

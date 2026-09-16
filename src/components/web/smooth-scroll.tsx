@@ -40,7 +40,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       const target = document.querySelector(href);
       if (!target) return;
       event.preventDefault();
-      lenis.scrollTo(target as HTMLElement, { offset: -72, duration: 1.35 });
+      lenis.scrollTo(target as HTMLElement, { offset: -56, duration: 1.35 });
     };
     document.addEventListener("click", onAnchorClick);
 

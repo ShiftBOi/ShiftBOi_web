@@ -151,7 +151,15 @@ export function CmsLoginForm() {
       });
 
       if (verifyError) {
-        setError(verifyError.message || "Invalid or expired OTP.");
+        const msg = verifyError.message || "Invalid or expired OTP.";
+        const looksLikeOrigin =
+          /origin|forbidden|403/i.test(msg) ||
+          msg.toLowerCase().includes("invalid origin");
+        setError(
+          looksLikeOrigin
+            ? "Login blocked by auth origin mismatch. Use the same host/port as BETTER_AUTH_URL (or restart after the trustedOrigins fix)."
+            : msg,
+        );
         setVerifying(false);
         verifyLock.current = false;
         lastAutoVerified.current = "";
