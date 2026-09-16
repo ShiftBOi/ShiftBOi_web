@@ -16,8 +16,43 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Aeonik TRIAL Regular";
+  src: url("https://framerusercontent.com/assets/DzOmvPT3Ngtn44pFtTiDqddsgk.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Pixel Square";
+  src: url("https://framerusercontent.com/assets/m9VYcRxyyn0ZP3WI9vRSpNBosKU.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Pixel";
+  src: url("https://fonts.gstatic.com/s/geistpixel/v1/CSRs4zxZluGGW3oyI0A_AN0hQBvYDU4hBmqoKzA8XT6i.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "JetBrains Mono";
+  src: url("https://framerusercontent.com/assets/YDHTeP4VY2R9SADwL2X4T4qY.woff2")
+    format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* Brand palette: black + violet · text white / gray */
   --color-surface-base: #000000;
   --color-surface-elevated: #0a0a0a;
   --color-surface-raised: #111111;
@@ -42,10 +77,22 @@
   --color-accent-purple-bright: var(--color-violet-bright);
   --color-nav-link: var(--color-text-secondary);
 
-  /* Typography tokens */
+  /* HydraDB tokens — orange replaced with violet accent */
+  --color-hydra-accent: var(--color-violet-bright);
+  --color-hydra-accent-rgb: 139, 92, 246;
+  --color-hydra-border: rgb(32, 32, 32);
+  --color-hydra-muted: rgb(153, 153, 153);
+  --color-hydra-white: rgb(255, 255, 255);
+  --color-hydra-black: rgb(0, 0, 0);
+
+  --font-family-pixel-square: "Geist Pixel Square", "Pix32", ui-monospace, monospace;
+  --font-family-pixel: "Geist Pixel", "Pix32", ui-monospace, monospace;
+  --font-family-mono: "JetBrains Mono", ui-monospace, monospace;
+
   --font-family-primary: "Aeonik TRIAL Regular", "Aeonik TRIAL Regular Placeholder",
-    var(--font-aeonik-fallback), sans-serif;
-  --font-family-airmail: "Airmail", var(--font-aeonik-fallback), sans-serif;
+    sans-serif;
+  --font-family-airmail: "Airmail", sans-serif;
+
   --font-size-xs: 11px;
   --font-size-sm: 12px;
   --font-size-md: 13px;
@@ -58,7 +105,6 @@
   --font-weight-base: 400;
   --font-line-height-base: 1.2;
 
-  /* Spacing / motion */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -153,8 +199,6 @@ a.site-nav-link:focus-visible {
   color: var(--color-text-inverse);
 }
 
-/* Full-strip horizontal velocity marquee (icons + gray cell dividers) */
-/* Marquee motion is driven by GSAP (pixel-perfect loop). Keep reduced-motion fallback. */
 .icon-marquee-track {
   will-change: transform;
 }
@@ -165,13 +209,11 @@ a.site-nav-link:focus-visible {
   }
 }
 
-/* Pixel dino game sprites */
 .dino-pixel {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
-/* CMS OTP — pixel digit cells */
 .otp-pixel-cell {
   width: 2.85rem;
   height: 2.85rem;
@@ -239,5 +281,986 @@ a.site-nav-link:focus-visible {
     width: 3.15rem;
     height: 3.15rem;
     font-size: 1.65rem;
+  }
+}
+
+/* ── HydraDB page body (exact typography + layout, violet accent) ── */
+.hydra-page {
+  background: #000000;
+  color: #ffffff;
+  font-family: var(--font-family-primary);
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.hydra-container {
+  width: 100%;
+  max-width: 1185px;
+  margin-inline: auto;
+  padding-inline: clamp(19px, 4vw, 40px);
+}
+
+.hydra-section {
+  border-top: 1px solid var(--color-hydra-border);
+}
+
+.hydra-rule {
+  height: 1px;
+  background: var(--color-hydra-border);
+}
+
+/* Typography presets from hydradb.com index.html */
+.hydra-h1 {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(40px, 6vw, 72px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+}
+
+.hydra-h2-band {
+  font-family: var(--font-family-pixel-square);
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-align: center;
+}
+
+.hydra-h2-section {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(32px, 5vw, 60px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+}
+
+.hydra-h2-dark {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(40px, 4.5vw, 48px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+}
+
+.hydra-h3-features {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(28px, 4vw, 60px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+}
+
+.hydra-h3-col {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(18px, 2.5vw, 24px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+}
+
+.hydra-h4-feature {
+  font-family: var(--font-family-pixel-square);
+  font-size: 28px;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+}
+
+.hydra-stat-num {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(28px, 3vw, 32px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  line-height: 1em;
+}
+
+.hydra-stat-label {
+  font-family: var(--font-family-primary);
+  font-size: clamp(14px, 1.5vw, 16px);
+  letter-spacing: -0.01em;
+  line-height: 120%;
+}
+
+.hydra-body {
+  font-family: var(--font-family-primary);
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  line-height: 120%;
+  color: var(--color-hydra-muted);
+}
+
+.hydra-body-sm {
+  font-family: var(--font-family-primary);
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  line-height: 120%;
+  color: var(--color-hydra-muted);
+}
+
+.hydra-eyebrow {
+  font-family: var(--font-family-mono);
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--color-hydra-accent);
+}
+
+.hydra-use-case-title {
+  font-family: var(--font-family-pixel);
+  font-size: clamp(32px, 4vw, 46px);
+  letter-spacing: -0.01em;
+  line-height: 115%;
+  text-transform: capitalize;
+}
+
+.hydra-accent-label {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(14px, 1.8vw, 20px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  color: var(--color-hydra-accent);
+  text-transform: uppercase;
+}
+
+.hydra-accent-label-sm {
+  font-family: var(--font-family-primary);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 120%;
+  color: var(--color-hydra-accent);
+}
+
+.hydra-pixel-label {
+  font-family: var(--font-family-pixel);
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+}
+
+.hydra-investor {
+  font-family: var(--font-family-primary);
+  font-size: clamp(18px, 2vw, 20px);
+  letter-spacing: -0.01em;
+  line-height: 120%;
+}
+
+.hydra-latency {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(24px, 3vw, 36px);
+  letter-spacing: -0.01em;
+  line-height: 120%;
+}
+
+.hydra-cell {
+  border: 1px solid var(--color-hydra-border);
+  background: #000000;
+}
+
+.hydra-cell-light {
+  border: 1px solid var(--color-hydra-border);
+  background: #ffffff;
+  color: #000000;
+}
+
+.hydra-visual-panel {
+  position: relative;
+  min-height: 220px;
+  background: #0a0a0a;
+  border-left: 1px solid var(--color-hydra-border);
+}
+
+.hydra-visual-panel::before {
+  content: "";
+  position: absolute;
+  inset: clamp(24px, 4vw, 40px);
+  border: 1px dashed rgba(var(--color-hydra-accent-rgb), 0.55);
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgb(32, 32, 32),
+    rgb(32, 32, 32) 1px,
+    transparent 1px,
+    transparent 32px
+  );
+  pointer-events: none;
+}
+
+.hydra-visual-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--color-hydra-accent);
+}
+
+.hydra-arrow {
+  display: flex;
+  align-items: center;
+  width: 2.5rem;
+  flex-shrink: 0;
+}
+
+.hydra-arrow-line {
+  flex: 1;
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-hydra-accent) 0,
+    var(--color-hydra-accent) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+  animation: hydra-flow 1s linear infinite;
+}
+
+.hydra-arrow-head {
+  width: 0;
+  height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid var(--color-hydra-accent);
+}
+
+@keyframes hydra-flow {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 6px 0;
+  }
+}
+
+.hydra-node {
+  border: 1px solid var(--color-hydra-border);
+  background: #0a0a0a;
+  padding: 14px 12px;
+  min-width: 0;
+}
+
+.hydra-node-title {
+  font-family: var(--font-family-primary);
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  line-height: 120%;
+  text-align: center;
+}
+
+.hydra-node-sub {
+  font-family: var(--font-family-primary);
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  line-height: 120%;
+  color: var(--color-hydra-muted);
+  text-align: center;
+  margin-top: 8px;
+}
+
+.hydra-cta {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  padding-inline: 20px;
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-family-primary);
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  transition: box-shadow var(--motion-fast) ease;
+}
+
+.hydra-cta:hover,
+.hydra-cta:focus-visible {
+  box-shadow: inset 0 0 0 1.5px var(--color-hydra-accent);
+}
+
+.hydra-footer-title {
+  font-family: var(--font-family-pixel-square);
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  text-transform: capitalize;
+}
+
+.hydra-footer-link {
+  font-family: var(--font-family-pixel);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.66);
+  letter-spacing: -0.01em;
+  text-transform: capitalize;
+  transition: color var(--motion-fast) ease;
+}
+
+.hydra-footer-link:hover,
+.hydra-footer-link:focus-visible {
+  color: #ffffff;
+}
+
+.hydra-pricing-card {
+  border: 1px solid var(--color-hydra-border);
+  background: #000000;
+  padding: clamp(24px, 3vw, 32px);
+}
+
+.hydra-pricing-card.featured {
+  border-color: rgba(var(--color-hydra-accent-rgb), 0.65);
+}
+
+.hydra-accent-square {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  background: var(--color-hydra-accent);
+}
+
+.hydra-triple-rule {
+  width: 100%;
+  flex: none;
+}
+
+/* One bar → exactly two accent lines (top + bottom borders) */
+.hydra-triple-rule-bar {
+  height: 10px;
+  background: #000000;
+  border-top: 1px solid var(--color-hydra-accent);
+  border-bottom: 1px solid var(--color-hydra-accent);
+}
+
+/* Equal gap above/below the purple double-line between features ↔ recall */
+.hydra-double-rule-gap {
+  width: 100%;
+  padding-block: clamp(72px, 12vw, 120px);
+}
+
+/* Similarity band — white full-bleed, purple H-lines only (no vertical grid) */
+.hydra-similarity-section {
+  position: relative;
+  background: #ffffff;
+  color: #000000;
+  /* two purple lines stretch edge-to-edge of the screen */
+  border-top: 1px solid var(--color-hydra-accent);
+  border-bottom: 1px solid var(--color-hydra-accent);
+  padding: clamp(48px, 8vw, 120px) 0;
+  overflow: visible;
+}
+
+.hydra-similarity-outer {
+  /* no outer box border — removes vertical grid lines */
+  border: none;
+  padding-inline: clamp(19px, 5.5vw, 80px);
+}
+
+.hydra-band-corner {
+  position: absolute;
+  z-index: 3;
+  width: 18px;
+  height: 18px;
+  background: var(--color-hydra-accent);
+  pointer-events: none;
+}
+
+/* flush to the four corners of the white band (on the purple H-lines) */
+.hydra-band-corner-tl {
+  top: 0;
+  left: 0;
+}
+
+.hydra-band-corner-tr {
+  top: 0;
+  right: 0;
+}
+
+.hydra-band-corner-bl {
+  bottom: 0;
+  left: 0;
+}
+
+.hydra-band-corner-br {
+  bottom: 0;
+  right: 0;
+}
+
+.hydra-similarity-inner {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+.hydra-similarity-copy {
+  flex: 0 0 47%;
+  max-width: 47%;
+  padding: 40px 32px 40px 0;
+  text-align: left;
+}
+
+.hydra-similarity-title {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(32px, 4vw, 48px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+  color: #000000;
+}
+
+.hydra-similarity-body-wrap {
+  margin-top: 16px;
+  max-width: 67%;
+  opacity: 0.6;
+}
+
+.hydra-similarity-body {
+  font-family: var(--font-family-primary);
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  line-height: 120%;
+  color: #000000;
+}
+
+.hydra-similarity-body + .hydra-similarity-body {
+  margin-top: 12px;
+}
+
+.hydra-similarity-cols {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: stretch;
+  min-width: 0;
+}
+
+.hydra-similarity-col {
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  min-width: 0;
+  background: #ffffff;
+}
+
+.hydra-similarity-col-without {
+  border: 1px solid #dadada;
+  border-right: none;
+}
+
+.hydra-similarity-col-with {
+  border: 1px solid #dadada;
+}
+
+.hydra-similarity-col-head {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.hydra-similarity-col-head h3 {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+}
+
+.hydra-similarity-col-head-dark {
+  background: #000000;
+  color: #ffffff;
+}
+
+.hydra-similarity-col-head-accent {
+  background: var(--color-hydra-accent);
+  color: #ffffff;
+}
+
+.hydra-similarity-col-cell {
+  display: flex;
+  flex: 1 1 0;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 10px;
+  border-top: 1px solid #dadada;
+  text-align: center;
+}
+
+.hydra-similarity-col-cell p {
+  font-family: var(--font-family-primary);
+  font-size: 16px;
+  letter-spacing: -0.01em;
+  line-height: 120%;
+  color: #000000;
+  max-width: 251px;
+}
+
+@media (max-width: 809px) {
+  .hydra-similarity-section {
+    padding: 48px 0;
+  }
+
+  .hydra-similarity-inner {
+    flex-direction: column;
+  }
+
+  .hydra-similarity-copy {
+    flex: none;
+    max-width: 100%;
+    padding: 24px 0;
+  }
+
+  .hydra-similarity-body-wrap {
+    max-width: 100%;
+  }
+
+  .hydra-similarity-cols {
+    flex-direction: column;
+  }
+
+  .hydra-similarity-col-without {
+    border-right: 1px solid #dadada;
+  }
+}
+
+.hydra-corner-svg {
+  display: block;
+  width: 26px;
+  height: 26px;
+  color: var(--color-hydra-accent);
+}
+
+.hydra-corner {
+  position: absolute;
+  pointer-events: none;
+  color: var(--color-hydra-accent);
+  z-index: 2;
+}
+
+.hydra-corner-tl {
+  top: 0;
+  left: 0;
+}
+
+.hydra-corner-tr {
+  top: 0;
+  right: 0;
+}
+
+.hydra-corner-bl {
+  bottom: 0;
+  left: 0;
+}
+
+.hydra-corner-br {
+  bottom: 0;
+  right: 0;
+}
+
+.hydra-stat-cell {
+  position: relative;
+  min-height: 140px;
+}
+
+.hydra-frame-corners-wrap {
+  position: relative;
+}
+
+.hydra-use-tab {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.16);
+  padding: 20px 24px;
+  cursor: pointer;
+  transition:
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease;
+}
+
+.hydra-use-tab.is-active {
+  border-bottom-width: 3px;
+  border-bottom-color: var(--color-hydra-accent);
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.hydra-use-tab-label {
+  font-family: var(--font-family-mono);
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+}
+
+.hydra-use-tab.is-active .hydra-use-tab-label {
+  color: var(--color-hydra-accent);
+}
+
+.hydra-use-tab-desc {
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.25;
+  margin-top: 12px;
+}
+
+.hydra-pointer-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-family-mono);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Features band — each row has top/bottom H-lines (hydradb.com Frame 117/114) */
+.hydra-features-band {
+  width: 100%;
+  border-top: 1px solid #353535;
+}
+
+.hydra-features-row-band {
+  padding-inline: clamp(19px, 4vw, 40px);
+}
+
+.hydra-features-row-band-bottom {
+  border-top: 1px solid #353535;
+}
+
+.hydra-features-row-rule {
+  width: 100%;
+  height: 20px;
+  border-top: 1px solid #353535;
+}
+
+.hydra-features-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: 1185px;
+  margin-inline: auto;
+  border-left: 1px solid #353535;
+  border-right: 1px solid #353535;
+  background: #353535;
+  gap: 1px;
+}
+
+@media (min-width: 810px) {
+  .hydra-features-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Recall degradation — no section top border (gap handled by double-rule); bottom H-line full bleed */
+.hydra-recall-band {
+  border-top: none;
+  border-bottom: 1px solid #353535;
+}
+
+.hydra-feature-cell {
+  display: flex;
+  flex-direction: column;
+  background: #000000;
+  min-height: 420px;
+  padding: 28px 24px 24px;
+}
+
+@media (min-width: 810px) {
+  .hydra-feature-cell {
+    min-height: 480px;
+    padding: 36px 32px 28px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .hydra-feature-cell {
+    min-height: 520px;
+    padding: 40px 40px 32px;
+  }
+}
+
+.hydra-feature-title {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(22px, 2.4vw, 28px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+  color: #ffffff;
+  text-align: left;
+}
+
+.hydra-feature-body {
+  font-family: var(--font-family-primary);
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  line-height: 135%;
+  color: rgb(153, 153, 153);
+  text-align: left;
+  max-width: 36ch;
+  margin-top: 12px;
+}
+
+.hydra-feature-visual {
+  margin-top: auto;
+  padding-top: 28px;
+  width: 100%;
+}
+
+/* Accuracy gradient panel — purple instead of orange */
+.hydra-accuracy-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      #2e1065 0px,
+      #2e1065 10px,
+      #5b21b6 10px,
+      #5b21b6 20px,
+      #7c3aed 20px,
+      #7c3aed 30px,
+      #8b5cf6 30px,
+      #8b5cf6 40px,
+      #a78bfa 40px,
+      #a78bfa 50px,
+      #c4b5fd 50px,
+      #c4b5fd 60px
+    );
+  animation: hydra-bar-shift 6s linear infinite;
+  background-size: 120% 100%;
+}
+
+@keyframes hydra-bar-shift {
+  0% {
+    background-position: 0% 0;
+  }
+  100% {
+    background-position: 60px 0;
+  }
+}
+
+.hydra-accuracy-value {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(36px, 5vw, 52px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.45);
+}
+
+.hydra-accuracy-label {
+  font-family: var(--font-family-primary);
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-top: 6px;
+}
+
+/* Tiered storage diagram */
+.hydra-tier-panel {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    #0a0a0a;
+  background-size: 28px 28px, 28px 28px, auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.hydra-tier-label {
+  font-family: var(--font-family-pixel);
+  font-size: 12px;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  text-transform: capitalize;
+}
+
+.hydra-tier-flow {
+  position: absolute;
+  left: -12px;
+  right: -12px;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-hydra-accent) 0,
+    var(--color-hydra-accent) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+  animation: hydra-flow 1s linear infinite;
+}
+
+.hydra-tier-cap {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  background: var(--color-hydra-accent);
+  transform: translateY(-50%);
+}
+
+.hydra-tier-cap.is-left {
+  left: 0;
+}
+
+.hydra-tier-cap.is-right {
+  right: 0;
+}
+
+.hydra-tier-nodes {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 4vw, 40px);
+}
+
+.hydra-tier-node {
+  width: 72px;
+  height: 42px;
+  clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  background: #141414;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-pixel);
+  font-size: 10px;
+  color: #ffffff;
+  text-transform: capitalize;
+}
+
+.hydra-tier-node.is-accent {
+  background: var(--color-hydra-accent);
+  border-color: var(--color-hydra-accent);
+}
+
+/* Recall graph visual */
+.hydra-recall-panel {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 40% 70%, rgba(139, 92, 246, 0.25), transparent 55%),
+    #050505;
+}
+
+.hydra-recall-panel svg {
+  width: 100%;
+  height: 100%;
+}
+
+.hydra-recall-tag {
+  position: absolute;
+  font-family: var(--font-family-pixel);
+  font-size: 11px;
+  color: #ffffff;
+  text-transform: capitalize;
+}
+
+/* Latency visual */
+.hydra-latency-metric {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(28px, 3.5vw, 36px);
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--color-hydra-accent);
+  margin-bottom: 20px;
+}
+
+.hydra-latency-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.hydra-latency-row {
+  display: flex;
+  align-items: center;
+  height: 2px;
+  background: rgb(45, 45, 45);
+  position: relative;
+}
+
+.hydra-latency-fill {
+  position: absolute;
+  left: 0;
+  top: -4px;
+  height: 10px;
+  background: #ffffff;
+}
+
+.hydra-latency-fill.is-accent {
+  background: var(--color-hydra-accent);
+  left: auto;
+  right: 8%;
+}
+
+.hydra-section-title-wrap {
+  width: 100%;
+  max-width: 884px;
+  margin-inline: auto;
+  padding-inline: 40px;
+  text-align: center;
+}
+
+@media (max-width: 809px) {
+  .hydra-section-title-wrap {
+    padding-inline: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hydra-accuracy-panel {
+    animation: none;
+  }
+}
+
+.hydra-dashed-flow {
+  height: 2px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-hydra-accent) 0,
+    var(--color-hydra-accent) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+  animation: hydra-flow 1s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hydra-feature-visual-bar {
+    animation: none;
+  }
+
+  .hydra-dashed-flow {
+    animation: none;
   }
 }
