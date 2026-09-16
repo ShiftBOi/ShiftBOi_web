@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { DinoDashHorizon, DinoDashStage } from "@/components/web/dino-dash";
@@ -220,9 +220,16 @@ function TalkToUsButton() {
 }
 
 export function Hero() {
+  const [dinoPhase, setDinoPhase] = useState<
+    "demo" | "entering" | "playing" | "dead"
+  >("demo");
+  const heroBusy = dinoPhase !== "demo";
+
   return (
-    <section className="relative flex min-h-0 flex-1 flex-col">
-      <div className="relative z-[1] mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-start px-5 pb-8 pt-12 md:px-10 md:pb-10 md:pt-16">
+    <section
+      className={`relative flex min-h-0 flex-1 flex-col${heroBusy ? " hero-dino-game" : ""}`}
+    >
+      <div className="hero-copy relative z-[1] mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-start px-5 pb-8 pt-12 md:px-10 md:pb-10 md:pt-16">
         <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0 overflow-hidden"
@@ -278,7 +285,16 @@ export function Hero() {
         </motion.div>
       </div>
 
-      <DinoDashStage />
+      <motion.p
+        className="dino-click-hint pointer-events-none absolute bottom-8 left-[48%] z-[2] hidden -translate-x-1/2 md:block"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.9, delay: 0.6 }}
+      >
+        click the dino to play
+      </motion.p>
+
+      <DinoDashStage onPhaseChange={setDinoPhase} />
       <DinoDashHorizon />
     </section>
   );

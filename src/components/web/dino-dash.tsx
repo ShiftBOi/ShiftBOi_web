@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from "react";
+import gsap from "gsap";
 import {
   DINO_HURT_FRAMES,
   DINO_JUMP_FRAMES,
@@ -17,6 +18,7 @@ import {
 } from "@/components/web/dino-frames";
 
 type Pose = "run" | "jump" | "hurt";
+type GamePhase = "demo" | "entering" | "playing" | "dead";
 type ObstacleKind = "cactus1" | "cactus2" | "cactus3";
 type JumpPlan = "clear" | "late" | "none";
 
@@ -26,17 +28,17 @@ type Obstacle = {
   x: number;
   width: number;
   hit: boolean;
-  /** ~80% clear, ~12% late misjump, ~8% no-jump */
-  plan: JumpPlan;
-  reacted: boolean;
+  plan?: JumpPlan;
+  reacted?: boolean;
 };
 
 const DINO_SIZE = 220;
 const PARTICLE_DIV = 2;
 const GRID = 24 * PARTICLE_DIV;
 const PIX_FONT = "Pix32, ui-monospace, monospace";
-/** Chrome ratio: cactus shorter than dino */
 const SCALE_CACTUS = 7;
+/** Hurt frame that is fully white — freeze here after player death anim */
+const WHITE_HURT_FRAME = 2;
 
 const GEN_CHARS = Array.from("01<>{}[]/\\|#*+=.:;░▒▓█@%xoXO*!^~$");
 const SETTLE_CHARS: Record<DinoTone, string> = {
@@ -108,18 +110,16 @@ const CACTUS_MASKS: Record<ObstacleKind, string[]> = {
 
 const OBSTACLE_LANE_W: Record<ObstacleKind, number> = {
   cactus1: 0.05,
-  cactus2: 0.09, // double cluster — wider hitbox
+  cactus2: 0.09,
   cactus3: 0.04,
 };
 
-/** Extra lead distance so wide clusters get an earlier / farther jump */
 const JUMP_LEAD: Record<ObstacleKind, number> = {
   cactus1: 1,
   cactus2: 1.45,
   cactus3: 0.92,
 };
 
-/** Jump power boost for clearing wide 2-asset clusters */
 const JUMP_POWER: Record<ObstacleKind, number> = {
   cactus1: 1,
   cactus2: 1.22,
@@ -316,17 +316,31 @@ function AsciiCactus({
   );
 }
 
-function spawnObstacle(id: number): Obstacle {
+function spawnObstacle(
+  id: number,
+  withPlan: boolean,
+  x = 1.12,
+): Obstacle {
   const roll = Math.random();
   const kind: ObstacleKind =
     roll < 0.5 ? "cactus1" : roll < 0.78 ? "cactus3" : "cactus2";
+
+  if (!withPlan) {
+    return {
+      id,
+      kind,
+      x,
+      width: OBSTACLE_LANE_W[kind],
+      hit: false,
+    };
+  }
+
   const r = Math.random();
   const plan: JumpPlan = r < 0.8 ? "clear" : r < 0.92 ? "late" : "none";
-
   return {
     id,
     kind,
-    x: 1.15,
+    x,
     width: OBSTACLE_LANE_W[kind],
     hit: false,
     plan,
@@ -334,12 +348,8 @@ function spawnObstacle(id: number): Obstacle {
   };
 }
 
-/**
- * Chrome-like auto runner with ASCII sprites.
- * Jump lift via DOM (smooth projectile, no SVG remount blink).
- * One locked air frame + ASCII scramble stays on during jump.
- */
-function useChromeDinoLoop(
+/** Hero auto-runner — hurt then keep running (original behavior). */
+function useDemoDinoLoop(
   enabled: boolean,
   onJumpLift?: (lift01: number) => void,
   onObstaclesPaint?: (obstacles: Obstacle[]) => void,
@@ -376,7 +386,15 @@ function useChromeDinoLoop(
   }, [pose]);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      obstaclesRef.current = [];
+      lastObstacleKeyRef.current = "";
+      setObstacleSnapshot([]);
+      velYRef.current = 0;
+      yRef.current = 0;
+      onJumpLift?.(0);
+      return;
+    }
 
     let raf = 0;
     let last = performance.now();
@@ -403,14 +421,15 @@ function useChromeDinoLoop(
       }
     };
 
-    const startJump = (power: "full" | "weak", kind: ObstacleKind = "cactus1") => {
+    const startJump = (
+      power: "full" | "weak",
+      kind: ObstacleKind = "cactus1",
+    ) => {
       if (poseRef.current !== "run") return false;
       jumpPowerRef.current = power;
       jumpKindRef.current = kind;
       const boost = power === "full" ? JUMP_POWER[kind] : 1;
-      velYRef.current =
-        (power === "full" ? JUMP_V : JUMP_V_WEAK) * boost;
-      // slightly lower gravity on wide clears = longer / farther hang time
+      velYRef.current = (power === "full" ? JUMP_V : JUMP_V_WEAK) * boost;
       yRef.current = 0.002;
       setPoseNow("jump");
       frameRef.current = AIR_FRAME;
@@ -434,7 +453,6 @@ function useChromeDinoLoop(
       const dt = Math.min(0.04, (now - last) / 1000);
       last = now;
       runningTimeRef.current += dt;
-
       speedRef.current = Math.min(0.4, speedRef.current + dt * 0.0032);
 
       let poseNow = poseRef.current;
@@ -442,7 +460,6 @@ function useChromeDinoLoop(
       const speed = speedRef.current;
       const timeToPeak = JUMP_V / GRAVITY;
       const baseDist = Math.min(0.26, Math.max(0.13, speed * timeToPeak * 0.98));
-      // Wide double-cactus: lower gravity while clearing for farther hang
       const gravNow =
         poseNow === "jump" &&
         jumpPowerRef.current === "full" &&
@@ -458,8 +475,7 @@ function useChromeDinoLoop(
           setFrame(frameRef.current);
         }
         if (now >= hurtUntil) {
-          obstaclesRef.current = obstaclesRef.current.filter((o) => !o.hit);
-          syncObstacles(obstaclesRef.current, true);
+          // Keep obstacles scrolling — do not despawn on recover
           yRef.current = 0;
           velYRef.current = 0;
           paintLift(0);
@@ -472,7 +488,6 @@ function useChromeDinoLoop(
       } else if (poseNow === "jump") {
         velYRef.current -= gravNow * dt;
         yRef.current += velYRef.current * dt;
-
         const peakV =
           jumpPowerRef.current === "full"
             ? JUMP_V * JUMP_POWER[jumpKindRef.current]
@@ -499,11 +514,11 @@ function useChromeDinoLoop(
         }
       }
 
-      const scrollMul = poseNow === "hurt" ? 0.08 : 1;
+      // World keeps moving at full speed while hurt (hero demo)
       const moved = obstaclesRef.current
         .map((o) => ({
           ...o,
-          x: o.x - speed * dt * scrollMul,
+          x: o.x - speed * dt,
         }))
         .filter((o) => o.x > -0.2);
 
@@ -516,7 +531,7 @@ function useChromeDinoLoop(
         const lastX = moved.reduce((m, o) => Math.max(m, o.x), 0);
         const minGap = 0.7 + speed * 0.65;
         if (lastX < 1.1 - minGap) {
-          moved.push(spawnObstacle(idRef.current++));
+          moved.push(spawnObstacle(idRef.current++, true));
           nextSpawnRef.current = 1.05 + Math.random() * 1.15;
         } else {
           nextSpawnRef.current = 0.12;
@@ -527,6 +542,7 @@ function useChromeDinoLoop(
         const dist = o.x - DINO_X;
         const overlap =
           o.x < DINO_X + DINO_W && o.x + o.width > DINO_X - 0.01;
+        const plan = o.plan ?? "clear";
 
         if (!o.reacted && poseNow === "run" && dist > 0) {
           const goodDist = Math.min(
@@ -534,16 +550,16 @@ function useChromeDinoLoop(
             Math.max(0.13, baseDist * JUMP_LEAD[o.kind]),
           );
 
-          if (o.plan === "clear" && dist <= goodDist && dist > goodDist * 0.55) {
+          if (plan === "clear" && dist <= goodDist && dist > goodDist * 0.55) {
             o.reacted = true;
             if (startJump("full", o.kind)) {
               clearingIdRef.current = o.id;
               poseNow = "jump";
             }
-          } else if (o.plan === "late" && dist <= goodDist * 0.28) {
+          } else if (plan === "late" && dist <= goodDist * 0.28) {
             o.reacted = true;
             if (startJump("weak", o.kind)) poseNow = "jump";
-          } else if (o.plan === "none" && dist <= goodDist) {
+          } else if (plan === "none" && dist <= goodDist) {
             o.reacted = true;
           }
         }
@@ -574,12 +590,336 @@ function useChromeDinoLoop(
   return { pose, frame, obstacles: obstacleSnapshot };
 }
 
-export function DinoDashStage() {
+/** Player-controlled runner for /play */
+function usePlayerDinoLoop(
+  enabled: boolean,
+  sessionId: number,
+  onJumpLift?: (lift01: number) => void,
+  onObstaclesPaint?: (obstacles: Obstacle[]) => void,
+  onScore?: (score: number) => void,
+  onDead?: (score: number) => void,
+) {
+  const [pose, setPose] = useState<Pose>("run");
+  const [frame, setFrame] = useState(0);
+  const [obstacleSnapshot, setObstacleSnapshot] = useState<Obstacle[]>([]);
+
+  const poseRef = useRef<Pose>("run");
+  const frameRef = useRef(0);
+  const obstaclesRef = useRef<Obstacle[]>([]);
+  const speedRef = useRef(0.28);
+  const nextSpawnRef = useRef(1.4);
+  const idRef = useRef(1);
+  const animAccRef = useRef(0);
+  const runningTimeRef = useRef(0);
+  const velYRef = useRef(0);
+  const yRef = useRef(0);
+  const scoreRef = useRef(0);
+  const deadRef = useRef(false);
+  const deathFrozenRef = useRef(false);
+  const jumpQueuedRef = useRef(false);
+  const lastObstacleKeyRef = useRef("");
+
+  const JUMP_V = 3.35;
+  const GRAVITY = 6.2;
+  const CLEAR_Y = 0.28;
+  const DINO_X = 0.12;
+  const DINO_W = 0.065;
+  const AIR_FRAME = 1;
+
+  const requestJump = useCallback(() => {
+    if (!enabled || deadRef.current) return;
+    jumpQueuedRef.current = true;
+  }, [enabled]);
+
+  useEffect(() => {
+    poseRef.current = pose;
+  }, [pose]);
+
+  useEffect(() => {
+    if (!enabled) {
+      deadRef.current = false;
+      deathFrozenRef.current = false;
+      scoreRef.current = 0;
+      obstaclesRef.current = [];
+      lastObstacleKeyRef.current = "";
+      setObstacleSnapshot([]);
+      velYRef.current = 0;
+      yRef.current = 0;
+      poseRef.current = "run";
+      setPose("run");
+      frameRef.current = 0;
+      setFrame(0);
+      onJumpLift?.(0);
+      return;
+    }
+
+    let raf = 0;
+    let last = performance.now();
+    deadRef.current = false;
+    deathFrozenRef.current = false;
+    scoreRef.current = 0;
+    // Seed 2 ahead so the lane already shows upcoming cacti
+    idRef.current = 1;
+    obstaclesRef.current = [
+      spawnObstacle(idRef.current++, false, 0.58),
+      spawnObstacle(idRef.current++, false, 0.88),
+    ];
+    lastObstacleKeyRef.current = "";
+    speedRef.current = 0.28;
+    nextSpawnRef.current = 0.55;
+    runningTimeRef.current = 0;
+    jumpQueuedRef.current = false;
+    velYRef.current = 0;
+    yRef.current = 0;
+    poseRef.current = "run";
+    setPose("run");
+    frameRef.current = 0;
+    setFrame(0);
+    setObstacleSnapshot(obstaclesRef.current.map((o) => ({ ...o })));
+    onObstaclesPaint?.(obstaclesRef.current);
+    onJumpLift?.(0);
+
+    const setPoseNow = (next: Pose) => {
+      poseRef.current = next;
+      setPose(next);
+      animAccRef.current = 0;
+    };
+
+    const paintLift = (lift01: number) => onJumpLift?.(lift01);
+
+    const syncObstacles = (moved: Obstacle[], force = false) => {
+      onObstaclesPaint?.(moved);
+      const key = moved
+        .map((o) => `${o.id}:${o.kind}:${o.hit ? 1 : 0}`)
+        .join("|");
+      if (force || key !== lastObstacleKeyRef.current) {
+        lastObstacleKeyRef.current = key;
+        setObstacleSnapshot(moved.map((o) => ({ ...o })));
+      }
+    };
+
+    const startJump = () => {
+      if (poseRef.current !== "run" || deadRef.current) return false;
+      velYRef.current = JUMP_V;
+      yRef.current = 0.002;
+      setPoseNow("jump");
+      frameRef.current = AIR_FRAME;
+      setFrame(AIR_FRAME);
+      return true;
+    };
+
+    const triggerHurt = (o: Obstacle) => {
+      o.hit = true;
+      deadRef.current = true;
+      deathFrozenRef.current = false;
+      velYRef.current = 0;
+      paintLift(Math.max(0, yRef.current));
+      setPoseNow("hurt");
+      frameRef.current = 0;
+      setFrame(0);
+      onDead?.(Math.floor(scoreRef.current));
+    };
+
+    const step = (now: number) => {
+      const dt = Math.min(0.04, (now - last) / 1000);
+      last = now;
+
+      if (deadRef.current) {
+        if (!deathFrozenRef.current) {
+          animAccRef.current += dt;
+          if (animAccRef.current >= 0.09) {
+            animAccRef.current = 0;
+            if (frameRef.current < WHITE_HURT_FRAME) {
+              frameRef.current += 1;
+              setFrame(frameRef.current);
+            }
+            if (frameRef.current >= WHITE_HURT_FRAME) {
+              frameRef.current = WHITE_HURT_FRAME;
+              setFrame(WHITE_HURT_FRAME);
+              deathFrozenRef.current = true;
+            }
+          }
+        }
+        raf = requestAnimationFrame(step);
+        return;
+      }
+
+      runningTimeRef.current += dt;
+      speedRef.current = Math.min(0.52, speedRef.current + dt * 0.004);
+      scoreRef.current += dt * speedRef.current * 120;
+      onScore?.(Math.floor(scoreRef.current));
+
+      if (jumpQueuedRef.current) {
+        jumpQueuedRef.current = false;
+        startJump();
+      }
+
+      let poseNow = poseRef.current;
+      const frameCount = POSE_FRAMES[poseNow].length;
+
+      if (poseNow === "jump") {
+        velYRef.current -= GRAVITY * dt;
+        yRef.current += velYRef.current * dt;
+        const peak = (JUMP_V * JUMP_V) / (2 * GRAVITY);
+        if (yRef.current <= 0) {
+          yRef.current = 0;
+          velYRef.current = 0;
+          paintLift(0);
+          setPoseNow("run");
+          frameRef.current = 0;
+          setFrame(0);
+        } else {
+          paintLift(Math.min(1, yRef.current / Math.max(0.35, peak)));
+        }
+      } else {
+        animAccRef.current += dt;
+        if (animAccRef.current >= 0.07) {
+          animAccRef.current = 0;
+          frameRef.current = (frameRef.current + 1) % frameCount;
+          setFrame(frameRef.current);
+        }
+      }
+
+      const speed = speedRef.current;
+      const moved = obstaclesRef.current
+        .map((o) => ({ ...o, x: o.x - speed * dt }))
+        .filter((o) => o.x > -0.2);
+
+      nextSpawnRef.current -= dt;
+      if (nextSpawnRef.current <= 0 && runningTimeRef.current > 0.15) {
+        const lastX = moved.reduce((m, o) => Math.max(m, o.x), 0);
+        // Keep ~1–3 obstacles visible ahead on the long track
+        const minGap = 0.26 + speed * 0.22;
+        const onScreen = moved.filter((o) => o.x > 0.15 && o.x < 1.05).length;
+        if (lastX < 1.05 - minGap && onScreen < 3) {
+          moved.push(spawnObstacle(idRef.current++, false, 1.08));
+          nextSpawnRef.current = 0.28 + Math.random() * 0.45;
+        } else {
+          nextSpawnRef.current = 0.08;
+        }
+      }
+
+      for (const o of moved) {
+        const overlap =
+          o.x < DINO_X + DINO_W && o.x + o.width > DINO_X - 0.01;
+        if (overlap && !o.hit && yRef.current < CLEAR_Y) {
+          triggerHurt(o);
+          break;
+        }
+      }
+
+      obstaclesRef.current = moved;
+      syncObstacles(moved);
+      raf = requestAnimationFrame(step);
+    };
+
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, sessionId]);
+
+  return { pose, frame, obstacles: obstacleSnapshot, requestJump };
+}
+
+function DinoClouds() {
+  return (
+    <div className="dino-clouds" aria-hidden>
+      <svg
+        className="dino-cloud dino-cloud-a"
+        viewBox="0 0 160 56"
+        width="160"
+        height="56"
+        fill="none"
+      >
+        <path
+          d="M28 40c-10 0-18-7-18-16S18 8 28 8c2-8 10-14 20-14 12 0 21 8 23 18 3-2 7-3 11-3 11 0 20 8 20 19 0 1 0 2-.2 3H148c7 0 12 5 12 11s-5 11-12 11H28c-9 0-16-5-16-12 0-6 5-11 12-12z"
+          fill="rgba(172,103,255,0.14)"
+          stroke="rgba(172,103,255,0.35)"
+          strokeWidth="1.25"
+        />
+        <path
+          d="M42 34c-5 0-9-3.5-9-8s4-8 9-8c1.2-4.5 5.5-8 10.5-8 6 0 11 4 12 9.5 1.5-1 3.5-1.5 5.5-1.5 6 0 10.5 4 10.5 9.5V34H42z"
+          fill="rgba(255,255,255,0.06)"
+        />
+      </svg>
+
+      <svg
+        className="dino-cloud dino-cloud-b"
+        viewBox="0 0 120 44"
+        width="120"
+        height="44"
+        fill="none"
+      >
+        <path
+          d="M22 32c-7.5 0-14-5.5-14-12.5S14.5 7 22 7c1.8-6 7.5-10.5 14.5-10.5 8.5 0 15.5 6 16.5 14 2-1.5 5-2.5 8-2.5 8 0 14.5 6 14.5 13.5 0 .7 0 1.3-.1 2H108c5 0 9 3.5 9 8s-4 8-9 8H22c-6.5 0-12-3.5-12-8.5S15.5 32 22 32z"
+          fill="rgba(172,103,255,0.1)"
+          stroke="rgba(172,103,255,0.28)"
+          strokeWidth="1.1"
+        />
+      </svg>
+
+      <svg
+        className="dino-cloud dino-cloud-c"
+        viewBox="0 0 96 36"
+        width="96"
+        height="36"
+        fill="none"
+      >
+        <path
+          d="M18 26c-6 0-11-4-11-9.5S12 7 18 7c1.5-4.5 6-8 11.5-8 6.5 0 12 4.5 13 10.5 1.5-1 3.5-1.5 5.5-1.5 6.5 0 11.5 4.5 11.5 10.5V26H18z"
+          fill="rgba(255,255,255,0.05)"
+          stroke="rgba(172,103,255,0.22)"
+          strokeWidth="1"
+        />
+      </svg>
+
+      <svg
+        className="dino-cloud dino-cloud-d"
+        viewBox="0 0 140 48"
+        width="140"
+        height="48"
+        fill="none"
+      >
+        <path
+          d="M26 36c-9 0-16-6-16-14S17 8 26 8c2-7 9-12 17-12 10 0 18 6.5 20 15.5 2.5-1.8 6-3 9.5-3 9.5 0 17 7 17 16 0 .8 0 1.5-.2 2.2H128c6 0 10.5 4 10.5 9.5S134 45 128 45H26c-7.5 0-14-4-14-10s6.5-9 14-9z"
+          fill="rgba(172,103,255,0.12)"
+          stroke="rgba(172,103,255,0.32)"
+          strokeWidth="1.2"
+        />
+      </svg>
+    </div>
+  );
+}
+
+/** Hero demo + in-place transition into playable game */
+export function DinoDashStage({
+  onPhaseChange,
+}: {
+  onPhaseChange?: (phase: GamePhase) => void;
+}) {
   const [reduced, setReduced] = useState(false);
   const [ready, setReady] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [phase, setPhase] = useState<GamePhase>("demo");
+  const [score, setScore] = useState(0);
+  const [finalScore, setFinalScore] = useState(0);
+  const [sessionId, setSessionId] = useState(0);
+
+  const rootRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const liftRef = useRef<HTMLDivElement>(null);
   const obstacleLayerRef = useRef<HTMLDivElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+  const cloudsRef = useRef<HTMLDivElement>(null);
   const groundNudge = DINO_SIZE * 0.16;
+
+  const setPhaseBoth = useCallback(
+    (next: GamePhase) => {
+      setPhase(next);
+      onPhaseChange?.(next);
+    },
+    [onPhaseChange],
+  );
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -594,71 +934,335 @@ export function DinoDashStage() {
     (lift01: number) => {
       const el = liftRef.current;
       if (!el) return;
+      if (phase === "entering") return;
       const liftPx = lift01 * (DINO_SIZE * 0.62);
       el.style.transform = `translate3d(0, ${groundNudge - liftPx}px, 0)`;
     },
-    [groundNudge],
+    [groundNudge, phase],
   );
 
-  const onObstaclesPaint = useCallback((list: Obstacle[]) => {
-    const root = obstacleLayerRef.current;
-    if (!root) return;
-    for (const node of root.querySelectorAll<HTMLElement>("[data-oid]")) {
-      const id = Number(node.dataset.oid);
-      const o = list.find((item) => item.id === id);
-      if (!o) continue;
-      node.style.left = `${o.x * 100}%`;
-      node.style.opacity = o.hit ? "0.35" : "1";
-    }
-  }, []);
+  const onObstaclesPaint = useCallback(
+    (list: Obstacle[], dimHit: boolean) => {
+      const root = obstacleLayerRef.current;
+      if (!root) return;
+      for (const node of root.querySelectorAll<HTMLElement>("[data-oid]")) {
+        const id = Number(node.dataset.oid);
+        const o = list.find((item) => item.id === id);
+        if (!o) continue;
+        node.style.left = `${o.x * 100}%`;
+        node.style.opacity = dimHit && o.hit ? "0.35" : "1";
+      }
+    },
+    [],
+  );
 
-  const enabled = ready && !reduced;
-  const { pose, frame, obstacles } = useChromeDinoLoop(
-    enabled,
+  const onDemoPaint = useCallback(
+    (list: Obstacle[]) => onObstaclesPaint(list, false),
+    [onObstaclesPaint],
+  );
+  const onPlayPaint = useCallback(
+    (list: Obstacle[]) => onObstaclesPaint(list, true),
+    [onObstaclesPaint],
+  );
+
+  const demoOn = ready && !reduced && phase === "demo";
+  const playOn =
+    ready && !reduced && (phase === "playing" || phase === "dead");
+
+  const demo = useDemoDinoLoop(demoOn, onJumpLift, onDemoPaint);
+  const {
+    pose: playPose,
+    frame: playFrame,
+    obstacles: playObstacles,
+    requestJump,
+  } = usePlayerDinoLoop(
+    playOn,
+    sessionId,
     onJumpLift,
-    onObstaclesPaint,
+    onPlayPaint,
+    setScore,
+    (s) => {
+      setFinalScore(s);
+      setPhaseBoth("dead");
+    },
   );
+
+  const inGame =
+    phase === "entering" || phase === "playing" || phase === "dead";
+  const showPose = phase === "demo" || phase === "entering" ? demo.pose : playPose;
+  const showFrame =
+    phase === "demo" || phase === "entering" ? demo.frame : playFrame;
+  const showObstacles =
+    phase === "playing" || phase === "dead" ? playObstacles : demo.obstacles;
+  const scramble =
+    !reduced &&
+    ((demoOn && true) ||
+      (phase === "playing" && playPose !== "hurt") ||
+      (phase === "dead" &&
+        playPose === "hurt" &&
+        playFrame < WHITE_HURT_FRAME));
+
+  const exitToDemo = useCallback(() => {
+    const overlay = overlayRef.current;
+    const root = rootRef.current;
+    const clouds = cloudsRef.current;
+    document.body.style.overflow = "";
+
+    const finish = () => {
+      setPhaseBoth("demo");
+      setHovered(false);
+      setScore(0);
+      onJumpLift(0);
+      if (root) gsap.set(root, { clearProps: "all" });
+      if (overlay) {
+        gsap.set(overlay, { clearProps: "all", display: "none", opacity: 0 });
+      }
+      if (clouds) gsap.set(clouds, { opacity: 0 });
+    };
+
+    if (reduced) {
+      finish();
+      return;
+    }
+
+    gsap
+      .timeline({ onComplete: finish })
+      .to(clouds, { opacity: 0, duration: 0.25 }, 0)
+      .to(overlay, { opacity: 0, duration: 0.4, ease: "power2.inOut" }, 0);
+  }, [onJumpLift, reduced, setPhaseBoth]);
+
+  const flipFromRef = useRef<DOMRect | null>(null);
+
+  const startGame = useCallback(() => {
+    if (phase !== "demo") return;
+    const lift = liftRef.current;
+    if (!lift) return;
+    flipFromRef.current = lift.getBoundingClientRect();
+    document.body.style.overflow = "hidden";
+    setScore(0);
+    setPhaseBoth("entering");
+  }, [phase, setPhaseBoth]);
+
+  useEffect(() => {
+    if (phase !== "entering") return;
+    const lift = liftRef.current;
+    const overlay = overlayRef.current;
+    const clouds = cloudsRef.current;
+    const first = flipFromRef.current;
+    if (!lift || !overlay || !first) {
+      setSessionId((n) => n + 1);
+      setPhaseBoth("playing");
+      return;
+    }
+
+    overlay.style.display = "block";
+    gsap.set(overlay, { opacity: 0 });
+    gsap.set(clouds, { opacity: 0 });
+
+    const finishEnter = () => {
+      gsap.set(lift, { clearProps: "transform" });
+      lift.style.transform = `translate3d(0, ${groundNudge}px, 0)`;
+      setSessionId((n) => n + 1);
+      setPhaseBoth("playing");
+    };
+
+    const id = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        const last = lift.getBoundingClientRect();
+        const dx = first.left - last.left;
+        const dy = first.top - last.top;
+        const sx = first.width / Math.max(1, last.width);
+        const sy = first.height / Math.max(1, last.height);
+
+        gsap.set(lift, {
+          x: dx,
+          y: dy,
+          scaleX: sx,
+          scaleY: sy,
+          transformOrigin: "left bottom",
+        });
+
+        if (reduced) {
+          gsap.set(overlay, { opacity: 1 });
+          gsap.set(clouds, { opacity: 1 });
+          finishEnter();
+          return;
+        }
+
+        gsap
+          .timeline({ onComplete: finishEnter })
+          .to(
+            overlay,
+            { opacity: 1, duration: 0.55, ease: "power2.inOut" },
+            0,
+          )
+          .to(
+            lift,
+            {
+              x: 0,
+              y: 0,
+              scaleX: 1,
+              scaleY: 1,
+              duration: 1.05,
+              ease: "power3.inOut",
+            },
+            0.05,
+          )
+          .to(
+            clouds,
+            { opacity: 1, duration: 0.55, ease: "power2.out" },
+            0.45,
+          );
+      });
+    });
+
+    return () => cancelAnimationFrame(id);
+  }, [phase, groundNudge, reduced, setPhaseBoth]);
+
+  useEffect(() => {
+    if (phase !== "playing" && phase !== "dead") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code === "Escape") {
+        e.preventDefault();
+        exitToDemo();
+        return;
+      }
+      if (e.code === "Space" || e.code === "ArrowUp") {
+        e.preventDefault();
+        if (phase === "dead") {
+          setScore(0);
+          setSessionId((n) => n + 1);
+          setPhaseBoth("playing");
+          return;
+        }
+        requestJump();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [phase, requestJump, exitToDemo, setPhaseBoth]);
 
   return (
-    <div
-      aria-label="Dino run"
-      className="pointer-events-none absolute bottom-[14px] left-[44%] right-4 z-[1] hidden h-[280px] md:block"
-    >
-      <div ref={obstacleLayerRef} className="absolute inset-0 overflow-hidden">
-        {obstacles.map((o) => (
-          <div
-            key={o.id}
-            data-oid={o.id}
-            className="absolute bottom-[2px]"
-            style={{ left: `${o.x * 100}%` }}
-          >
-            <AsciiCactus
-              kind={o.kind}
-              hit={o.hit}
-              scramble={enabled}
-              reduced={reduced}
-            />
-          </div>
-        ))}
-      </div>
+    <>
+      <div
+        ref={overlayRef}
+        className="dino-game-overlay"
+        aria-hidden={!inGame}
+      />
 
       <div
-        ref={liftRef}
-        className="absolute bottom-0 left-0 will-change-transform"
-        style={{ transform: `translate3d(0, ${groundNudge}px, 0)` }}
+        ref={rootRef}
+        className={`dino-dash-root${inGame ? " is-playing" : ""}${phase === "entering" ? " is-entering" : ""}${hovered && phase === "demo" ? " is-lit" : ""}`}
       >
-        <AsciiDinoView
-          pose={pose}
-          frame={frame}
-          scramble={enabled}
-          reduced={reduced}
-        />
+        <div ref={cloudsRef} className="dino-clouds-wrap">
+          <DinoClouds />
+        </div>
+
+        <div
+          ref={stageRef}
+          className="dino-dash-stage"
+          aria-label="Dino minigame"
+        >
+          {(phase === "playing" || phase === "dead") && (
+            <div className="dino-hud">
+              <span className="dino-hud-score">
+                {phase === "dead" ? finalScore : score}
+              </span>
+              <span className="dino-hud-hint">
+                {phase === "dead"
+                  ? "crashed · space retry · esc exit"
+                  : "space jump · esc exit"}
+              </span>
+            </div>
+          )}
+
+          <div ref={obstacleLayerRef} className="dino-obstacle-layer">
+            {(phase === "demo" || phase === "playing" || phase === "dead") &&
+              showObstacles.map((o) => (
+                <div
+                  key={o.id}
+                  data-oid={o.id}
+                  className="dino-obstacle"
+                  style={{ left: `${o.x * 100}%` }}
+                >
+                  <AsciiCactus
+                    kind={o.kind}
+                    hit={phase !== "demo" && o.hit}
+                    scramble={scramble && (phase === "demo" || !o.hit)}
+                    reduced={reduced}
+                  />
+                </div>
+              ))}
+          </div>
+
+          <div
+            ref={liftRef}
+            className={`dino-lift${inGame ? " dino-play-lift" : ""}`}
+            style={{ transform: `translate3d(0, ${groundNudge}px, 0)` }}
+          >
+            <AsciiDinoView
+              pose={showPose}
+              frame={showFrame}
+              scramble={scramble}
+              reduced={
+                reduced ||
+                (phase === "dead" && playFrame >= WHITE_HURT_FRAME)
+              }
+            />
+          </div>
+
+          {phase === "demo" && (
+            <button
+              type="button"
+              className="dino-hit-zone"
+              aria-label="Click the dino to play minigame"
+              onMouseEnter={() => setHovered(true)}
+              onMouseLeave={() => setHovered(false)}
+              onClick={startGame}
+            />
+          )}
+
+          {phase === "playing" && (
+            <button
+              type="button"
+              className="dino-tap-jump"
+              aria-label="Jump"
+              onClick={() => requestJump()}
+            />
+          )}
+
+          {phase === "dead" && (
+            <div className="dino-dead-panel">
+              <p className="dino-dead-title">game over</p>
+              <p className="dino-dead-score">score {finalScore}</p>
+              <div className="dino-prompt-actions">
+                <button
+                  type="button"
+                  className="dino-prompt-btn dino-prompt-btn-yes"
+                  onClick={() => {
+                    setScore(0);
+                    setSessionId((n) => n + 1);
+                    setPhaseBoth("playing");
+                  }}
+                >
+                  retry
+                </button>
+                <button
+                  type="button"
+                  className="dino-prompt-btn dino-prompt-btn-no"
+                  onClick={exitToDemo}
+                >
+                  exit
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
-/** Thin spacer — ground for the dino above the velocity strip */
 export function DinoDashHorizon() {
   return (
     <div
