@@ -253,59 +253,57 @@ export function SiteBody({ projects }: { projects: Project[] }) {
 
   return (
     <div ref={rootRef} className="hydra-page">
-      {/* Raised band — ■ $6.5M Raised ■ */}
-      <section className="hydra-section">
-        <div className="hydra-container py-10 md:py-12">
-          <div className="hydra-cell hydra-frame-corners-wrap" data-hydra-reveal>
-            <HydraFrameCorners />
-            <div className="flex items-center justify-center gap-6 px-6 py-10 md:gap-8 md:py-12">
-              <HydraAccentSquare />
-              <h2 className="hydra-h2-band">$6.5M Raised</h2>
-              <HydraAccentSquare />
-            </div>
-            <div
-              className="grid grid-cols-1 divide-y divide-[rgb(32,32,32)] border-t border-[rgb(32,32,32)] md:grid-cols-4 md:divide-x md:divide-y-0"
-              data-hydra-stagger
-            >
-              {["Jeff Dean", "Researchers from OpenAI and DeepMind", "Sky9 Capital", "and more"].map(
-                (label) => (
+      {/* Raised — ■ $6.5M Raised ■ (no outer frame) */}
+      <section className="hydra-raised-band">
+        <div className="hydra-container py-16 md:py-24 lg:py-[120px]">
+          <div
+            className="flex items-center justify-center gap-5 md:gap-6"
+            data-hydra-reveal
+          >
+            <HydraAccentSquare />
+            <h2 className="hydra-h2-band text-white">$6.5M Raised</h2>
+            <HydraAccentSquare />
+          </div>
+          <div className="hydra-investor-row mt-6 md:mt-8" data-hydra-stagger>
+            {["Jeff Dean", "Researchers from OpenAI and DeepMind", "Sky9 Capital", "and more"].map(
+              (label, index, arr) => (
+                <div key={label} className="contents">
+                  {index > 0 ? <span className="hydra-investor-sep" aria-hidden /> : null}
                   <p
-                    key={label}
                     data-hydra-stagger-item
-                    className="hydra-investor px-6 py-5 text-center text-white md:py-6"
+                    className={`hydra-investor text-center ${index === arr.length - 1 ? "text-white/55" : "text-white"}`}
                   >
                     {label}
                   </p>
-                ),
-              )}
-            </div>
+                </div>
+              ),
+            )}
           </div>
         </div>
       </section>
 
-      {/* Stats — 4 columns with corner brackets */}
-      <section className="hydra-section">
-        <div className="hydra-container">
-          <div className="grid grid-cols-1 gap-px bg-[rgb(32,32,32)] sm:grid-cols-2 lg:grid-cols-4">
-            {STATS.map((stat) => (
-              <div
+      {/* Stats — long 4-col rectangle; L-brackets left on first 2, right on last 2 */}
+      <section className="hydra-stats-band">
+        <div className="hydra-stats-container">
+          <div className="hydra-stats-row" data-hydra-stagger>
+            {STATS.map((stat, index) => (
+              <article
                 key={stat.label}
-                className="hydra-stat-cell hydra-cell flex flex-col justify-between bg-black p-6 md:p-8"
+                className="hydra-stat-cell"
+                data-hydra-stagger-item
                 data-hydra-reveal
               >
-                <p className="hydra-stat-num">{stat.value}</p>
-                <div className="relative mt-8 pr-8">
-                  <p className="hydra-stat-label text-white">{stat.label}</p>
-                  <HydraStatCorners />
-                </div>
-              </div>
+                <HydraStatCorners side={index < 2 ? "left" : "right"} />
+                <p className="hydra-stat-num text-white">{stat.value}</p>
+                <p className="hydra-stat-label text-white/60">{stat.label}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Use cases — tabbed layout */}
-      <section id="use-cases" className="hydra-section">
+      {/* Use cases — tabbed layout; gray H-line above from stats-band */}
+      <section id="use-cases" className="hydra-section hydra-use-cases-band">
         <div className="hydra-container py-12 md:py-20">
           <p className="hydra-eyebrow" data-hydra-reveal-x>
             // Use Cases //

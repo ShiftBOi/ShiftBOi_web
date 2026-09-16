@@ -66,7 +66,33 @@ export function HydraPointerIcon() {
   );
 }
 
-export function HydraStatCorners() {
+export function HydraStatCorners({ side = "bottom" }: { side?: "left" | "right" | "bottom" }) {
+  if (side === "left") {
+    return (
+      <>
+        <div className="hydra-corner hydra-corner-tl">
+          <HydraCornerTL />
+        </div>
+        <div className="hydra-corner hydra-corner-bl">
+          <HydraCornerBL />
+        </div>
+      </>
+    );
+  }
+
+  if (side === "right") {
+    return (
+      <>
+        <div className="hydra-corner hydra-corner-tr">
+          <HydraCornerTR />
+        </div>
+        <div className="hydra-corner hydra-corner-br">
+          <HydraCornerBR />
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div className="hydra-corner hydra-corner-bl">

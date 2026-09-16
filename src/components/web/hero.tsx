@@ -72,10 +72,21 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
     if (!root || !dust) return;
 
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const restShadow = "inset 0 0 0 0px transparent";
-    const hoverShadow = "inset 0 0 0 1.5px #7c3aed";
+    const frame = { inset: 0, scale: 1 };
+    const PURPLE = "#7c3aed";
+    const INSET_MAX = 14;
 
-    gsap.set(root, { boxShadow: restShadow, scale: 1 });
+    const paintFrame = () => {
+      const inset = frame.inset;
+      root.style.boxShadow =
+        inset <= 0.05
+          ? "inset 0 0 0 0px transparent"
+          : `inset 0 0 0 ${inset}px ${PURPLE}`;
+      root.style.transform = `scale(${frame.scale})`;
+    };
+
+    gsap.set(frame, { inset: 0, scale: 1 });
+    paintFrame();
 
     const spawnDust = () => {
       if (!hoveringRef.current || reduced) return;
@@ -150,12 +161,14 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
 
     const enter = () => {
       hoveringRef.current = true;
-      gsap.killTweensOf(root);
-      gsap.to(root, {
-        boxShadow: hoverShadow,
-        scale: 1.01,
-        duration: 0.2,
-        ease: "power2.out",
+      gsap.killTweensOf(frame);
+      // Purple band creeps inward from the edge, thickening into the button fill
+      gsap.to(frame, {
+        inset: INSET_MAX,
+        scale: 1.015,
+        duration: reduced ? 0.01 : 0.55,
+        ease: "power2.inOut",
+        onUpdate: paintFrame,
       });
       startEmit();
     };
@@ -163,12 +176,13 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
     const leave = () => {
       hoveringRef.current = false;
       stopEmit();
-      gsap.killTweensOf(root);
-      gsap.to(root, {
-        boxShadow: restShadow,
+      gsap.killTweensOf(frame);
+      gsap.to(frame, {
+        inset: 0,
         scale: 1,
-        duration: 0.16,
+        duration: reduced ? 0.01 : 0.35,
         ease: "power2.inOut",
+        onUpdate: paintFrame,
       });
     };
 
@@ -184,7 +198,7 @@ function TalkToUsButton({ href = "#contact" }: { href?: string }) {
       root.removeEventListener("mouseleave", leave);
       root.removeEventListener("focus", enter);
       root.removeEventListener("blur", leave);
-      gsap.killTweensOf(root);
+      gsap.killTweensOf(frame);
       dust.replaceChildren();
     };
   }, []);

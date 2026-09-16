@@ -250,11 +250,26 @@ a.site-nav-link:focus-visible {
 
 .icon-marquee-track {
   will-change: transform;
+  backface-visibility: hidden;
+}
+
+.icon-marquee-track.is-scrolling {
+  animation: icon-marquee-scroll var(--marquee-duration, 48s) linear infinite;
+}
+
+@keyframes icon-marquee-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    /* Two identical segments → -50% = one full loop */
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .icon-marquee-track {
-    transform: none !important;
+  .icon-marquee-track.is-scrolling {
+    animation: none;
   }
 }
 
@@ -371,7 +386,7 @@ a.site-nav-link:focus-visible {
 
 .hydra-h2-band {
   font-family: var(--font-family-pixel-square);
-  font-size: 28px;
+  font-size: clamp(28px, 4vw, 48px);
   font-weight: 400;
   letter-spacing: -0.01em;
   line-height: 110%;
@@ -917,7 +932,95 @@ a.site-nav-link:focus-visible {
 
 .hydra-stat-cell {
   position: relative;
-  min-height: 140px;
+  min-height: 0;
+}
+
+/* Raised — no outer frame around $6.5M */
+.hydra-raised-band {
+  width: 100%;
+}
+
+.hydra-investor-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px 20px;
+}
+
+.hydra-investor-sep {
+  display: none;
+  width: 1px;
+  height: 26px;
+  flex-shrink: 0;
+  background: #d9d9d9;
+  opacity: 0.4;
+}
+
+@media (min-width: 810px) {
+  .hydra-investor-sep {
+    display: block;
+  }
+}
+
+/* Stats — long equal-width rectangles across a wider band */
+.hydra-stats-band {
+  width: 100%;
+  border-top: 1px solid #2e2d2d;
+  border-bottom: 1px solid #2e2e2e;
+}
+
+.hydra-stats-container {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding-inline: clamp(12px, 2vw, 24px);
+}
+
+.hydra-stats-row {
+  display: grid;
+  grid-template-columns: 1fr;
+  background: #2e2d2d;
+  gap: 1px;
+  width: 100%;
+}
+
+@media (min-width: 640px) {
+  .hydra-stats-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .hydra-stats-row {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.hydra-stats-row .hydra-stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  padding: 22px 28px;
+  background: #000000;
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .hydra-stats-row .hydra-stat-cell {
+    padding: 26px 36px;
+    min-height: 0;
+  }
+}
+
+/* Use cases sits below stats H-line — no extra top border */
+.hydra-use-cases-band {
+  border-top: none;
 }
 
 .hydra-frame-corners-wrap {

@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import gsap from "gsap";
+import { useEffect, useRef, useState } from "react";
 
 /** Empty landscape cells — content added later */
 const CELL_COUNT = 8;
@@ -10,18 +9,15 @@ const SEGMENT_COPIES = 3;
 function MarqueeSegment({
   copies,
   keyPrefix,
-  segmentRef,
 }: {
   copies: number;
   keyPrefix: string;
-  segmentRef?: React.RefObject<HTMLUListElement | null>;
 }) {
   const cells = Array.from({ length: copies * CELL_COUNT }, (_, i) => i);
 
   return (
     <ul
-      ref={segmentRef}
-      className="flex h-[132px] shrink-0 items-stretch"
+      className="flex h-[110px] shrink-0 items-stretch"
       aria-hidden={keyPrefix !== "a"}
     >
       {cells.map((index) => (
@@ -36,63 +32,44 @@ function MarqueeSegment({
 
 export function IconVelocityMarquee() {
   const trackRef = useRef<HTMLDivElement>(null);
-  const segmentRef = useRef<HTMLUListElement>(null);
-  const tweenRef = useRef<gsap.core.Tween | null>(null);
+  const [duration, setDuration] = useState(48);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     const track = trackRef.current;
-    const segment = segmentRef.current;
-    if (!track || !segment) return;
+    if (!track) return;
 
-    const prefersReduced =
-      typeof window !== "undefined" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    setPaused(prefersReduced);
 
-    if (prefersReduced) return;
-
-    const start = () => {
-      tweenRef.current?.kill();
-      gsap.set(track, { x: 0 });
-
-      const distance = segment.offsetWidth;
-      if (!distance) return;
-
-      const duration = Math.max(distance / 40, 20);
-
-      tweenRef.current = gsap.to(track, {
-        x: -distance,
-        duration,
-        ease: "none",
-        repeat: -1,
-      });
+    const measure = () => {
+      // Track has 2 identical segments → animate -50%
+      const half = track.scrollWidth / 2;
+      if (!half) return;
+      // ~40px/sec like the previous GSAP speed
+      setDuration(Math.max(half / 40, 20));
     };
 
-    start();
-
-    const onResize = () => start();
-    window.addEventListener("resize", onResize);
-
-    return () => {
-      window.removeEventListener("resize", onResize);
-      tweenRef.current?.kill();
-      tweenRef.current = null;
-    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(track);
+    return () => ro.disconnect();
   }, []);
 
   return (
-    <section aria-label="Featured strip" className="relative bg-black">
+    <section aria-label="Featured strip" className="relative border-b border-[#2e2e2e] bg-black">
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex flex-col gap-[6px]">
         <div className="h-px w-full bg-[var(--color-violet)]" />
         <div className="h-px w-full bg-[var(--color-violet)]" />
       </div>
 
       <div className="overflow-hidden pt-[14px]">
-        <div ref={trackRef} className="flex w-max will-change-transform">
-          <MarqueeSegment
-            keyPrefix="a"
-            copies={SEGMENT_COPIES}
-            segmentRef={segmentRef}
-          />
+        <div
+          ref={trackRef}
+          className={`icon-marquee-track flex w-max ${paused ? "" : "is-scrolling"}`}
+          style={{ ["--marquee-duration" as string]: `${duration}s` }}
+        >
+          <MarqueeSegment keyPrefix="a" copies={SEGMENT_COPIES} />
           <MarqueeSegment keyPrefix="b" copies={SEGMENT_COPIES} />
         </div>
       </div>
