@@ -1035,6 +1035,7 @@ a.site-nav-link:focus-visible::after {
   gap: 24px;
   min-height: 64px;
   padding-block: 16px;
+  box-sizing: border-box;
 }
 
 .site-footer-row-inner-body {
@@ -1081,8 +1082,10 @@ a.site-nav-link:focus-visible::after {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  align-self: center;
   justify-content: flex-end;
   gap: 14px 20px;
+  margin-block: 0;
 }
 
 .site-footer-social {
@@ -1149,12 +1152,32 @@ a.site-nav-link:focus-visible::after {
 }
 
 .site-footer-media {
+  position: relative;
   flex: 1;
-  min-height: 180px;
-  max-height: 220px;
+  min-height: 220px;
+  max-height: 280px;
   background: #000;
   overflow: hidden;
   border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.site-footer-media-socials {
+  position: absolute;
+  top: 14%;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 10px 14px;
+  padding: 0 10px;
+  pointer-events: none;
+}
+
+.site-footer-media-socials .site-footer-social {
+  pointer-events: auto;
 }
 
 .site-footer-media-video {
