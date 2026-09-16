@@ -694,6 +694,234 @@ a.site-nav-link:focus-visible::after {
   color: #ffffff;
 }
 
+/* ── Site footer (HydraDB-style — full-bleed H rules + vertical grid) ── */
+.site-footer {
+  position: relative;
+  width: 100%;
+  background: #000000;
+  overflow: hidden;
+}
+
+.site-footer-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 9px,
+    rgba(255, 255, 255, 0.06) 9px,
+    rgba(255, 255, 255, 0.06) 10px
+  );
+}
+
+.site-footer-table {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  margin-top: 0;
+  margin-bottom: clamp(24px, 3.5vw, 44px);
+}
+
+.site-footer-row {
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.site-footer-row-body {
+  border-top: none;
+  margin-top: -1px;
+}
+
+.site-footer-row-inner {
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+  padding-inline: clamp(16px, 3vw, 40px);
+  box-sizing: border-box;
+}
+
+.site-footer-row-inner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 64px;
+  padding-block: 16px;
+}
+
+.site-footer-row-inner-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px);
+  align-items: stretch;
+  min-height: 220px;
+}
+
+.site-footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.site-footer-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  font-family: var(--font-family-pixel-square);
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.site-footer-mark {
+  width: 28px;
+  height: 22px;
+  gap: 2px;
+}
+
+.site-footer-tagline {
+  margin: 0;
+  max-width: 28ch;
+  font-family: var(--font-family-primary);
+  font-size: 13px;
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.site-footer-socials {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 14px 20px;
+}
+
+.site-footer-social {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.85);
+  font-family: var(--font-family-pixel);
+  font-size: 11px;
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  transition: color 160ms ease;
+}
+
+.site-footer-social:hover,
+.site-footer-social:focus-visible {
+  color: var(--color-hydra-accent);
+}
+
+.site-footer-nav {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: clamp(14px, 2vw, 28px);
+  padding: 22px clamp(8px, 1.5vw, 16px) 24px 0;
+  border-right: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.site-footer-col-title {
+  margin: 0 0 12px;
+  font-family: var(--font-family-pixel-square);
+  font-size: 14px;
+  color: #ffffff;
+  letter-spacing: -0.01em;
+}
+
+.site-footer-col ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.site-footer-link {
+  font-family: var(--font-family-pixel);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.66);
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  text-transform: capitalize;
+  transition: color 160ms ease;
+}
+
+.site-footer-link:hover,
+.site-footer-link:focus-visible {
+  color: #ffffff;
+}
+
+.site-footer-aside {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.site-footer-media {
+  flex: 1;
+  min-height: 180px;
+  max-height: 220px;
+  background: #000;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.site-footer-media-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+}
+
+.site-footer-copy {
+  margin: 0;
+  padding: 12px 16px;
+  font-family: var(--font-family-pixel);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+@media (max-width: 1100px) {
+  .site-footer-row-inner-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .site-footer-socials {
+    justify-content: flex-start;
+  }
+
+  .site-footer-row-inner-body {
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer-nav {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    padding-right: 0;
+  }
+
+  .site-footer-media {
+    min-height: 200px;
+    max-height: 240px;
+  }
+}
+
+@media (max-width: 640px) {
+  .site-footer-nav {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .hydra-pricing-card {
   border: 1px solid var(--color-hydra-border);
   background: #000000;
@@ -723,6 +951,445 @@ a.site-nav-link:focus-visible::after {
   background: #000000;
   border-top: 1px solid var(--color-hydra-accent);
   border-bottom: 1px solid var(--color-hydra-accent);
+}
+
+/* Footer separator — 3 purple lines, middle thicker */
+.hydra-footer-rule {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #000000;
+  padding-block: clamp(28px, 4vw, 48px);
+}
+
+.hydra-footer-rule-thin {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--color-hydra-accent);
+}
+
+.hydra-footer-rule-thick {
+  display: block;
+  width: 100%;
+  height: 3px;
+  background: var(--color-hydra-accent);
+}
+
+/* ShiftBOi 2×2 brand mark (navbar glyph) */
+.shiftboi-mark {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  width: 1.2em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
+.shiftboi-mark > span:nth-child(1),
+.shiftboi-mark > span:nth-child(4) {
+  background: var(--color-accent-purple, var(--color-hydra-accent));
+}
+
+.shiftboi-mark > span:nth-child(2),
+.shiftboi-mark > span:nth-child(3) {
+  background: var(--color-accent-purple-bright, var(--color-hydra-accent));
+}
+
+/* Equal black gap between sections (no divider line) */
+.hydra-section-gap {
+  width: 100%;
+  height: clamp(72px, 12vw, 120px);
+  background: #000000;
+  flex: none;
+}
+
+/* Icon horizontal rule — same 10px footprint as .hydra-triple-rule-bar */
+.hydra-icon-rule-wrap {
+  width: 100%;
+  flex: none;
+}
+
+.hydra-icon-rule {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  background: #000000;
+  border-top: 1px solid var(--color-hydra-accent);
+  border-bottom: 1px solid var(--color-hydra-accent);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.hydra-icon-rule-track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  padding: 0 4px;
+  gap: 8px;
+}
+
+.hydra-icon-rule-mark {
+  width: 6px;
+  height: 5px;
+  gap: 0.5px;
+  opacity: 0.95;
+}
+
+/* Graph Native (HydraDB framer-amkbys) */
+.hydra-graph-native {
+  width: 100%;
+  border-top: 1px solid #2e2e2e;
+  border-bottom: 1px solid #2e2e2e;
+  background: #000000;
+}
+
+.hydra-graph-native-inner {
+  max-width: 1178px;
+  margin-inline: auto;
+  display: flex;
+  flex-flow: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  width: 100%;
+  padding: 0 clamp(19px, 4vw, 40px);
+  position: relative;
+}
+
+.hydra-graph-native-visual {
+  position: relative;
+  flex: 1 0 0;
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  min-height: 280px;
+  overflow: hidden;
+  border-left: 1px solid #2e2e2e;
+  border-bottom: 1px solid #2e2e2e;
+}
+
+.hydra-graph-native-video {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 123%;
+  height: auto;
+  max-height: 100%;
+  transform: translateX(-50%);
+  object-fit: cover;
+  object-position: 50% 100%;
+  display: block;
+  /* Shift Hydra orange glow toward brand purple */
+  filter: hue-rotate(230deg) saturate(1.15) brightness(1.05);
+}
+
+.hydra-graph-native-copy {
+  z-index: 2;
+  flex: 1 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 10px;
+  width: 1px;
+  padding: clamp(40px, 6vw, 74px) clamp(20px, 4vw, 56px) clamp(40px, 6vw, 74px)
+    clamp(16px, 2vw, 20px);
+}
+
+.hydra-graph-native-title {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(28px, 3.6vw, 48px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+  color: #ffffff;
+  margin: 0;
+  max-width: 18ch;
+}
+
+.hydra-graph-native-callout {
+  width: 100%;
+  background: var(--color-hydra-accent);
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+}
+
+.hydra-graph-native-callout p {
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(22px, 2.8vw, 48px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 110%;
+  text-transform: capitalize;
+  color: #ffffff;
+  margin: 0;
+}
+
+@media (max-width: 809px) {
+  .hydra-graph-native-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .hydra-graph-native-visual {
+    flex: none;
+    min-height: 0;
+    width: 100%;
+    aspect-ratio: 1;
+    border-left: none;
+    border-right: none;
+  }
+
+  .hydra-graph-native-copy {
+    width: 100%;
+    padding: 32px 0 40px;
+  }
+
+  .hydra-graph-native-title {
+    max-width: none;
+  }
+}
+
+/* Data band — HydraDB framer-10mxf4d (purple + ShiftBOi) */
+.hydra-data-band {
+  position: relative;
+  width: 100%;
+  height: min(72vh, 380px);
+  min-height: 300px;
+  overflow: hidden;
+  background: #000000;
+  border-top: 1px solid var(--color-hydra-accent);
+  border-bottom: 1px solid var(--color-hydra-accent);
+}
+
+.hydra-data-hex-wrap {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  /* Fade only near the true L/R edges — keep field wide */
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 2%,
+    #000 7%,
+    #000 93%,
+    rgba(0, 0, 0, 0.35) 98%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(0, 0, 0, 0.35) 2%,
+    #000 7%,
+    #000 93%,
+    rgba(0, 0, 0, 0.35) 98%,
+    transparent 100%
+  );
+}
+
+.hydra-data-hex {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0.9;
+  overflow: visible;
+}
+
+.hydra-data-hex-ring {
+  will-change: transform, opacity;
+}
+
+.hydra-data-card-float {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 5px;
+  will-change: transform;
+}
+
+.hydra-data-card-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hydra-data-card-sq {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  background: var(--color-hydra-accent);
+}
+
+.hydra-data-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hydra-data-logo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  width: 88px;
+  height: 72px;
+}
+
+.hydra-data-logo > span {
+  background: #ffffff;
+}
+
+.hydra-data-edge {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  background: #ffffff;
+  z-index: 2;
+  transform: translateY(-50%);
+}
+
+.hydra-data-edge-l {
+  left: 18px;
+}
+
+.hydra-data-edge-r {
+  right: 18px;
+}
+
+.hydra-data-card {
+  position: absolute;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: max-content;
+  max-width: min(280px, 46vw);
+}
+
+.hydra-data-card-left-top {
+  top: 18%;
+  left: clamp(48px, 12vw, 180px);
+}
+
+.hydra-data-card-left-bottom {
+  bottom: 18%;
+  left: clamp(48px, 12vw, 180px);
+}
+
+.hydra-data-card-right-top {
+  top: 18%;
+  right: clamp(48px, 12vw, 180px);
+}
+
+.hydra-data-card-right-bottom {
+  bottom: 18%;
+  right: clamp(48px, 12vw, 180px);
+}
+
+.hydra-data-card-right-top .hydra-data-card-stack,
+.hydra-data-card-right-bottom .hydra-data-card-stack {
+  align-items: flex-end;
+}
+
+.hydra-data-card-label {
+  background: var(--color-hydra-accent);
+  color: #ffffff;
+  font-family: var(--font-family-primary);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  padding: 11px 16px;
+  white-space: nowrap;
+}
+
+.hydra-data-card-value {
+  background: #ffffff;
+  color: #000000;
+  font-family: var(--font-family-pixel-square);
+  font-size: clamp(22px, 2.4vw, 32px);
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  padding: 10px 16px;
+  white-space: nowrap;
+}
+
+@media (max-width: 809px) {
+  .hydra-data-band {
+    height: auto;
+    min-height: 0;
+    padding: 48px 20px 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .hydra-data-hex {
+    opacity: 0.55;
+  }
+
+  .hydra-data-center {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    order: -1;
+    margin-bottom: 8px;
+  }
+
+  .hydra-data-logo {
+    width: 64px;
+    height: 52px;
+    gap: 4px;
+  }
+
+  .hydra-data-edge {
+    display: none;
+  }
+
+  .hydra-data-card {
+    position: relative;
+    top: auto !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    align-items: stretch;
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .hydra-data-card-float {
+    width: 100%;
+  }
+
+  .hydra-data-card-stack {
+    flex: 1;
+    align-items: stretch !important;
+  }
+
+  .hydra-data-card-label,
+  .hydra-data-card-value {
+    white-space: normal;
+  }
 }
 
 /* Equal gap above/below the purple double-line between features ↔ recall */

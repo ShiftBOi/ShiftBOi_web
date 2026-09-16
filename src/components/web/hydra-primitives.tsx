@@ -46,6 +46,45 @@ export function HydraTripleRule() {
   );
 }
 
+/** Three purple rules — thin / thick / thin (HydraDB footer separator) */
+export function HydraFooterRule() {
+  return (
+    <div className="hydra-footer-rule" aria-hidden>
+      <span className="hydra-footer-rule-thin" />
+      <span className="hydra-footer-rule-thick" />
+      <span className="hydra-footer-rule-thin" />
+    </div>
+  );
+}
+
+/** ShiftBOi 2×2 mark — matches navbar brand glyph */
+export function ShiftBoiMark({ className = "" }: { className?: string }) {
+  return (
+    <span aria-hidden className={`shiftboi-mark ${className}`.trim()}>
+      <span />
+      <span />
+      <span />
+      <span />
+    </span>
+  );
+}
+
+/**
+ * Horizontal separator at the same 10px weight/position as HydraTripleRule,
+ * but the “line” is a row of ShiftBOi icons instead of plain borders.
+ */
+export function HydraIconRule({ count = 64 }: { count?: number }) {
+  return (
+    <div className="hydra-icon-rule" aria-hidden>
+      <div className="hydra-icon-rule-track">
+        {Array.from({ length: count }, (_, i) => (
+          <ShiftBoiMark key={i} className="hydra-icon-rule-mark" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /** 18×18 accent squares — pinned to white-band corners (hydradb.com framer-11y4e6a) */
 export function HydraBandCornerSquares() {
   return (

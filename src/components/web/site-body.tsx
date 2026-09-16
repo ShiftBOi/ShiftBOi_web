@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import gsap from "gsap";
 import {
   HydraAccentSquare,
   HydraFrameCorners,
@@ -9,8 +10,11 @@ import {
   HydraPointerIcon,
   HydraStatCorners,
   HydraTripleRule,
+  HydraFooterRule,
+  ShiftBoiMark,
 } from "@/components/web/hydra-primitives";
 import { useHydraScroll } from "@/components/web/use-hydra-scroll";
+import { MatrixPortrait } from "@/components/web/matrix-portrait";
 
 type Project = {
   id: string;
@@ -25,6 +29,13 @@ const STATS = [
   { value: ">90%", label: "Accurate vs Full Context GPT-4" },
   { value: "115K", label: "Avg. Token / Stack" },
 ];
+
+const DATA_BAND_STATS = [
+  { label: "Total documents ingested", value: "1 Billion+", side: "left", slot: "top" },
+  { label: "Recall accuracy", value: "92%", side: "left", slot: "bottom" },
+  { label: "Retrievals per month", value: "~1 Million", side: "right", slot: "top" },
+  { label: "Trusted by", value: "2k devs", side: "right", slot: "bottom" },
+] as const;
 
 const USE_CASES = [
   {
@@ -244,6 +255,142 @@ function HydraArrow() {
   );
 }
 
+/** HydraDB Data band (framer-10mxf4d) — purple accents + ShiftBOi center mark */
+function DataBandSection() {
+  const rootRef = useRef<HTMLElement>(null);
+  // Dense slow rings — matches HydraDB canvas look
+  const hexCount = 36;
+  const cx = 500;
+  const cy = 270;
+  const baseR = 40;
+  const waveDuration = 28;
+
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return;
+
+    const ctx = gsap.context(() => {
+      const rings = root.querySelectorAll<SVGGElement>(".hydra-data-hex-ring");
+      rings.forEach((ring, i) => {
+        gsap.set(ring, {
+          svgOrigin: `${cx} ${cy}`,
+          transformOrigin: `${cx}px ${cy}px`,
+          force3D: false,
+        });
+        const delay = (i / Math.max(rings.length, 1)) * waveDuration;
+        gsap.fromTo(
+          ring,
+          { scale: 0.1 },
+          {
+            scale: 13,
+            duration: waveDuration,
+            ease: "none",
+            repeat: -1,
+            delay,
+          },
+        );
+        // Stay readable mid-field; dissolve late (edges also masked in CSS)
+        gsap.fromTo(
+          ring,
+          { opacity: 0.7 },
+          {
+            opacity: 0,
+            duration: waveDuration,
+            ease: "power2.in",
+            repeat: -1,
+            delay,
+          },
+        );
+      });
+
+      const cards = root.querySelectorAll<HTMLElement>(".hydra-data-card-float");
+      cards.forEach((card, i) => {
+        const amp = 10 + (i % 2) * 5;
+        gsap.fromTo(
+          card,
+          { y: -amp },
+          {
+            y: amp,
+            duration: 3 + i * 0.4,
+            ease: "sine.inOut",
+            yoyo: true,
+            repeat: -1,
+            delay: i * 0.5,
+          },
+        );
+      });
+    }, root);
+
+    return () => ctx.revert();
+  }, []);
+
+  return (
+    <section ref={rootRef} className="hydra-data-band" aria-label="Platform metrics">
+      <div className="hydra-data-hex-wrap" aria-hidden>
+        <svg
+          className="hydra-data-hex"
+          viewBox="0 0 1000 540"
+          preserveAspectRatio="xMidYMid slice"
+        >
+          {Array.from({ length: hexCount }, (_, i) => {
+            const pts = Array.from({ length: 6 }, (_, j) => {
+              const a = (Math.PI / 3) * j - Math.PI / 2;
+              return `${cx + baseR * Math.cos(a)},${cy + baseR * Math.sin(a)}`;
+            }).join(" ");
+            return (
+              <g key={i} className="hydra-data-hex-ring">
+                <polygon
+                  points={pts}
+                  fill="none"
+                  stroke="var(--color-hydra-accent)"
+                  strokeWidth="0.45"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+
+      <span className="hydra-data-edge hydra-data-edge-l" aria-hidden />
+      <span className="hydra-data-edge hydra-data-edge-r" aria-hidden />
+
+      <div className="hydra-data-center" data-hydra-reveal>
+        <span className="hydra-data-logo" aria-hidden>
+          <span />
+          <span />
+          <span />
+          <span />
+        </span>
+      </div>
+
+      {DATA_BAND_STATS.map((stat) => (
+        <div
+          key={stat.label}
+          className={`hydra-data-card hydra-data-card-${stat.side}-${stat.slot}`}
+          data-hydra-reveal
+        >
+          <div className="hydra-data-card-float">
+            {stat.side === "left" ? (
+              <span className="hydra-data-card-sq" aria-hidden />
+            ) : null}
+            <div className="hydra-data-card-stack">
+              <div className="hydra-data-card-label">{stat.label}</div>
+              <div className="hydra-data-card-value">{stat.value}</div>
+            </div>
+            {stat.side === "right" ? (
+              <span className="hydra-data-card-sq" aria-hidden />
+            ) : null}
+          </div>
+        </div>
+      ))}
+    </section>
+  );
+}
+
 export function SiteBody({ projects }: { projects: Project[] }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [activeUseCase, setActiveUseCase] = useState(0);
@@ -306,7 +453,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
       <section id="use-cases" className="hydra-section hydra-use-cases-band">
         <div className="hydra-container py-12 md:py-20">
           <p className="hydra-eyebrow" data-hydra-reveal-x>
-            // Use Cases //
+            {"// Use Cases //"}
           </p>
           <h2 className="hydra-use-case-title mt-4 max-w-3xl text-white" data-hydra-reveal-x data-hydra-drift data-drift-amount="24">
             What Engineers Are Building With HydraDB
@@ -530,6 +677,35 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         </div>
       </section>
 
+      {/* Spacing — Recall ↔ Graph Native */}
+      <div className="hydra-section-gap" aria-hidden />
+
+      {/* Graph Native — HydraDB framer-amkbys */}
+      <section className="hydra-graph-native" aria-labelledby="graph-native-heading">
+        <div className="hydra-graph-native-inner">
+          <div className="hydra-graph-native-visual" data-hydra-reveal>
+            <MatrixPortrait />
+          </div>
+          <div className="hydra-graph-native-copy" data-hydra-reveal-x>
+            <h2 id="graph-native-heading" className="hydra-graph-native-title">
+              Graph Native Context Infrastructure For Agents
+            </h2>
+            <div className="hydra-graph-native-callout">
+              <p>
+                Purpose-Built To Deliver Precise Context &amp; Observability Into Why
+                Agents Act The Way They Do.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Data / metrics band — HydraDB framer-10mxf4d */}
+      <DataBandSection />
+
+      {/* Spacing — Data ↔ Architecture */}
+      <div className="hydra-section-gap" aria-hidden />
+
       {/* Architecture */}
       <section id="architecture" className="hydra-section">
         <div className="hydra-container py-12 md:py-16 lg:py-20">
@@ -615,7 +791,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         <section id="work" className="hydra-section">
           <div className="hydra-container py-12 md:py-20">
             <p className="hydra-eyebrow" data-hydra-reveal-x>
-              // Work //
+              {"// Work //"}
             </p>
             <h2 className="hydra-h2-section mt-4 text-left" data-hydra-reveal-x>
               Published Projects
@@ -691,61 +867,143 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         </div>
       </section>
 
-      <footer className="hydra-section">
-        <div className="hydra-container py-12 md:py-16">
-          <div className="grid gap-10 md:grid-cols-4" data-hydra-stagger>
-            {[
-              {
-                title: "HydraDB",
-                body: "The Graph AI Runs On.",
-                links: null,
-              },
-              {
-                title: "Product",
-                links: [
-                  ["Architecture", "#architecture"],
-                  ["Features", "#features"],
-                  ["Pricing", "#pricing"],
-                  ["Use Cases", "#use-cases"],
-                ],
-              },
-              {
-                title: "Resources",
-                links: [
-                  ["Docs", "https://hydradb.com"],
-                  ["GitHub", "https://github.com/ShiftBOi"],
-                  ["Contact", "#contact"],
-                ],
-              },
-              {
-                title: "Company",
-                links: [
-                  ["About", "#"],
-                  ["Blog", "#"],
-                  ["Careers", "#"],
-                ],
-              },
-            ].map((col) => (
-              <div key={col.title} data-hydra-stagger-item>
-                <p className="hydra-footer-title">{col.title}</p>
-                {col.body ? <p className="hydra-body-sm mt-3">{col.body}</p> : null}
-                {col.links ? (
-                  <ul className="mt-4 space-y-2">
-                    {col.links.map(([label, href]) => (
-                      <li key={label}>
-                        <a href={href} className="hydra-footer-link">
-                          {label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
+      <footer className="site-footer">
+        <HydraFooterRule />
+        <div className="site-footer-grid" aria-hidden />
+
+        <div className="site-footer-table" data-hydra-reveal>
+          <div className="site-footer-row site-footer-row-top">
+            <div className="site-footer-row-inner site-footer-row-inner-top">
+              <div className="site-footer-brand">
+                <a href="/" className="site-footer-logo">
+                  <ShiftBoiMark className="site-footer-mark" />
+                  <span>ShiftBOi</span>
+                </a>
+                <p className="site-footer-tagline">Build AI With Compounding Intelligence</p>
               </div>
-            ))}
+
+              <div className="site-footer-socials">
+                <a
+                  href="https://x.com/ShiftBOi_dev"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="site-footer-social"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.71-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
+                  </svg>
+                  <span>X / Twitter</span>
+                </a>
+                <a
+                  href="https://github.com/ShiftBOi"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="site-footer-social"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M12 2C6.477 2 2 6.486 2 12.021c0 4.425 2.865 8.18 6.839 9.504.5.093.682-.217.682-.483 0-.237-.009-.866-.013-1.7-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.467-1.11-1.467-.908-.622.069-.609.069-.609 1.004.071 1.532 1.033 1.532 1.033.892 1.53 2.341 1.088 2.91.833.091-.647.35-1.088.636-1.339-2.22-.253-4.555-1.113-4.555-4.952 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.026 2.747-1.026.546 1.378.203 2.397.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.944.359.31.678.922.678 1.858 0 1.34-.012 2.42-.012 2.75 0 .268.18.58.688.481A10.02 10.02 0 0 0 22 12.021C22 6.486 17.523 2 12 2z" />
+                  </svg>
+                  <span>GitHub</span>
+                </a>
+                <a href="#contact" className="site-footer-social">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                    <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                  </svg>
+                  <span>Discord</span>
+                </a>
+              </div>
+            </div>
           </div>
-          <p className="mt-12 text-[12px] text-[rgb(117,117,117)]">
-            © {new Date().getFullYear()} ShiftBOi · HydraDB layout · Violet accent
-          </p>
+
+          <div className="site-footer-row site-footer-row-body">
+            <div className="site-footer-row-inner site-footer-row-inner-body">
+              <div className="site-footer-nav">
+                {[
+                  {
+                    title: "Home",
+                    links: [
+                      ["Architecture", "#architecture"],
+                      ["Features", "#features"],
+                      ["Use Cases", "#use-cases"],
+                      ["Pricing", "#pricing"],
+                      ["Work", "#work"],
+                      ["Contact", "#contact"],
+                    ],
+                  },
+                  {
+                    title: "Use Cases",
+                    links: [
+                      ["Agent Memory", "#use-cases"],
+                      ["Ontologies", "#use-cases"],
+                      ["Company Brain", "#use-cases"],
+                    ],
+                  },
+                  {
+                    title: "Resources",
+                    links: [
+                      ["CMS", "/cms/login"],
+                      ["GitHub", "https://github.com/ShiftBOi"],
+                      ["Docs", "https://hydradb.com"],
+                    ],
+                  },
+                  {
+                    title: "Compare",
+                    links: [
+                      ["vs VectorDB", "#architecture"],
+                      ["vs GraphDB", "#architecture"],
+                      ["vs Full Context", "#architecture"],
+                    ],
+                  },
+                  {
+                    title: "Legal",
+                    links: [
+                      ["Trust Centre", "#"],
+                      ["Privacy Policy", "#"],
+                      ["Terms of Service", "#"],
+                    ],
+                  },
+                ].map((col) => (
+                  <div key={col.title} className="site-footer-col">
+                    <p className="site-footer-col-title">{col.title}</p>
+                    <ul>
+                      {col.links.map(([label, href]) => (
+                        <li key={label}>
+                          <a
+                            href={href}
+                            className="site-footer-link"
+                            {...(href.startsWith("http")
+                              ? { target: "_blank", rel: "noopener noreferrer" }
+                              : {})}
+                          >
+                            {label}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+
+              <div className="site-footer-aside">
+                <div className="site-footer-media">
+                  <video
+                    className="site-footer-media-video"
+                    src="/videos/ai-hologram-purple-cubic.mp4"
+                    poster="/videos/ai-hologram-purple-cubic-poster.jpg"
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    aria-hidden
+                  />
+                </div>
+                <p className="site-footer-copy">
+                  © {new Date().getFullYear()} ShiftBOi
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
