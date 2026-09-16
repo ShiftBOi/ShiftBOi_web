@@ -38,7 +38,7 @@
   height: 100%;
   background: transparent;
   image-rendering: auto;
-  filter: drop-shadow(0 0 5px rgba(168, 110, 255, 0.4));
+  filter: drop-shadow(0 0 5px rgba(210, 190, 255, 0.35));
 }
 
 .caption {

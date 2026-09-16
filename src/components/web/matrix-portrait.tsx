@@ -8,13 +8,13 @@ const ASCII = " .'`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&
 const COLS = 72;
 const ROWS = 72;
 
-/** Ref-matched purple scale — deep recess → lit face → peak highlight */
-const C_SHADOW = { r: 48, g: 18, b: 110 };
-const C_DIM = { r: 110, g: 55, b: 210 };
-const C_MID = { r: 168, g: 105, b: 255 };
-const C_HOT = { r: 210, g: 165, b: 255 };
-const C_HL = { r: 240, g: 220, b: 255 };
-const C_SPARK = { r: 230, g: 190, b: 255 };
+/** Soft light-purple scale — less white, more lilac */
+const C_SHADOW = { r: 78, g: 48, b: 150 };
+const C_DIM = { r: 135, g: 95, b: 215 };
+const C_MID = { r: 175, g: 140, b: 245 };
+const C_HOT = { r: 205, g: 175, b: 255 };
+const C_HL = { r: 225, g: 205, b: 255 };
+const C_SPARK = { r: 230, g: 210, b: 255 };
 
 function luminance(r: number, g: number, b: number) {
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
@@ -37,12 +37,11 @@ function rgb({ r, g, b }: { r: number; g: number; b: number }, a = 1) {
   return a >= 1 ? `rgb(${r},${g},${b})` : `rgba(${r},${g},${b},${a})`;
 }
 
-/** Boost midtones so the face reads clearly */
+/** Boost midtones toward white so face isn't muddy purple */
 function toneMap(L: number) {
   const c = Math.min(1, Math.max(0, L));
-  // Lift then contrast — easier to see, still keeps depth
-  const lifted = Math.pow(c, 0.72);
-  return Math.min(1, Math.max(0, (lifted - 0.08) / 0.84));
+  const lifted = Math.pow(c, 0.58);
+  return Math.min(1, Math.max(0, (lifted - 0.04) / 0.9));
 }
 
 function sampleLum(lum: Float32Array, x: number, y: number) {
@@ -51,13 +50,13 @@ function sampleLum(lum: Float32Array, x: number, y: number) {
   return lum[yy * COLS + xx] ?? 0;
 }
 
-/** Strong 3D face color stops like the hologram ref */
+/** Face stops — light purple highlights, soft violet recesses */
 function surfaceColor(lit: number) {
   const t = Math.min(1, Math.max(0, lit));
-  if (t < 0.22) return mix(C_SHADOW, C_DIM, t / 0.22);
-  if (t < 0.48) return mix(C_DIM, C_MID, (t - 0.22) / 0.26);
-  if (t < 0.74) return mix(C_MID, C_HOT, (t - 0.48) / 0.26);
-  return mix(C_HOT, C_HL, (t - 0.74) / 0.26);
+  if (t < 0.2) return mix(C_SHADOW, C_DIM, t / 0.2);
+  if (t < 0.45) return mix(C_DIM, C_MID, (t - 0.2) / 0.25);
+  if (t < 0.72) return mix(C_MID, C_HOT, (t - 0.45) / 0.27);
+  return mix(C_HOT, C_HL, (t - 0.72) / 0.28);
 }
 
 /** Video → normal ASCII + soft sparks, low glow */
@@ -223,11 +222,10 @@ export function MatrixPortrait() {
           const ao = Math.min(1.05, Math.max(0.3, 0.5 + (Lraw - neigh) * 2.8));
 
           // Stronger light/dark spread for readable 3D face volume
-          let shade = L * 0.55 + lambert * 0.5;
+          let shade = L * 0.5 + lambert * 0.55;
           shade = shade * ao;
-          shade = Math.min(1, Math.max(0.04, shade));
-          // Extra punch: push highlights up, keep sockets dark
-          shade = Math.pow(shade, 0.85);
+          shade = Math.min(1, Math.max(0.1, shade + 0.06));
+          shade = Math.pow(shade, 0.78);
 
           let idx = Math.min(
             ASCII.length - 1,
@@ -243,14 +241,13 @@ export function MatrixPortrait() {
           const cy = (y + 0.5) * cellH;
 
           const col = surfaceColor(shade);
-          // High visibility alpha — still fades in deep shadow
-          const alpha = 0.45 + shade * 0.55;
+          const alpha = 0.55 + shade * 0.45;
           ctx.fillStyle = rgb(col, alpha);
           ctx.fillText(ch, cx, cy);
 
           // Specular ridge on lit planes (nose / brow / cheek)
-          if (shade > 0.62 && lambert > 0.78) {
-            ctx.fillStyle = rgb(C_HL, 0.18 + (shade - 0.62) * 0.45);
+          if (shade > 0.58 && lambert > 0.72) {
+            ctx.fillStyle = rgb(C_HL, 0.14 + (shade - 0.58) * 0.32);
             ctx.fillText(ch, cx, cy);
           }
 
