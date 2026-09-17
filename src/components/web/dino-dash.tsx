@@ -894,12 +894,14 @@ function DinoClouds() {
 /** Hero demo + in-place transition into playable game */
 export function DinoDashStage({
   onPhaseChange,
+  playSignal = 0,
 }: {
   onPhaseChange?: (phase: GamePhase) => void;
+  /** Increment to request starting the game from outside (e.g. hero CTA). */
+  playSignal?: number;
 }) {
   const [reduced, setReduced] = useState(false);
   const [ready, setReady] = useState(false);
-  const [hovered, setHovered] = useState(false);
   const [phase, setPhase] = useState<GamePhase>("demo");
   const [score, setScore] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
@@ -1010,7 +1012,6 @@ export function DinoDashStage({
 
     const finish = () => {
       setPhaseBoth("demo");
-      setHovered(false);
       setScore(0);
       onJumpLift(0);
       if (root) gsap.set(root, { clearProps: "all" });
@@ -1042,6 +1043,13 @@ export function DinoDashStage({
     setScore(0);
     setPhaseBoth("entering");
   }, [phase, setPhaseBoth]);
+
+  const playSignalRef = useRef(playSignal);
+  useEffect(() => {
+    if (playSignal === playSignalRef.current) return;
+    playSignalRef.current = playSignal;
+    if (playSignal > 0) startGame();
+  }, [playSignal, startGame]);
 
   useEffect(() => {
     if (phase !== "entering") return;
@@ -1152,7 +1160,7 @@ export function DinoDashStage({
 
       <div
         ref={rootRef}
-        className={`dino-dash-root${inGame ? " is-playing" : ""}${phase === "entering" ? " is-entering" : ""}${hovered && phase === "demo" ? " is-lit" : ""}`}
+        className={`dino-dash-root${inGame ? " is-playing" : ""}${phase === "entering" ? " is-entering" : ""}`}
       >
         <div ref={cloudsRef} className="dino-clouds-wrap">
           <DinoClouds />
@@ -1210,17 +1218,6 @@ export function DinoDashStage({
               }
             />
           </div>
-
-          {phase === "demo" && (
-            <button
-              type="button"
-              className="dino-hit-zone"
-              aria-label="Click the dino to play minigame"
-              onMouseEnter={() => setHovered(true)}
-              onMouseLeave={() => setHovered(false)}
-              onClick={startGame}
-            />
-          )}
 
           {phase === "playing" && (
             <button

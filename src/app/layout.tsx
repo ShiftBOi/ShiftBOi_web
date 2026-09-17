@@ -10,10 +10,11 @@ const aeonikFallback = Space_Grotesk({
 
 export const metadata: Metadata = {
   title: {
-    default: "WebPort v2",
-    template: "%s · WebPort v2",
+    default: "ShiftBOi",
+    template: "%s · ShiftBOi",
   },
-  description: "Portfolio web + CMS — OTP and passkey auth, Postgres, Prisma.",
+  description:
+    "Full-stack Web & Mobile Developer — production web, mobile, APIs, and AI-ready experiences under ShiftBOi.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

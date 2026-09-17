@@ -6,9 +6,13 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
+  type RefObject,
+  type FormEvent,
 } from "react";
+import gsap from "gsap";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 
@@ -43,7 +47,7 @@ export function SiteChatProvider({ children }: { children: ReactNode }) {
   return (
     <SiteChatContext.Provider value={value}>
       {children}
-      <SiteChatDrawer />
+      <SiteChatWidget />
     </SiteChatContext.Provider>
   );
 }
@@ -55,10 +59,195 @@ function messageText(message: { parts: Array<{ type: string; text?: string }> })
     .join("");
 }
 
-function SiteChatDrawer() {
-  const { open, closeChat } = useSiteChat();
+const WELCOME =
+  "Hi! I'm the ShiftBOi assistant. Ask me anything about the portfolio, focus areas, engagement, or getting in touch.";
+
+function useDustHover(
+  wrapRef: RefObject<HTMLElement | null>,
+  rootRef: RefObject<HTMLElement | null>,
+  dustRef: RefObject<HTMLElement | null>,
+) {
+  const hoveringRef = useRef(false);
+  const emitTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    const root = rootRef.current;
+    const dust = dustRef.current;
+    if (!wrap || !root || !dust) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const frame = { inset: 0 };
+    const PURPLE = "#7c3aed";
+    const INSET_MAX = 10;
+
+    const paintFrame = () => {
+      root.style.boxShadow = `inset 0 0 0 ${frame.inset}px ${PURPLE}`;
+    };
+
+    gsap.set(frame, { inset: 0 });
+    paintFrame();
+
+    const spawnDust = () => {
+      if (!hoveringRef.current || reduced) return;
+
+      const w = root.offsetWidth;
+      const h = root.offsetHeight;
+      if (!w || !h) return;
+
+      const side = Math.floor(Math.random() * 4);
+      let x = 0;
+      let y = 0;
+      if (side === 0) {
+        x = Math.random() * w;
+        y = 0;
+      } else if (side === 1) {
+        x = w;
+        y = Math.random() * h;
+      } else if (side === 2) {
+        x = Math.random() * w;
+        y = h;
+      } else {
+        x = 0;
+        y = Math.random() * h;
+      }
+
+      const size = 2 + Math.random() * 3.5;
+      const angle = Math.atan2(y - h / 2, x - w / 2) + (Math.random() - 0.5) * 0.9;
+      const dist = 18 + Math.random() * 36;
+      const colors = ["#8b5cf6", "#a78bfa", "#c4b5fd", "#ffffff"];
+
+      const mote = document.createElement("span");
+      mote.className = "talk-dust-mote";
+      mote.style.width = `${size}px`;
+      mote.style.height = `${size}px`;
+      mote.style.background = colors[Math.floor(Math.random() * colors.length)]!;
+      mote.style.left = "0";
+      mote.style.top = "0";
+      dust.appendChild(mote);
+
+      gsap.fromTo(
+        mote,
+        {
+          x: x - size / 2,
+          y: y - size / 2,
+          opacity: 0.85 + Math.random() * 0.15,
+          scale: 0.6 + Math.random() * 0.5,
+        },
+        {
+          x: x - size / 2 + Math.cos(angle) * dist,
+          y: y - size / 2 + Math.sin(angle) * dist,
+          opacity: 0,
+          scale: 0.2 + Math.random() * 0.35,
+          duration: 0.95 + Math.random() * 1.1,
+          ease: "power1.out",
+          onComplete: () => mote.remove(),
+        },
+      );
+    };
+
+    const startEmit = () => {
+      if (emitTimerRef.current || reduced) return;
+      for (let i = 0; i < 6; i++) spawnDust();
+      emitTimerRef.current = setInterval(spawnDust, 70);
+    };
+
+    const stopEmit = () => {
+      if (emitTimerRef.current) {
+        clearInterval(emitTimerRef.current);
+        emitTimerRef.current = null;
+      }
+    };
+
+    const enter = () => {
+      if (hoveringRef.current) return;
+      hoveringRef.current = true;
+      gsap.killTweensOf(frame);
+      gsap.to(frame, {
+        inset: INSET_MAX,
+        duration: reduced ? 0.01 : 0.5,
+        ease: "power2.out",
+        overwrite: "auto",
+        onUpdate: paintFrame,
+      });
+      startEmit();
+    };
+
+    const leave = () => {
+      if (!hoveringRef.current) return;
+      hoveringRef.current = false;
+      stopEmit();
+      gsap.killTweensOf(frame);
+      gsap.to(frame, {
+        inset: 0,
+        duration: reduced ? 0.01 : 0.4,
+        ease: "power2.out",
+        overwrite: "auto",
+        onUpdate: paintFrame,
+      });
+    };
+
+    wrap.addEventListener("pointerenter", enter);
+    wrap.addEventListener("pointerleave", leave);
+    root.addEventListener("focus", enter);
+    root.addEventListener("blur", leave);
+
+    return () => {
+      hoveringRef.current = false;
+      stopEmit();
+      wrap.removeEventListener("pointerenter", enter);
+      wrap.removeEventListener("pointerleave", leave);
+      root.removeEventListener("focus", enter);
+      root.removeEventListener("blur", leave);
+      gsap.killTweensOf(frame);
+      dust.replaceChildren();
+    };
+  }, [wrapRef, rootRef, dustRef]);
+}
+
+function ChatIcon({ open }: { open: boolean }) {
+  if (open) {
+    return (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+        <path
+          d="M6.5 6.5l11 11M17.5 6.5l-11 11"
+          stroke="currentColor"
+          strokeWidth="2.2"
+          strokeLinecap="round"
+        />
+      </svg>
+    );
+  }
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M5.5 6.75h11.5a1.75 1.75 0 0 1 1.75 1.75v6.5a1.75 1.75 0 0 1-1.75 1.75H10.2L7.4 19.4a.4.4 0 0 1-.7-.28V16.75H5.5A1.75 1.75 0 0 1 3.75 15V8.5A1.75 1.75 0 0 1 5.5 6.75Z"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SendIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M4.5 11.5 19 4.75 12.4 19.5l-1.7-6.2L4.5 11.5Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SiteChatWidget() {
+  const { open, closeChat, toggleChat } = useSiteChat();
   const [input, setInput] = useState("");
   const [bootError, setBootError] = useState<string | null>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const fabRef = useRef<HTMLButtonElement>(null);
+  const dustRef = useRef<HTMLSpanElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useDustHover(wrapRef, fabRef, dustRef);
 
   const { messages, sendMessage, status, error, setMessages } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -85,7 +274,13 @@ function SiteChatDrawer() {
     }
   }, [error]);
 
-  const onSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el) return;
+    el.scrollTop = el.scrollHeight;
+  }, [messages, busy, open]);
+
+  const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     const text = input.trim();
     if (!text || busy) return;
@@ -94,96 +289,98 @@ function SiteChatDrawer() {
     void sendMessage({ text });
   };
 
+  const talkToHuman = () => {
+    closeChat();
+    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
-    <>
-      <button
-        type="button"
-        aria-label="Close chat"
-        className={`site-chat-backdrop ${open ? "is-open" : ""}`}
-        onClick={closeChat}
-      />
-      <aside
-        className={`site-chat-drawer ${open ? "is-open" : ""}`}
+    <div className="site-chat-dock" data-lenis-prevent>
+      <div
+        className={`site-chat-card ${open ? "is-open" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="ShiftBOi Assistant"
         aria-hidden={!open}
-        aria-label="Talk to us chat"
       >
-        <header className="site-chat-header">
-          <div>
-            <p className="site-chat-eyebrow">Talk to us</p>
-            <h2 className="site-chat-title">Ask about this site</h2>
+        <header className="site-chat-card-header">
+          <div className="site-chat-card-brand">
+            <span className="site-chat-card-dot" aria-hidden />
+            <p className="site-chat-card-title">ShiftBOi Assistant</p>
           </div>
-          <button type="button" className="site-chat-close" onClick={closeChat} aria-label="Close">
-            ×
-          </button>
+          <div className="site-chat-card-actions">
+            <button type="button" className="site-chat-human" onClick={talkToHuman}>
+              Talk to a human
+            </button>
+            <button
+              type="button"
+              className="site-chat-card-x"
+              onClick={closeChat}
+              aria-label="Close chat"
+            >
+              ×
+            </button>
+          </div>
         </header>
 
-        <div className="site-chat-body">
-          {messages.length === 0 ? (
-            <div className="site-chat-empty">
-              <p>ถามอะไรก็ได้เกี่ยวกับ ShiftBOi / เนื้อหาในเว็บนี้</p>
-              <div className="site-chat-suggestions">
-                {[
-                  "เว็บนี้เกี่ยวกับอะไร?",
-                  "มี use cases อะไรบ้าง?",
-                  "ราคาแพ็กเกจเป็นยังไง?",
-                ].map((q) => (
-                  <button
-                    key={q}
-                    type="button"
-                    className="site-chat-chip"
-                    onClick={() => {
-                      setBootError(null);
-                      void sendMessage({ text: q });
-                    }}
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-              <p className="site-chat-hint">
-                ฟรี 100% ผ่าน Ollama บนเครื่องคุณหรือเครื่องอื่นในเน็ตเวิร์ก
-              </p>
+        <div ref={listRef} className="site-chat-card-body">
+          <div className="site-chat-msg is-assistant">
+            <p>{WELCOME}</p>
+          </div>
+          {messages.map((m) => (
+            <div key={m.id} className={`site-chat-msg is-${m.role}`}>
+              <p>{messageText(m)}</p>
             </div>
-          ) : (
-            <ul className="site-chat-messages">
-              {messages.map((m) => (
-                <li key={m.id} className={`site-chat-bubble is-${m.role}`}>
-                  <span className="site-chat-role">{m.role === "user" ? "You" : "AI"}</span>
-                  <p>{messageText(m)}</p>
-                </li>
-              ))}
-              {busy ? <li className="site-chat-typing">กำลังพิมพ์…</li> : null}
-            </ul>
-          )}
+          ))}
+          {busy ? <p className="site-chat-typing">กำลังพิมพ์…</p> : null}
           {bootError ? <p className="site-chat-error">{bootError}</p> : null}
         </div>
 
-        <form className="site-chat-form" onSubmit={onSubmit}>
+        <form className="site-chat-card-form" onSubmit={onSubmit}>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="พิมพ์คำถาม…"
+            placeholder="Ask about ShiftBOi..."
             disabled={busy}
-            className="site-chat-input"
+            className="site-chat-card-input"
             autoComplete="off"
           />
-          <button type="submit" className="site-chat-send" disabled={busy || !input.trim()}>
-            Send
+          <button
+            type="submit"
+            className="site-chat-card-send"
+            disabled={busy || !input.trim()}
+            aria-label="Send"
+          >
+            <SendIcon />
           </button>
-          {messages.length > 0 ? (
-            <button
-              type="button"
-              className="site-chat-clear"
-              onClick={() => {
-                setMessages([]);
-                setBootError(null);
-              }}
-            >
-              Clear
-            </button>
-          ) : null}
         </form>
-      </aside>
-    </>
+        {messages.length > 0 ? (
+          <button
+            type="button"
+            className="site-chat-card-clear"
+            onClick={() => {
+              setMessages([]);
+              setBootError(null);
+            }}
+          >
+            Clear
+          </button>
+        ) : null}
+      </div>
+
+      <div ref={wrapRef} className="talk-dust-wrap site-chat-fab-wrap">
+        <span ref={dustRef} className="talk-dust-layer" aria-hidden />
+        <button
+          ref={fabRef}
+          type="button"
+          className={`site-chat-fab ${open ? "is-open" : ""}`}
+          onClick={toggleChat}
+          aria-label={open ? "Close chat" : "Open chat"}
+          aria-expanded={open}
+        >
+          <ChatIcon open={open} />
+        </button>
+      </div>
+    </div>
   );
 }

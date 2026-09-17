@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import {
@@ -15,6 +14,7 @@ import {
 } from "@/components/web/hydra-primitives";
 import { useHydraScroll } from "@/components/web/use-hydra-scroll";
 import { MatrixPortrait } from "@/components/web/matrix-portrait";
+import { useSiteChat } from "@/components/web/site-chat";
 
 type Project = {
   id: string;
@@ -24,143 +24,143 @@ type Project = {
 };
 
 const STATS = [
-  { value: "90.79%", label: "LongMemEval-S Overall" },
-  { value: "100%", label: "Single Session Recall" },
-  { value: ">90%", label: "Accurate vs Full Context GPT-4" },
-  { value: "115K", label: "Avg. Token / Stack" },
+  { value: "Web", label: "Next.js · React · TypeScript" },
+  { value: "App", label: "Mobile · Cross-platform UI" },
+  { value: "API", label: "Node · Postgres · Auth" },
+  { value: "AI", label: "LLM features · Agents" },
 ];
 
 const DATA_BAND_STATS = [
-  { label: "Total documents ingested", value: "1 Billion+", side: "left", slot: "top" },
-  { label: "Recall accuracy", value: "92%", side: "left", slot: "bottom" },
-  { label: "Retrievals per month", value: "~1 Million", side: "right", slot: "top" },
-  { label: "Trusted by", value: "2k devs", side: "right", slot: "bottom" },
+  { label: "Focus", value: "Full-stack", side: "left", slot: "top" },
+  { label: "Surfaces", value: "Web + Mobile", side: "left", slot: "bottom" },
+  { label: "Delivery", value: "End-to-end", side: "right", slot: "top" },
+  { label: "Studio", value: "ShiftBOi", side: "right", slot: "bottom" },
 ] as const;
 
 const USE_CASES = [
   {
     id: "01",
-    label: "AGENT MEMORY",
-    teaser: "Build in-house memory systems. With your ideas, for your AI.",
-    title: "Own your memory layer. No third-party abstraction. No data leaving your stack.",
+    label: "WEB APPS",
+    teaser: "Production web products with clean UX and solid foundations.",
+    title: "Ship modern web apps — fast UI, reliable APIs, deploy-ready.",
     points: [
-      "Graphs work better for storing user preferences, past interactions, and agent traces.",
-      "Git-style temporal versioning recalls what was true at any point in time.",
-      "Entity resolution and preference checks across sessions prevent duplicate memory records.",
+      "Next.js / React interfaces with intentional motion and accessibility.",
+      "Auth, data models, and admin flows that hold up in production.",
+      "Performance-minded frontends that stay maintainable as features grow.",
     ],
   },
   {
     id: "02",
-    label: "ONTOLOGIES",
-    teaser: "Model your domain with structured knowledge graphs.",
-    title: "Define entities and relationships that compound over time.",
+    label: "MOBILE",
+    teaser: "Mobile experiences that feel native and ship with the web stack.",
+    title: "Build mobile surfaces that share logic without fighting the platform.",
     points: [
-      "Schema-first graph modeling for products, users, and workflows.",
-      "Automatic entity linking across documents and sessions.",
-      "Queryable ontologies that agents can traverse in real time.",
+      "Cross-platform UI patterns tuned for touch, offline, and speed.",
+      "Shared API contracts between web and mobile clients.",
+      "Release-ready builds with clear handoff for store or internal distro.",
     ],
   },
   {
     id: "03",
-    label: "COMPANY BRAIN",
-    teaser: "One graph for institutional knowledge.",
-    title: "Unify docs, tickets, CRM, and chat into a single recall layer.",
+    label: "FULL-STACK",
+    teaser: "One builder across UI, API, data, and deploy.",
+    title: "End-to-end ownership — fewer handoffs, tighter product loops.",
     points: [
-      "Connectors ingest workspace apps into one graph namespace.",
-      "Cross-team recall with permission-aware retrieval.",
-      "Audit trails for every context assembly decision.",
+      "Schema, auth, and business logic designed with the UI in mind.",
+      "CMS and owner tools when you need content control without visitor login.",
+      "From prototype to production without rewriting the stack mid-flight.",
     ],
   },
   {
     id: "04",
-    label: "AGENTIC ACTIONS",
-    teaser: "Agents that remember why they acted.",
-    title: "Stateful agents with traceable decision paths.",
+    label: "AI FEATURES",
+    teaser: "Practical AI inside real products — not demos that die.",
+    title: "Add LLM and agent features that fit the product, not the hype.",
     points: [
-      "Store tool calls, outcomes, and user feedback as graph edges.",
-      "Replay agent sessions for debugging and evaluation.",
-      "Personalize next actions from prior successful trajectories.",
+      "Chat, assistive flows, and retrieval wired into your existing app.",
+      "Clear UX for loading, failure, and human handoff.",
+      "Prompt and tool boundaries that stay inspectable and safe.",
     ],
   },
   {
     id: "05",
-    label: "CONTEXT ENGINEERING",
-    teaser: "Precision context, not just similar chunks.",
-    title: "Engineer context windows with graph-native relevance.",
+    label: "PRODUCT UI",
+    teaser: "Interfaces with presence — brand-first, not template-default.",
+    title: "Design systems and screens that make the product feel finished.",
     points: [
-      "Hybrid retrieval: vectors + graph traversal + temporal filters.",
-      "Token budgets optimized per task and user preference.",
-      "Observability into every token chosen for the prompt.",
+      "Typography, motion, and layout that reinforce the brand.",
+      "Component structure teams can extend without visual drift.",
+      "Detail work on empty states, forms, and edge cases that users actually hit.",
     ],
   },
 ];
 
 const WITHOUT_ROWS = [
-  "Retrieve similar ≠ relevant data",
-  "Missed relationships between concepts, entities, events",
-  "Lost agent traces, interactions, user preferences across sessions",
-  "Juggling with VectorDB, GraphDB, Postgres with Temporal & filesystems across pipelines",
+  "Pretty screens that break when real data and auth arrive",
+  "Separate web / mobile / backend owners who never align",
+  "AI demos bolted on without product UX or failure paths",
+  "Rewrites every time scope moves from MVP to production",
 ];
 
 const WITH_ROWS = [
-  "Make AI stateful with relevant context. Built to compound intelligence.",
-  "Get a complete structured view of your knowledge",
-  "Personalize results powered by what your agents have learnt from your users",
-  "One unified layer combining graphs with all primitives needed to deliver context to AI systems",
+  "UI, API, and data designed as one system from day one",
+  "A single full-stack partner across web and mobile surfaces",
+  "AI features that ship inside the product loop — with clear handoff",
+  "Architecture that grows from prototype to production without a reset",
 ];
 
 const FEATURE_CELLS = [
   {
-    title: "High Recall Accuracy",
-    body: "Learn how we lead on LongMemEval-S (90%+), BEAM, and FinanceBench.",
+    title: "Production Frontend",
+    body: "Pixel-aware React / Next.js work with motion, accessibility, and brand presence — not generic dashboard chrome.",
     visual: "accuracy" as const,
   },
   {
-    title: "Scales With Your Systems",
-    body: "Designed for high throughput using tiered storage: a hot in-memory cache, NVMe SSD for warm storage, and object storage for cold archival. Context moves fluidly between tiers.",
+    title: "Systems That Scale With You",
+    body: "Frontend → API → data → deploy as one path. Hot path for iteration, solid base for auth, Postgres, and owner CMS when you need it.",
     visual: "tier" as const,
   },
   {
-    title: "Recall Everything",
-    body: "Assemble context from business data, workplace apps, chat sessions, documents. Remember user preferences while retrieving.",
+    title: "Ship The Whole Surface",
+    body: "Web, mobile, and AI assistive flows from one builder — so design, logic, and deploy stay aligned.",
     visual: "recall" as const,
   },
   {
-    title: "Built For Low Latency Apps",
-    body: "Built for low-latency apps — so you can build real-time applications with HydraDB.",
+    title: "Built For Fast Product Loops",
+    body: "Tight feedback cycles — scope, build, ship, refine — without waiting on a chain of specialists.",
     visual: "latency" as const,
   },
 ];
 
 const ARCH_FLOW = [
-  { title: "User", sub: "" },
-  { title: "Request Understanding", sub: "routing · entity extraction · query rewrite" },
-  { title: "Retrieval Orchestrator", sub: "cypher reads / writes" },
+  { title: "You", sub: "" },
+  { title: "Scope & UX", sub: "goals · flows · brand · constraints" },
+  { title: "Build & Ship", sub: "UI · API · data · deploy" },
 ];
 
 const ARCH_PLUGINS = [
-  { title: "Vectorstore (plugin)", sub: "semantic + bm25 + rerank" },
-  { title: "Connectors (plugin)", sub: "100+ sources: workspace, email, crm" },
-  { title: "DB Filters (plugin)", sub: "SQL / NoSQL" },
+  { title: "Design system", sub: "tokens · components · motion" },
+  { title: "Integrations", sub: "auth · payments · third-party APIs" },
+  { title: "Owner tools", sub: "CMS · content · project CRUD" },
 ];
 
 const ARCH_NODES = [
-  { title: "Writer Node", sub: "Cypher writes → WAL + value log (S3 + disk cache)" },
-  { title: "Indexer Node", sub: "reads WAL entries → builds index (GraphBLAS)" },
-  { title: "Reader Node", sub: "Cypher queries → index + pending WAL = strongly consistent" },
+  { title: "Frontend", sub: "Next.js / React · responsive · accessible" },
+  { title: "Backend", sub: "APIs · auth · Postgres · Prisma" },
+  { title: "Mobile", sub: "shared contracts · touch-first UI" },
 ];
 
 const PRICING = [
-  { name: "Developer", price: "Free", detail: "For prototyping and local development.", featured: false },
-  { name: "Team", price: "Custom", detail: "Production workloads with dedicated support.", featured: true },
-  { name: "Enterprise", price: "Custom", detail: "Multi-tenant isolation, SLAs, and on-prem options.", featured: false },
+  { name: "Sprint", price: "Project", detail: "Scoped builds — landing, MVP, feature slice, or rebuild.", featured: false },
+  { name: "Retainer", price: "Ongoing", detail: "Continuous product work with a dedicated full-stack partner.", featured: true },
+  { name: "Collab", price: "Partner", detail: "Join your team for a phase — architecture, UI, or AI features.", featured: false },
 ];
 
 function AccuracyVisual() {
   return (
     <div className="hydra-accuracy-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.25">
-      <p className="hydra-accuracy-value">90.79%</p>
-      <p className="hydra-accuracy-label">Accuracy</p>
+      <p className="hydra-accuracy-value">E2E</p>
+      <p className="hydra-accuracy-label">Ownership</p>
     </div>
   );
 }
@@ -168,14 +168,14 @@ function AccuracyVisual() {
 function TierVisual() {
   return (
     <div className="hydra-tier-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.3">
-      <p className="hydra-tier-label">In Memory → SSD → Object Storage</p>
+      <p className="hydra-tier-label">UI → API → Data → Deploy</p>
       <span className="hydra-tier-flow" aria-hidden />
       <span className="hydra-tier-cap is-left" aria-hidden />
       <span className="hydra-tier-cap is-right" aria-hidden />
       <div className="hydra-tier-nodes">
-        <div className="hydra-tier-node">Graph</div>
-        <div className="hydra-tier-node">Index</div>
-        <div className="hydra-tier-node is-accent">State</div>
+        <div className="hydra-tier-node">Web</div>
+        <div className="hydra-tier-node">API</div>
+        <div className="hydra-tier-node is-accent">Ship</div>
       </div>
     </div>
   );
@@ -215,13 +215,13 @@ function RecallVisual() {
         ))}
       </svg>
       <span className="hydra-recall-tag" style={{ left: "8%", top: "72%" }}>
-        Data
+        Design
       </span>
       <span className="hydra-recall-tag" style={{ left: "42%", top: "18%" }}>
-        Chat
+        Build
       </span>
       <span className="hydra-recall-tag" style={{ right: "10%", top: "68%" }}>
-        Preference
+        Ship
       </span>
     </div>
   );
@@ -230,7 +230,7 @@ function RecallVisual() {
 function LatencyVisual() {
   return (
     <div data-hydra-reveal data-hydra-parallax data-parallax-speed="0.28">
-      <p className="hydra-latency-metric">&lt; 200ms</p>
+      <p className="hydra-latency-metric">Ship</p>
       <div className="hydra-latency-bars">
         <div className="hydra-latency-row">
           <span className="hydra-latency-fill" style={{ width: "28%" }} />
@@ -328,7 +328,7 @@ function DataBandSection() {
   }, []);
 
   return (
-    <section ref={rootRef} className="hydra-data-band" aria-label="Platform metrics">
+    <section ref={rootRef} className="hydra-data-band" aria-label="Studio highlights">
       <div className="hydra-data-hex-wrap" aria-hidden>
         <svg
           className="hydra-data-hex"
@@ -395,12 +395,13 @@ export function SiteBody({ projects }: { projects: Project[] }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [activeUseCase, setActiveUseCase] = useState(0);
   const activeCase = USE_CASES[activeUseCase];
+  const { openChat } = useSiteChat();
 
   useHydraScroll(rootRef);
 
   return (
     <div ref={rootRef} className="hydra-page">
-      {/* Raised — ■ $6.5M Raised ■ (no outer frame) */}
+      {/* Raised — ■ Full-stack Developer ■ (no outer frame) */}
       <section className="hydra-raised-band">
         <div className="hydra-container py-16 md:py-24 lg:py-[120px]">
           <div
@@ -408,11 +409,11 @@ export function SiteBody({ projects }: { projects: Project[] }) {
             data-hydra-reveal
           >
             <HydraAccentSquare />
-            <h2 className="hydra-h2-band text-white">$6.5M Raised</h2>
+            <h2 className="hydra-h2-band text-white">Full-stack Developer</h2>
             <HydraAccentSquare />
           </div>
           <div className="hydra-investor-row mt-6 md:mt-8" data-hydra-stagger>
-            {["Jeff Dean", "Researchers from OpenAI and DeepMind", "Sky9 Capital", "and more"].map(
+            {["Web & Mobile", "APIs & Data", "AI Features", "ShiftBOi"].map(
               (label, index, arr) => (
                 <div key={label} className="contents">
                   {index > 0 ? <span className="hydra-investor-sep" aria-hidden /> : null}
@@ -453,10 +454,10 @@ export function SiteBody({ projects }: { projects: Project[] }) {
       <section id="use-cases" className="hydra-section hydra-use-cases-band">
         <div className="hydra-container py-12 md:py-20">
           <p className="hydra-eyebrow" data-hydra-reveal-x>
-            {"// Use Cases //"}
+            {"// Focus //"}
           </p>
           <h2 className="hydra-use-case-title mt-4 max-w-3xl text-white" data-hydra-reveal-x data-hydra-drift data-drift-amount="24">
-            What Engineers Are Building With HydraDB
+            What I Build For Product Teams
           </h2>
 
           <div
@@ -515,23 +516,22 @@ export function SiteBody({ projects }: { projects: Project[] }) {
           <div className="hydra-similarity-inner">
             <div className="hydra-similarity-copy">
               <h2 className="hydra-similarity-title">
-                Similarity Isn&apos;t Always Relevance.
+                Pretty Isn&apos;t Always Production.
               </h2>
               <div className="hydra-similarity-body-wrap">
                 <p className="hydra-similarity-body">
-                  Similarity search often returns what&apos;s close and not what&apos;s related.
+                  Polished mockups and bolted-on APIs often look close — and still fail in real use.
                 </p>
                 <p className="hydra-similarity-body">
-                  HydraDB connects your context, builds a structured graph, and delivers the exact
-                  context agents need. Relational-first, preference-aware, temporally versioned,
-                  precision recall.
+                  I connect design, frontend, backend, and deploy into one build path — so the
+                  product ships as a system, not a collage of unfinished pieces.
                 </p>
               </div>
             </div>
             <div className="hydra-similarity-cols">
               <div className="hydra-similarity-col hydra-similarity-col-without">
                 <div className="hydra-similarity-col-head hydra-similarity-col-head-dark">
-                  <h3>Without Graphs</h3>
+                  <h3>Without Full-stack</h3>
                 </div>
                 {WITHOUT_ROWS.map((row) => (
                   <div key={row} className="hydra-similarity-col-cell">
@@ -541,7 +541,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
               </div>
               <div className="hydra-similarity-col hydra-similarity-col-with">
                 <div className="hydra-similarity-col-head hydra-similarity-col-head-accent">
-                  <h3>With HydraDB</h3>
+                  <h3>With ShiftBOi</h3>
                 </div>
                 {WITH_ROWS.map((row) => (
                   <div key={row} className="hydra-similarity-col-cell">
@@ -559,7 +559,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         <div className="hydra-container py-[72px] md:py-[100px] lg:pb-0 lg:pt-[120px]">
           <div className="hydra-section-title-wrap" data-hydra-reveal data-hydra-drift data-drift-amount="28">
             <h3 className="hydra-h3-features text-center text-white">
-              Everything You Need To Compound Intelligence
+              Everything You Need To Ship End-To-End
             </h3>
           </div>
         </div>
@@ -612,13 +612,13 @@ export function SiteBody({ projects }: { projects: Project[] }) {
               data-hydra-reveal-x
             >
               <h2 className="hydra-h2-dark text-left text-white">
-                Recall Degradation As A Bottleneck
+                Fragmented Builds As A Bottleneck
               </h2>
               <ul className="mt-8 space-y-5">
                 {[
-                  "Embeddings hit a hard geometric ceiling as context scales",
-                  "VectorDBs are stateless by design, cannot personalize results",
-                  "Current systems are stitched implementations between vectorDBs, graphs, relational data stores; difficult to maintain, hard to scale",
+                  "UI, API, and mobile owners drift apart as scope grows",
+                  "AI features get bolted on without real product UX",
+                  "MVP stacks get rewritten the moment you need production auth, data, and deploy",
                 ].map((line) => (
                   <li
                     key={line}
@@ -635,7 +635,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
               data-hydra-parallax
               data-parallax-speed="0.4"
             >
-              <p className="hydra-accent-label-sm mb-4">Accuracy vs Context Length</p>
+              <p className="hydra-accent-label-sm mb-4">Clarity vs Project Complexity</p>
               <svg viewBox="0 0 420 220" className="h-auto w-full" aria-hidden>
                 <g stroke="#353535" strokeWidth="1">
                   {[0, 1, 2, 3, 4].map((i) => (
@@ -663,13 +663,13 @@ export function SiteBody({ projects }: { projects: Project[] }) {
               </svg>
               <div className="mt-4 flex flex-wrap gap-4 text-[11px] text-[rgb(153,153,153)]">
                 <span className="inline-flex items-center gap-2">
-                  <i className="inline-block size-2.5 bg-[var(--color-hydra-accent)]" /> HydraDB
+                  <i className="inline-block size-2.5 bg-[var(--color-hydra-accent)]" /> ShiftBOi
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <i className="inline-block size-2.5 bg-white" /> VectorDB
+                  <i className="inline-block size-2.5 bg-white" /> Split teams
                 </span>
                 <span className="inline-flex items-center gap-2">
-                  <i className="inline-block size-2.5 bg-[#f9c425]" /> Full Context: GPT-4o
+                  <i className="inline-block size-2.5 bg-[#f9c425]" /> Spec-only handoff
                 </span>
               </div>
             </div>
@@ -688,12 +688,11 @@ export function SiteBody({ projects }: { projects: Project[] }) {
           </div>
           <div className="hydra-graph-native-copy" data-hydra-reveal-x>
             <h2 id="graph-native-heading" className="hydra-graph-native-title">
-              Graph Native Context Infrastructure For Agents
+              Full-Stack Builder For Product Teams
             </h2>
             <div className="hydra-graph-native-callout">
               <p>
-                Purpose-Built To Deliver Precise Context &amp; Observability Into Why
-                Agents Act The Way They Do.
+                Purpose-Built To Ship Web, Mobile &amp; AI Experiences End To End.
               </p>
             </div>
           </div>
@@ -710,12 +709,12 @@ export function SiteBody({ projects }: { projects: Project[] }) {
       <section id="architecture" className="hydra-section">
         <div className="hydra-container py-12 md:py-16 lg:py-20">
           <h2 className="hydra-h2-section text-center" data-hydra-reveal>
-            Architecture Overview
+            How I Work
           </h2>
           <div className="mt-10 border border-[var(--color-hydra-accent)]">
             <div className="border-b border-[var(--color-hydra-accent)] p-5 md:p-8" data-hydra-reveal>
               <p className="hydra-accent-label text-left">
-                <strong>Orchestration Around The Graph Database</strong>
+                <strong>From Brief To Shipped Product</strong>
               </p>
               <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-stretch">
                 <div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
@@ -745,13 +744,13 @@ export function SiteBody({ projects }: { projects: Project[] }) {
 
             <div className="p-5 md:p-8" data-hydra-reveal>
               <p className="hydra-accent-label text-left">
-                <strong>The Graph Database Core</strong>
+                <strong>The Delivery Core</strong>
               </p>
               <p className="hydra-body-sm mt-2 text-white/80">
-                Extremely fast, multi tenant, and built on object storage
+                One stack across frontend, backend, and mobile surfaces
               </p>
               <p className="hydra-body-sm mt-5 text-[var(--color-hydra-muted)]">
-                NAMESPACE — multi-tenant isolation, auto-scalable
+                SHIFTBOI — full-stack ownership, product-first
               </p>
               <div className="mt-4 grid gap-3 md:grid-cols-3">
                 {ARCH_NODES.map((node) => (
@@ -765,13 +764,13 @@ export function SiteBody({ projects }: { projects: Project[] }) {
                 ))}
               </div>
               <p className="mt-6 text-[12px] tracking-[0.04em] text-[rgb(153,153,153)]">
-                TIERED — CONTEXT FLOWS ACROSS TIERS ON DEMAND
+                PHASES — WORK GROWS WITH THE PRODUCT
               </p>
               <div className="mt-3 grid grid-cols-3 gap-3">
                 {[
-                  ["Hot", "in-memory cache"],
-                  ["Warm", "NVMe SSD"],
-                  ["Cold", "object storage"],
+                  ["Prototype", "validate the idea"],
+                  ["MVP", "ship the core loop"],
+                  ["Production", "harden & scale"],
                 ].map(([title, sub]) => (
                   <div
                     key={title}
@@ -823,7 +822,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
       <section id="pricing" className="hydra-section">
         <div className="hydra-container py-12 md:py-20">
           <h3 className="hydra-h3-features" data-hydra-reveal-x>
-            Pricing
+            Engagement
           </h3>
           <div className="mt-10 grid gap-px bg-[rgb(32,32,32)] md:grid-cols-3" data-hydra-stagger>
             {PRICING.map((tier) => (
@@ -846,22 +845,22 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         <div className="hydra-container py-12 md:py-20">
           <div className="hydra-cell hydra-frame-corners-wrap p-8 md:p-12" data-hydra-reveal>
             <HydraFrameCorners />
-            <h2 className="hydra-h2-section text-left text-[clamp(28px,4vw,48px)]">Get Started</h2>
+            <h2 className="hydra-h2-section text-left text-[clamp(28px,4vw,48px)]">Get In Touch</h2>
             <p className="hydra-body mt-4 max-w-xl">
-              Sign up for HydraDB cloud or run the open-source stack locally.
+              Have a product to ship — web, mobile, or AI-ready? Reach out and we&apos;ll scope it.
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
+              <button type="button" className="hydra-cta" onClick={openChat}>
+                Talk to me
+              </button>
               <a
-                href="https://hydradb.com"
+                href="https://github.com/ShiftBOi"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="hydra-cta"
               >
-                Try HydraDB
+                GitHub
               </a>
-              <Link href="/cms/login" className="hydra-cta">
-                CMS Login
-              </Link>
             </div>
           </div>
         </div>
@@ -879,7 +878,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
                   <ShiftBoiMark className="site-footer-mark" />
                   <span>ShiftBOi</span>
                 </a>
-                <p className="site-footer-tagline">Build AI With Compounding Intelligence</p>
+                <p className="site-footer-tagline">Full-stack Web &amp; Mobile · ShiftBOi</p>
               </div>
             </div>
           </div>
@@ -891,44 +890,43 @@ export function SiteBody({ projects }: { projects: Project[] }) {
                   {
                     title: "Home",
                     links: [
-                      ["Architecture", "#architecture"],
-                      ["Features", "#features"],
-                      ["Use Cases", "#use-cases"],
-                      ["Pricing", "#pricing"],
+                      ["Focus", "#use-cases"],
+                      ["Skills", "#features"],
+                      ["How I Work", "#architecture"],
+                      ["Engagement", "#pricing"],
                       ["Work", "#work"],
                       ["Contact", "#contact"],
                     ],
                   },
                   {
-                    title: "Use Cases",
+                    title: "Focus",
                     links: [
-                      ["Agent Memory", "#use-cases"],
-                      ["Ontologies", "#use-cases"],
-                      ["Company Brain", "#use-cases"],
+                      ["Web Apps", "#use-cases"],
+                      ["Mobile", "#use-cases"],
+                      ["AI Features", "#use-cases"],
                     ],
                   },
                   {
-                    title: "Resources",
+                    title: "Connect",
                     links: [
-                      ["CMS", "/cms/login"],
                       ["GitHub", "https://github.com/ShiftBOi"],
-                      ["Docs", "https://hydradb.com"],
+                      ["X", "https://x.com/ShiftBOi_dev"],
+                      ["Contact", "#contact"],
                     ],
                   },
                   {
-                    title: "Compare",
+                    title: "Studio",
                     links: [
-                      ["vs VectorDB", "#architecture"],
-                      ["vs GraphDB", "#architecture"],
-                      ["vs Full Context", "#architecture"],
+                      ["ShiftBOi", "/"],
+                      ["Projects", "#work"],
+                      ["CMS", "/cms/login"],
                     ],
                   },
                   {
                     title: "Legal",
                     links: [
-                      ["Trust Centre", "#"],
-                      ["Privacy Policy", "#"],
-                      ["Terms of Service", "#"],
+                      ["Privacy", "#"],
+                      ["Terms", "#"],
                     ],
                   },
                 ].map((col) => (
@@ -955,35 +953,39 @@ export function SiteBody({ projects }: { projects: Project[] }) {
 
               <div className="site-footer-aside">
                 <div className="site-footer-media">
-                  <div className="site-footer-media-socials">
-                    <a
-                      href="https://x.com/ShiftBOi_dev"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="site-footer-social"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                        <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.71-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
-                      </svg>
-                      <span>X / Twitter</span>
-                    </a>
-                    <a
-                      href="https://github.com/ShiftBOi"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="site-footer-social"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                        <path d="M12 2C6.477 2 2 6.486 2 12.021c0 4.425 2.865 8.18 6.839 9.504.5.093.682-.217.682-.483 0-.237-.009-.866-.013-1.7-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.467-1.11-1.467-.908-.622.069-.609.069-.609 1.004.071 1.532 1.033 1.532 1.033.892 1.53 2.341 1.088 2.91.833.091-.647.35-1.088.636-1.339-2.22-.253-4.555-1.113-4.555-4.952 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.026 2.747-1.026.546 1.378.203 2.397.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.944.359.31.678.922.678 1.858 0 1.34-.012 2.42-.012 2.75 0 .268.18.58.688.481A10.02 10.02 0 0 0 22 12.021C22 6.486 17.523 2 12 2z" />
-                      </svg>
-                      <span>GitHub</span>
-                    </a>
-                    <a href="#contact" className="site-footer-social">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                        <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
-                      </svg>
-                      <span>Discord</span>
-                    </a>
+                  <div className="site-footer-media-socials" aria-label="Social links">
+                    <span className="site-footer-media-rule" aria-hidden />
+                    <div className="site-footer-media-socials-inner">
+                      <a
+                        href="https://x.com/ShiftBOi_dev"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="site-footer-social"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.71-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
+                        </svg>
+                        <span>X</span>
+                      </a>
+                      <a
+                        href="https://github.com/ShiftBOi"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="site-footer-social"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                          <path d="M12 2C6.477 2 2 6.486 2 12.021c0 4.425 2.865 8.18 6.839 9.504.5.093.682-.217.682-.483 0-.237-.009-.866-.013-1.7-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.467-1.11-1.467-.908-.622.069-.609.069-.609 1.004.071 1.532 1.033 1.532 1.033.892 1.53 2.341 1.088 2.91.833.091-.647.35-1.088.636-1.339-2.22-.253-4.555-1.113-4.555-4.952 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.026 2.747-1.026.546 1.378.203 2.397.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.944.359.31.678.922.678 1.858 0 1.34-.012 2.42-.012 2.75 0 .268.18.58.688.481A10.02 10.02 0 0 0 22 12.021C22 6.486 17.523 2 12 2z" />
+                        </svg>
+                        <span>GitHub</span>
+                      </a>
+                      <a href="#contact" className="site-footer-social">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+                          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
+                        </svg>
+                        <span>Discord</span>
+                      </a>
+                    </div>
+                    <span className="site-footer-media-rule" aria-hidden />
                   </div>
                   <video
                     className="site-footer-media-video"

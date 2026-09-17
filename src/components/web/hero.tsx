@@ -5,13 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { DinoDashHorizon, DinoDashStage } from "@/components/web/dino-dash";
-import { useSiteChat } from "@/components/web/site-chat";
 
 const nav = [
-  { href: "#architecture", label: "Architecture" },
   { href: "#work", label: "Work" },
+  { href: "#use-cases", label: "Focus" },
+  { href: "#features", label: "Skills" },
   { href: "#contact", label: "Contact" },
-  { href: "#architecture", label: "Resources" },
 ];
 
 export function SiteHeader() {
@@ -51,18 +50,17 @@ export function SiteHeader() {
         </nav>
 
         <Link
-          href="/cms/login"
+          href="#contact"
           className="shrink-0 text-[14px] leading-none text-white transition-opacity hover:opacity-80"
         >
-          Log In
+          Contact
         </Link>
       </div>
     </header>
   );
 }
 
-function TalkToUsButton() {
-  const { openChat } = useSiteChat();
+function PlayWithDinoButton({ onPlay }: { onPlay: () => void }) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLButtonElement>(null);
   const dustRef = useRef<HTMLSpanElement>(null);
@@ -209,11 +207,11 @@ function TalkToUsButton() {
       <button
         ref={rootRef}
         type="button"
-        onClick={openChat}
+        onClick={onPlay}
         style={{ color: "#000000", backgroundColor: "#ffffff" }}
         className="relative z-[1] inline-flex min-h-11 cursor-pointer items-center justify-center px-5 text-[15px] font-medium outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
       >
-        Talk to us
+        Play with dino
       </button>
     </div>
   );
@@ -223,6 +221,7 @@ export function Hero() {
   const [dinoPhase, setDinoPhase] = useState<
     "demo" | "entering" | "playing" | "dead"
   >("demo");
+  const [playSignal, setPlaySignal] = useState(0);
   const heroBusy = dinoPhase !== "demo";
 
   return (
@@ -248,7 +247,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          Data connectors now live: Slack, Notion, GitHub, Gmail, and more →
+          Full-stack Web &amp; Mobile Developer · ShiftBOi →
         </motion.p>
 
         <motion.h1
@@ -257,7 +256,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.05 }}
         >
-          The Graph AI Runs On.
+          Rapeepong Apichanakulchai
         </motion.h1>
 
         <motion.div
@@ -267,11 +266,12 @@ export function Hero() {
           transition={{ duration: 0.55, delay: 0.12 }}
         >
           <p>
-            GraphDB built on object storage: 10x cheaper, ultra fast, and
-            purpose-built for modern AI workloads.
+            I design and ship production web &amp; mobile products — from polished
+            interfaces to APIs, data, and deploy.
           </p>
           <p>
-            Build ontologies, agent memory, company brains, and context graphs.
+            Building under ShiftBOi: fast iterations, clean systems, and AI-ready
+            experiences.
           </p>
         </motion.div>
 
@@ -281,20 +281,11 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.2 }}
         >
-          <TalkToUsButton />
+          <PlayWithDinoButton onPlay={() => setPlaySignal((n) => n + 1)} />
         </motion.div>
       </div>
 
-      <motion.p
-        className="dino-click-hint pointer-events-none absolute bottom-8 left-[48%] z-[2] hidden -translate-x-1/2 md:block"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.9, delay: 0.6 }}
-      >
-        click the dino to play
-      </motion.p>
-
-      <DinoDashStage onPhaseChange={setDinoPhase} />
+      <DinoDashStage onPhaseChange={setDinoPhase} playSignal={playSignal} />
       <DinoDashHorizon />
     </section>
   );
