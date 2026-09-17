@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import {
@@ -9,12 +10,13 @@ import {
   HydraPointerIcon,
   HydraStatCorners,
   HydraTripleRule,
-  HydraFooterRule,
-  ShiftBoiMark,
 } from "@/components/web/hydra-primitives";
 import { useHydraScroll } from "@/components/web/use-hydra-scroll";
 import { MatrixPortrait } from "@/components/web/matrix-portrait";
 import { useSiteChat } from "@/components/web/site-chat";
+import { ProjectFeatureCell } from "@/components/web/project-feature-cell";
+import { PORTFOLIO_PROJECTS } from "@/lib/portfolio-projects";
+import { SiteFooter } from "@/components/web/site-footer";
 
 type Project = {
   id: string;
@@ -111,23 +113,27 @@ const WITH_ROWS = [
 
 const FEATURE_CELLS = [
   {
+    slug: "vibesaur",
     title: "Vibesaur Extension",
-    body: "Raise a dinosaur from commit quality — not just how often you push. A local-only Cursor / VS Code pet with a living island, stats desk, and star store.",
+    body: PORTFOLIO_PROJECTS.find((p) => p.slug === "vibesaur")!.summary,
     visual: "accuracy" as const,
   },
   {
+    slug: "sknat",
     title: "SKNAT",
-    body: "Thai real-estate platform: smart search, maps, and compare for buyers — plus seller & admin tools for listings, leads, and sales in one stack.",
+    body: PORTFOLIO_PROJECTS.find((p) => p.slug === "sknat")!.summary,
     visual: "tier" as const,
   },
   {
+    slug: "tastesiam",
     title: "Tastesiam",
-    body: "Discover Thai food heritage, communities, and local businesses on the map — with multilingual UX, bookings/commerce, and multi-role operator dashboards.",
+    body: PORTFOLIO_PROJECTS.find((p) => p.slug === "tastesiam")!.summary,
     visual: "recall" as const,
   },
   {
+    slug: "seenpi",
     title: "Seenpi",
-    body: "Turn CCTV into a curated video wall — contributors publish feeds, staff compose layouts, Android TVs show multi-cam walls with weather, social, and ads.",
+    body: PORTFOLIO_PROJECTS.find((p) => p.slug === "seenpi")!.summary,
     visual: "latency" as const,
   },
 ];
@@ -577,14 +583,15 @@ export function SiteBody({ projects }: { projects: Project[] }) {
           <div className="hydra-features-row-band" data-hydra-stagger>
             <div className="hydra-features-grid">
               {FEATURE_CELLS.slice(0, 2).map((cell) => (
-                <article key={cell.title} className="hydra-feature-cell" data-hydra-stagger-item>
-                  <h4 className="hydra-feature-title">{cell.title}</h4>
-                  <p className="hydra-feature-body">{cell.body}</p>
-                  <div className="hydra-feature-visual">
-                    {cell.visual === "accuracy" ? <AccuracyVisual /> : null}
-                    {cell.visual === "tier" ? <TierVisual /> : null}
-                  </div>
-                </article>
+                <ProjectFeatureCell
+                  key={cell.slug}
+                  href={`/projects/${cell.slug}`}
+                  title={cell.title}
+                  body={cell.body}
+                >
+                  {cell.visual === "accuracy" ? <AccuracyVisual /> : null}
+                  {cell.visual === "tier" ? <TierVisual /> : null}
+                </ProjectFeatureCell>
               ))}
             </div>
           </div>
@@ -592,14 +599,15 @@ export function SiteBody({ projects }: { projects: Project[] }) {
           <div className="hydra-features-row-band hydra-features-row-band-bottom" data-hydra-stagger>
             <div className="hydra-features-grid">
               {FEATURE_CELLS.slice(2, 4).map((cell) => (
-                <article key={cell.title} className="hydra-feature-cell" data-hydra-stagger-item>
-                  <h4 className="hydra-feature-title">{cell.title}</h4>
-                  <p className="hydra-feature-body">{cell.body}</p>
-                  <div className="hydra-feature-visual">
-                    {cell.visual === "recall" ? <RecallVisual /> : null}
-                    {cell.visual === "latency" ? <LatencyVisual /> : null}
-                  </div>
-                </article>
+                <ProjectFeatureCell
+                  key={cell.slug}
+                  href={`/projects/${cell.slug}`}
+                  title={cell.title}
+                  body={cell.body}
+                >
+                  {cell.visual === "recall" ? <RecallVisual /> : null}
+                  {cell.visual === "latency" ? <LatencyVisual /> : null}
+                </ProjectFeatureCell>
               ))}
             </div>
           </div>
@@ -620,14 +628,16 @@ export function SiteBody({ projects }: { projects: Project[] }) {
               className="border-b border-[#353535] p-8 md:p-10 lg:border-b-0 lg:border-r lg:p-12"
               data-hydra-reveal-x
             >
-              <h2 className="hydra-h2-dark text-left text-white">
-                Artillery-FDC
-              </h2>
+              <Link href="/projects/artillery-fdc" className="block no-underline">
+                <h2 className="hydra-h2-dark text-left text-white transition-colors hover:text-[var(--color-hydra-accent)]">
+                  Artillery-FDC
+                </h2>
+              </Link>
               <ul className="mt-8 space-y-5">
                 {[
-                  "Map-based gun & target placement with terrain and trajectory preview",
-                  "SQLite firing tables with automated charge, deflection, and fuze solutions",
-                  "Drone & observer adjustments over a local field network",
+                  "Map-first mission workspace with terrain-aware context",
+                  "Structured firing-data workflows instead of spreadsheet hopping",
+                  "Cross-platform web + desktop packaging for demos and field use",
                 ].map((line) => (
                   <li
                     key={line}
@@ -637,6 +647,13 @@ export function SiteBody({ projects }: { projects: Project[] }) {
                   </li>
                 ))}
               </ul>
+              <Link
+                href="/projects/artillery-fdc"
+                className="mt-8 inline-flex items-center gap-2 text-[13px] text-white/70 transition-colors hover:text-[var(--color-hydra-accent)]"
+              >
+                Read more
+                <span aria-hidden>→</span>
+              </Link>
             </div>
             <div
               className="relative min-h-[280px] overflow-hidden p-6 md:min-h-[340px] md:p-8"
@@ -875,147 +892,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         </div>
       </section>
 
-      <footer className="site-footer">
-        <HydraFooterRule />
-        <div className="site-footer-grid" aria-hidden />
-
-        <div className="site-footer-table" data-hydra-reveal>
-          <div className="site-footer-row site-footer-row-top">
-            <div className="site-footer-row-inner site-footer-row-inner-top">
-              <div className="site-footer-brand">
-                <a href="/" className="site-footer-logo">
-                  <ShiftBoiMark className="site-footer-mark" />
-                  <span>ShiftBOi</span>
-                </a>
-                <p className="site-footer-tagline">Full-stack Web &amp; Mobile · ShiftBOi</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="site-footer-row site-footer-row-body">
-            <div className="site-footer-row-inner site-footer-row-inner-body">
-              <div className="site-footer-nav">
-                {[
-                  {
-                    title: "Home",
-                    links: [
-                      ["Focus", "#use-cases"],
-                      ["Skills", "#features"],
-                      ["How I Work", "#architecture"],
-                      ["Engagement", "#pricing"],
-                      ["Work", "#work"],
-                      ["Contact", "#contact"],
-                    ],
-                  },
-                  {
-                    title: "Focus",
-                    links: [
-                      ["Web Apps", "#use-cases"],
-                      ["Mobile", "#use-cases"],
-                      ["AI Features", "#use-cases"],
-                    ],
-                  },
-                  {
-                    title: "Connect",
-                    links: [
-                      ["GitHub", "https://github.com/ShiftBOi"],
-                      ["X", "https://x.com/ShiftBOi_dev"],
-                      ["Contact", "#contact"],
-                    ],
-                  },
-                  {
-                    title: "Studio",
-                    links: [
-                      ["ShiftBOi", "/"],
-                      ["Projects", "#work"],
-                      ["CMS", "/cms/login"],
-                    ],
-                  },
-                  {
-                    title: "Legal",
-                    links: [
-                      ["Privacy", "#"],
-                      ["Terms", "#"],
-                    ],
-                  },
-                ].map((col) => (
-                  <div key={col.title} className="site-footer-col">
-                    <p className="site-footer-col-title">{col.title}</p>
-                    <ul>
-                      {col.links.map(([label, href]) => (
-                        <li key={label}>
-                          <a
-                            href={href}
-                            className="site-footer-link"
-                            {...(href.startsWith("http")
-                              ? { target: "_blank", rel: "noopener noreferrer" }
-                              : {})}
-                          >
-                            {label}
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-
-              <div className="site-footer-aside">
-                <div className="site-footer-media">
-                  <div className="site-footer-media-socials" aria-label="Social links">
-                    <span className="site-footer-media-rule" aria-hidden />
-                    <div className="site-footer-media-socials-inner">
-                      <a
-                        href="https://x.com/ShiftBOi_dev"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="site-footer-social"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.71-8.835L1.254 2.25H8.08l4.253 5.622L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z" />
-                        </svg>
-                        <span>X</span>
-                      </a>
-                      <a
-                        href="https://github.com/ShiftBOi"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="site-footer-social"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                          <path d="M12 2C6.477 2 2 6.486 2 12.021c0 4.425 2.865 8.18 6.839 9.504.5.093.682-.217.682-.483 0-.237-.009-.866-.013-1.7-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.467-1.11-1.467-.908-.622.069-.609.069-.609 1.004.071 1.532 1.033 1.532 1.033.892 1.53 2.341 1.088 2.91.833.091-.647.35-1.088.636-1.339-2.22-.253-4.555-1.113-4.555-4.952 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.026 2.747-1.026.546 1.378.203 2.397.1 2.65.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.944.359.31.678.922.678 1.858 0 1.34-.012 2.42-.012 2.75 0 .268.18.58.688.481A10.02 10.02 0 0 0 22 12.021C22 6.486 17.523 2 12 2z" />
-                        </svg>
-                        <span>GitHub</span>
-                      </a>
-                      <a href="#contact" className="site-footer-social">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-                          <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z" />
-                        </svg>
-                        <span>Discord</span>
-                      </a>
-                    </div>
-                    <span className="site-footer-media-rule" aria-hidden />
-                  </div>
-                  <video
-                    className="site-footer-media-video"
-                    src="/videos/ai-hologram-purple-cubic.mp4"
-                    poster="/videos/ai-hologram-purple-cubic-poster.jpg"
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    aria-hidden
-                  />
-                </div>
-                <p className="site-footer-copy">
-                  © {new Date().getFullYear()} ShiftBOi
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
