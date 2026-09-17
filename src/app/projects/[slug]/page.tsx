@@ -34,6 +34,7 @@ export default async function ProjectPage({ params }: Props) {
   if (!project) notFound();
 
   const others = PORTFOLIO_PROJECTS.filter((p) => p.slug !== project.slug).slice(0, 3);
+  const [firstSection, ...restSections] = project.sections;
 
   return (
     <SmoothScroll>
@@ -41,129 +42,179 @@ export default async function ProjectPage({ params }: Props) {
         <SiteHeader />
         <main className="project-page flex-1 pt-12 md:pt-14">
           <div className="project-page-vgrid" aria-hidden />
-          <div className="project-page-rule" aria-hidden />
 
-          <div className="hydra-container project-page-inner">
-            <p className="project-page-crumb">
-              <Link href="/#features">Selected Projects</Link>
-              <span aria-hidden> / </span>
-              <span>{project.title}</span>
-            </p>
-
-            <div className="project-page-heading">
-              <h1 className="project-page-title">{project.title}</h1>
-              <p className="project-page-role">{project.role}</p>
-            </div>
-
-            <section className="project-thesis" aria-labelledby="project-thesis-heading">
-              <p id="project-thesis-heading" className="project-thesis-label">
-                The Overview
+          <div className="project-page-top">
+            <div className="project-page-shell">
+              <p className="project-page-crumb">
+                <Link href="/#features">Selected Projects</Link>
+                <span aria-hidden> / </span>
+                <span>{project.title}</span>
               </p>
-              <h2 className="project-thesis-lead">
-                {project.thesisLead}{" "}
-                <span className="project-thesis-accent">{project.thesisHighlight}</span>{" "}
-                {project.thesisRest}
-              </h2>
-              <p className="project-thesis-body">{project.thesisBody}</p>
-            </section>
 
-            <article className="project-bench-card">
-              <div className="project-bench-media">
-                {project.media?.type === "video" ? (
-                  <video
-                    src={project.media.src}
-                    poster={project.media.poster}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    aria-label={`${project.title} demo`}
-                  />
-                ) : project.media?.type === "image" ? (
-                  <Image
-                    src={project.media.src}
-                    alt=""
-                    fill
-                    className="object-cover"
-                    sizes="(max-width:900px) 100vw, 55vw"
-                  />
-                ) : (
-                  <div className="project-bench-media-fallback" aria-hidden />
-                )}
+              <header className="project-page-heading">
+                <h1 className="project-page-title">{project.title}</h1>
+                <p className="project-page-role">{project.role}</p>
+              </header>
+            </div>
+          </div>
+
+          <section className="project-band project-band-thesis">
+            <div className="project-page-shell">
+              <p className="project-eyebrow">{"// The Overview //"}</p>
+              <div className="project-split">
+                <h2 className="project-thesis-lead">
+                  {project.thesisLead}{" "}
+                  <span className="project-thesis-accent">{project.thesisHighlight}</span>{" "}
+                  {project.thesisRest}
+                </h2>
+                <p className="project-thesis-body">{project.thesisBody}</p>
               </div>
-              <div className="project-bench-copy">
-                <div className="project-bench-meta">
-                  <div>
-                    <p className="project-bench-metric">{project.heroMetric}</p>
-                    <p className="project-bench-metric-label">{project.heroMetricLabel}</p>
+            </div>
+          </section>
+
+          <section className="project-band project-band-hero">
+            <div className="project-page-shell">
+              <div className="project-split project-split-hero">
+                <div className="project-media">
+                  {project.media?.type === "video" ? (
+                    <video
+                      src={project.media.src}
+                      poster={project.media.poster}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      aria-label={`${project.title} demo`}
+                    />
+                  ) : project.media?.type === "image" ? (
+                    <Image
+                      src={project.media.src}
+                      alt=""
+                      fill
+                      className="object-cover"
+                      sizes="(max-width:900px) 100vw, 55vw"
+                    />
+                  ) : (
+                    <div className="project-media-fallback" aria-hidden />
+                  )}
+                </div>
+                <div className="project-hero-copy">
+                  <div className="project-hero-meta">
+                    <div>
+                      <p className="project-metric">{project.heroMetric}</p>
+                      <p className="project-metric-label">{project.heroMetricLabel}</p>
+                    </div>
+                    <p className="project-year">{project.year}</p>
                   </div>
-                  <p className="project-bench-date">{project.year}</p>
+                  <h3 className="project-block-title">{project.heroTitle}</h3>
+                  <p className="project-block-body">{project.heroBody}</p>
                 </div>
-                <h3 className="project-bench-title">{project.heroTitle}</h3>
-                <p className="project-bench-body">{project.heroBody}</p>
               </div>
-            </article>
+            </div>
+          </section>
 
-            {project.highlights.map((item) => (
-              <article key={item.title} className="project-bench-card is-compact">
-                <div className="project-bench-stat">
-                  <p className="project-bench-metric">{item.metric}</p>
-                  <p className="project-bench-metric-label">{item.label}</p>
+          {firstSection ? (
+            <section className="project-band">
+              <div className="project-page-shell">
+                <div className="project-split">
+                  <div>
+                    <p className="project-eyebrow">{firstSection.label}</p>
+                    <h2 className="project-block-title is-lg">{firstSection.title}</h2>
+                  </div>
+                  <div>
+                    {firstSection.paragraphs.map((p) => (
+                      <p key={p.slice(0, 48)} className="project-block-body is-loose">
+                        {p}
+                      </p>
+                    ))}
+                    {firstSection.bullets?.length ? (
+                      <ul className="project-bullets">
+                        {firstSection.bullets.map((b) => (
+                          <li key={b}>{b}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="project-bench-copy">
-                  <h3 className="project-bench-title">{item.title}</h3>
-                  <p className="project-bench-body">{item.body}</p>
-                </div>
-              </article>
-            ))}
+              </div>
+            </section>
+          ) : null}
 
-            <div className="project-longform">
-              {project.sections.map((section) => (
-                <section key={section.title} className="project-section">
-                  <p className="project-thesis-label">{section.label}</p>
-                  <h2 className="project-section-title">{section.title}</h2>
-                  {section.paragraphs.map((p) => (
-                    <p key={p.slice(0, 48)} className="project-section-body">
-                      {p}
-                    </p>
-                  ))}
-                  {section.bullets && section.bullets.length > 0 ? (
-                    <ul className="project-section-bullets">
-                      {section.bullets.map((b) => (
-                        <li key={b}>{b}</li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </section>
+          <section className="project-band project-band-flush" aria-label="Highlights">
+            <div className="project-cells">
+              {project.highlights.map((item) => (
+                <article key={item.title} className="project-cell">
+                  <p className="project-metric">{item.metric}</p>
+                  <p className="project-metric-label">{item.label}</p>
+                  <h3 className="project-block-title">{item.title}</h3>
+                  <p className="project-block-body">{item.body}</p>
+                </article>
               ))}
             </div>
+          </section>
 
-            <section className="project-stack" aria-label="Tech stack">
-              <p className="project-thesis-label">Stack</p>
-              <ul className="project-stack-list">
-                {project.stack.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
+          {restSections.map((section) => (
+            <section key={section.title} className="project-band">
+              <div className="project-page-shell">
+                <div className="project-split">
+                  <div>
+                    <p className="project-eyebrow">{section.label}</p>
+                    <h2 className="project-block-title is-lg">{section.title}</h2>
+                  </div>
+                  <div>
+                    {section.paragraphs.map((p) => (
+                      <p key={p.slice(0, 48)} className="project-block-body is-loose">
+                        {p}
+                      </p>
+                    ))}
+                    {section.bullets?.length ? (
+                      <ul className="project-bullets">
+                        {section.bullets.map((b) => (
+                          <li key={b}>{b}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
             </section>
+          ))}
 
-            {others.length > 0 ? (
-              <section className="project-more" aria-label="More projects">
-                <p className="project-thesis-label">More projects</p>
-                <ul className="project-more-list">
-                  {others.map((p) => (
-                    <li key={p.slug}>
-                      <Link href={`/projects/${p.slug}`} className="project-more-link">
-                        <span>{p.title}</span>
-                        <span aria-hidden>→</span>
-                      </Link>
-                    </li>
+          <section className="project-band" aria-label="Tech stack">
+            <div className="project-page-shell">
+              <div className="project-split">
+                <div>
+                  <p className="project-eyebrow">Stack</p>
+                  <h2 className="project-block-title is-lg">Tools behind the build</h2>
+                </div>
+                <ul className="project-stack-line">
+                  {project.stack.map((item) => (
+                    <li key={item}>{item}</li>
                   ))}
                 </ul>
-              </section>
-            ) : null}
-          </div>
+              </div>
+            </div>
+          </section>
+
+          {others.length > 0 ? (
+            <section className="project-band project-band-flush" aria-label="More projects">
+              <div className="project-page-shell project-more-head">
+                <p className="project-eyebrow">More projects</p>
+              </div>
+              <div className="project-cells project-cells-more">
+                {others.map((p) => (
+                  <Link key={p.slug} href={`/projects/${p.slug}`} className="project-cell is-link">
+                    <span className="project-block-title">{p.title}</span>
+                    <span className="project-block-body">{p.summary}</span>
+                    <span className="project-cell-go" aria-hidden>
+                      →
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </main>
         <SiteFooter />
       </SiteShell>

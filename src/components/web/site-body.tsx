@@ -714,11 +714,11 @@ export function SiteBody({ projects }: { projects: Project[] }) {
           </div>
           <div className="hydra-graph-native-copy" data-hydra-reveal-x>
             <h2 id="graph-native-heading" className="hydra-graph-native-title">
-              Full-Stack Builder For Product Teams
+              Building Things People Enjoy Opening.
             </h2>
             <div className="hydra-graph-native-callout">
               <p>
-                Purpose-Built To Ship Web, Mobile &amp; AI Experiences End To End.
+                Quiet craft for web, mobile &amp; AI — shipped with care, meant to feel alive.
               </p>
             </div>
           </div>

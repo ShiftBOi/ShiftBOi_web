@@ -47,7 +47,7 @@ Problem framing section title: "Artillery-FDC"
 - AI bolted on without product UX
 - MVP stacks get rewritten for production auth, data, deploy
 
-About (portrait section): Full-Stack Builder For Product Teams — purpose-built to ship web, mobile & AI experiences end to end.
+About (portrait section): "Building Things People Enjoy Opening." / "Quiet craft for web, mobile & AI — shipped with care, meant to feel alive."
 
 How I work:
 - You → Scope & UX → Build & Ship
