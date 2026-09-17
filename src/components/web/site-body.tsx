@@ -111,22 +111,22 @@ const WITH_ROWS = [
 
 const FEATURE_CELLS = [
   {
-    title: "Production Frontend",
+    title: "Vibesaur Extension",
     body: "Pixel-aware React / Next.js work with motion, accessibility, and brand presence — not generic dashboard chrome.",
     visual: "accuracy" as const,
   },
   {
-    title: "Systems That Scale With You",
+    title: "SKNAT",
     body: "Frontend → API → data → deploy as one path. Hot path for iteration, solid base for auth, Postgres, and owner CMS when you need it.",
     visual: "tier" as const,
   },
   {
-    title: "Ship The Whole Surface",
+    title: "Tastesiam",
     body: "Web, mobile, and AI assistive flows from one builder — so design, logic, and deploy stay aligned.",
     visual: "recall" as const,
   },
   {
-    title: "Built For Fast Product Loops",
+    title: "Seenpi",
     body: "Tight feedback cycles — scope, build, ship, refine — without waiting on a chain of specialists.",
     visual: "latency" as const,
   },
@@ -559,7 +559,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         <div className="hydra-container py-[72px] md:py-[100px] lg:pb-0 lg:pt-[120px]">
           <div className="hydra-section-title-wrap" data-hydra-reveal data-hydra-drift data-drift-amount="28">
             <h3 className="hydra-h3-features text-center text-white">
-              Everything You Need To Ship End-To-End
+              Selected Projects
             </h3>
           </div>
         </div>
@@ -612,7 +612,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
               data-hydra-reveal-x
             >
               <h2 className="hydra-h2-dark text-left text-white">
-                Fragmented Builds As A Bottleneck
+                Artillery-FDC
               </h2>
               <ul className="mt-8 space-y-5">
                 {[

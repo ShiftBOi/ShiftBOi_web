@@ -33,13 +33,13 @@ Focus areas (what I build):
 
 Core message: Pretty isn't always production — mockups and bolted-on APIs often fail in real use. ShiftBOi connects design, frontend, backend, and deploy as one system.
 
-Skills / pillars:
-- Production Frontend
-- Systems That Scale With You (UI → API → Data → Deploy)
-- Ship The Whole Surface (web, mobile, AI flows)
-- Built For Fast Product Loops
+Skills / pillars (project titles on site):
+- Vibesaur Extension
+- SKNAT
+- Tastesiam
+- Seenpi
 
-Problem framing: "Fragmented Builds As A Bottleneck"
+Problem framing section title: "Artillery-FDC"
 - UI / API / mobile owners drift apart
 - AI bolted on without product UX
 - MVP stacks get rewritten for production auth, data, deploy
