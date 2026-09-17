@@ -112,22 +112,22 @@ const WITH_ROWS = [
 const FEATURE_CELLS = [
   {
     title: "Vibesaur Extension",
-    body: "Pixel-aware React / Next.js work with motion, accessibility, and brand presence — not generic dashboard chrome.",
+    body: "Raise a dinosaur from commit quality — not just how often you push. A local-only Cursor / VS Code pet with a living island, stats desk, and star store.",
     visual: "accuracy" as const,
   },
   {
     title: "SKNAT",
-    body: "Frontend → API → data → deploy as one path. Hot path for iteration, solid base for auth, Postgres, and owner CMS when you need it.",
+    body: "Thai real-estate platform: smart search, maps, and compare for buyers — plus seller & admin tools for listings, leads, and sales in one stack.",
     visual: "tier" as const,
   },
   {
     title: "Tastesiam",
-    body: "Web, mobile, and AI assistive flows from one builder — so design, logic, and deploy stay aligned.",
+    body: "Discover Thai food heritage, communities, and local businesses on the map — with multilingual UX, bookings/commerce, and multi-role operator dashboards.",
     visual: "recall" as const,
   },
   {
     title: "Seenpi",
-    body: "Tight feedback cycles — scope, build, ship, refine — without waiting on a chain of specialists.",
+    body: "Turn CCTV into a curated video wall — contributors publish feeds, staff compose layouts, Android TVs show multi-cam walls with weather, social, and ads.",
     visual: "latency" as const,
   },
 ];
@@ -616,9 +616,9 @@ export function SiteBody({ projects }: { projects: Project[] }) {
               </h2>
               <ul className="mt-8 space-y-5">
                 {[
-                  "UI, API, and mobile owners drift apart as scope grows",
-                  "AI features get bolted on without real product UX",
-                  "MVP stacks get rewritten the moment you need production auth, data, and deploy",
+                  "Map-based gun & target placement with terrain and trajectory preview",
+                  "SQLite firing tables with automated charge, deflection, and fuze solutions",
+                  "Drone & observer adjustments over a local field network",
                 ].map((line) => (
                   <li
                     key={line}

@@ -34,12 +34,15 @@ Focus areas (what I build):
 Core message: Pretty isn't always production — mockups and bolted-on APIs often fail in real use. ShiftBOi connects design, frontend, backend, and deploy as one system.
 
 Skills / pillars (project titles on site):
-- Vibesaur Extension
-- SKNAT
-- Tastesiam
-- Seenpi
+- Vibesaur Extension — Cursor/VS Code pet fed by commit quality; local-only island, stats desk, star store
+- SKNAT — Thai real-estate: search, map, compare + seller/admin for listings, leads, sales (Next.js + MySQL)
+- Tastesiam — Thai food heritage & local businesses on the map; i18n, commerce, multi-role dashboards
+- Seenpi (Mview) — CCTV video-wall platform: publish → moderate → Android TV multi-cam + widgets; WebRTC
 
 Problem framing section title: "Artillery-FDC"
+- Howitzer FDC web & Electron desktop
+- Map placement, SQLite firing tables, MET corrections
+- Drone/observer adjust-fire over local Socket.io network
 - UI / API / mobile owners drift apart
 - AI bolted on without product UX
 - MVP stacks get rewritten for production auth, data, deploy
