@@ -24,6 +24,11 @@ export type PortfolioProject = {
     src: string;
     poster?: string;
   };
+  titleIcon?: string;
+  download?: {
+    label: string;
+    href: string;
+  };
   highlights: Array<{
     metric: string;
     label: string;
@@ -56,6 +61,11 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
       type: "video",
       src: "/images/projects/vibesaur/vibesaur-demo.mov",
       poster: "/images/projects/vibesaur/vibesaur_test.png",
+    },
+    titleIcon: "/images/projects/vibesaur/icon.png",
+    download: {
+      label: "Download",
+      href: "cursor:extension/vibesaur.vibesaur",
     },
     highlights: [
       {

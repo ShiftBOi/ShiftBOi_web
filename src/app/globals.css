@@ -2859,6 +2859,7 @@ a.hydra-feature-cell.is-project-link:focus-visible {
 }
 
 .project-page-title {
+  position: relative;
   margin: 0;
   font-family: var(--font-family-pixel);
   font-size: clamp(40px, 7vw, 68px);
@@ -2866,6 +2867,24 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   line-height: 1.05;
   letter-spacing: -0.02em;
   color: #fff;
+}
+
+.project-page-title-text {
+  display: block;
+}
+
+.project-page-title-icon {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  translate: -10px -50%;
+  display: block;
+  width: clamp(36px, 5vw, 56px);
+  height: clamp(36px, 5vw, 56px);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  object-fit: contain;
+  pointer-events: none;
 }
 
 .project-page-role {
@@ -2976,10 +2995,10 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   .project-split-hero .project-hero-copy {
     border: 1px solid #353535;
     border-left: 0;
-    padding: 28px 32px;
+    padding: 28px 32px 24px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-start;
     gap: 12px;
     min-height: 100%;
   }
@@ -3010,6 +3029,34 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.project-download {
+  margin-top: auto;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 18px;
+  border: 1px solid var(--color-hydra-accent, #8b5cf6);
+  background: transparent;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.project-download:hover {
+  background: var(--color-hydra-accent, #8b5cf6);
+  color: #000;
+}
+
+.project-download:focus-visible {
+  outline: 2px solid var(--color-hydra-accent, #8b5cf6);
+  outline-offset: 3px;
 }
 
 .project-hero-meta {
@@ -3151,5 +3198,10 @@ a.hydra-feature-cell.is-project-link:focus-visible {
 
   .project-split-hero .project-hero-copy {
     padding-top: 8px;
+    min-height: 0;
+  }
+
+  .project-download {
+    margin-top: 20px;
   }
 }

@@ -52,7 +52,21 @@ export default async function ProjectPage({ params }: Props) {
               </p>
 
               <header className="project-page-heading">
-                <h1 className="project-page-title">{project.title}</h1>
+                <h1
+                  className={`project-page-title${project.titleIcon ? " has-icon" : ""}`}
+                >
+                  {project.titleIcon ? (
+                    <Image
+                      src={project.titleIcon}
+                      alt=""
+                      width={64}
+                      height={64}
+                      unoptimized
+                      className="project-page-title-icon"
+                    />
+                  ) : null}
+                  <span className="project-page-title-text">{project.title}</span>
+                </h1>
                 <p className="project-page-role">{project.role}</p>
               </header>
             </div>
@@ -109,6 +123,15 @@ export default async function ProjectPage({ params }: Props) {
                   </div>
                   <h3 className="project-block-title">{project.heroTitle}</h3>
                   <p className="project-block-body">{project.heroBody}</p>
+                  {project.download ? (
+                    <a
+                      href={project.download.href}
+                      className="project-download"
+                      rel="noopener"
+                    >
+                      {project.download.label}
+                    </a>
+                  ) : null}
                 </div>
               </div>
             </div>
