@@ -158,9 +158,18 @@ const PRICING = [
 
 function AccuracyVisual() {
   return (
-    <div className="hydra-accuracy-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.25">
-      <p className="hydra-accuracy-value">E2E</p>
-      <p className="hydra-accuracy-label">Ownership</p>
+    <div className="hydra-accuracy-panel is-media" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.25">
+      <video
+        className="hydra-accuracy-video"
+        src="/images/projects/vibesaur/vibesaur-demo.mov"
+        poster="/images/projects/vibesaur/vibesaur_test.png"
+        autoPlay
+        loop
+        muted
+        playsInline
+        preload="metadata"
+        aria-label="Vibesaur Extension demo"
+      />
     </div>
   );
 }

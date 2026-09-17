@@ -2227,6 +2227,20 @@ a.site-nav-link:focus-visible::after {
   background-size: 120% 100%;
 }
 
+.hydra-accuracy-panel.is-media {
+  aspect-ratio: 16 / 10;
+  background: #0a0a0a;
+  animation: none;
+}
+
+.hydra-accuracy-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
 @keyframes hydra-bar-shift {
   0% {
     background-position: 0% 0;
