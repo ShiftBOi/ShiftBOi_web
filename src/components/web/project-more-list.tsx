@@ -160,13 +160,14 @@ export function ProjectMoreList({ projects }: { projects: ProjectMoreItem[] }) {
     const root = stageRef.current;
     if (!root) return;
     const rect = root.getBoundingClientRect();
-    let x = e.clientX - rect.left + 24;
-    let y = e.clientY - rect.top - PREVIEW_H / 2;
+    // Keep preview up and to the right of the cursor / title
+    let x = e.clientX - rect.left + 72;
+    let y = e.clientY - rect.top - PREVIEW_H - 12;
 
     if (x + PREVIEW_W > rect.width - 12) {
-      x = e.clientX - rect.left - PREVIEW_W - 24;
+      x = Math.max(12, rect.width - PREVIEW_W - 12);
     }
-    y = Math.max(0, Math.min(y, Math.max(0, rect.height - PREVIEW_H)));
+    y = Math.max(-24, Math.min(y, Math.max(-24, rect.height - PREVIEW_H)));
     setPos({ x, y });
   }, []);
 
