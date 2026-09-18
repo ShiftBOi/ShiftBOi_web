@@ -24,6 +24,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       wheelMultiplier: 0.95,
     });
 
+    (window as unknown as { lenis?: Lenis }).lenis = lenis;
+
     lenis.on("scroll", ScrollTrigger.update);
 
     const onTick = (time: number) => {
@@ -47,6 +49,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     return () => {
       document.removeEventListener("click", onAnchorClick);
       gsap.ticker.remove(onTick);
+      const win = window as unknown as { lenis?: Lenis };
+      if (win.lenis === lenis) delete win.lenis;
       lenis.destroy();
     };
   }, []);

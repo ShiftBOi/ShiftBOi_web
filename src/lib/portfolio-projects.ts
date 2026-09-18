@@ -23,6 +23,8 @@ export type PortfolioProject = {
     type: "video" | "image";
     src: string;
     poster?: string;
+    colorSrc?: string;
+    bwSrc?: string;
   };
   titleIcon?: string;
   download?: {
@@ -61,6 +63,8 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
       type: "video",
       src: "/images/projects/vibesaur/vibesaur-demo.mov",
       poster: "/images/projects/vibesaur/vibesaur_test.png",
+      colorSrc: "/images/projects/vibesaur/vibesaur_test.png",
+      bwSrc: "/images/projects/vibesaur/vibesaur_test_bw.png",
     },
     titleIcon: "/images/projects/vibesaur/icon.png",
     download: {

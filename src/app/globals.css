@@ -2673,6 +2673,53 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.28) rgba(255, 255, 255, 0.04);
+}
+
+.site-chat-card-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.site-chat-card-body::-webkit-scrollbar-track {
+  margin: 6px 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(0, 0, 0, 0.25) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.site-chat-card-body::-webkit-scrollbar-thumb {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.38) 0%,
+      rgba(160, 160, 160, 0.22) 45%,
+      rgba(40, 40, 40, 0.55) 100%
+    );
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.site-chat-card-body::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.48) 0%,
+      rgba(180, 180, 180, 0.3) 45%,
+      rgba(55, 55, 55, 0.65) 100%
+    );
+  border-color: rgba(255, 255, 255, 0.28);
 }
 
 .site-chat-msg {
@@ -2702,8 +2749,9 @@ a.hydra-feature-cell.is-project-link:focus-visible {
 
 .site-chat-typing {
   margin: 0;
-  font-size: 12px;
-  color: rgb(153, 153, 153);
+  display: flex;
+  align-items: center;
+  min-height: 24px;
 }
 
 .site-chat-error {
@@ -2804,7 +2852,9 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   position: relative;
   background: #000;
   min-height: 100dvh;
-  overflow: hidden;
+  /* overflow-x only — overflow:hidden breaks position:sticky reveal lock */
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 .project-page-vgrid {
@@ -2835,7 +2885,6 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   z-index: 1;
   padding-top: 40px;
   padding-bottom: 28px;
-  border-bottom: 1px solid #353535;
 }
 
 .project-page-crumb {
@@ -2901,11 +2950,11 @@ a.hydra-feature-cell.is-project-link:focus-visible {
 }
 
 .project-band-thesis {
-  border-bottom: 1px solid #353535;
+  padding-top: clamp(20px, 3vw, 32px);
 }
 
 .project-band-hero {
-  border-bottom: 0;
+  padding-bottom: clamp(28px, 4vw, 40px);
 }
 
 .project-eyebrow {
@@ -2940,6 +2989,425 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   font-weight: 400;
   line-height: 1.2;
   color: #fff;
+}
+
+.project-thesis-label {
+  margin-bottom: 18px;
+}
+
+.project-thesis-meta {
+  margin: 18px 0 0;
+  font-family: var(--font-family-mono, ui-monospace, monospace);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(120, 120, 120);
+}
+
+/* SKNAT sticky reveal — text centered ON the image */
+.project-page.is-reveal {
+  padding-top: 0;
+}
+
+.project-intro {
+  position: relative;
+  z-index: 1;
+  min-height: calc(100dvh - 3.5rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-block: clamp(48px, 8vw, 96px);
+}
+
+.project-intro-inner {
+  width: 100%;
+  max-width: 920px;
+  margin-inline: auto;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.project-intro-inner.is-on-hero {
+  padding-inline: clamp(20px, 4vw, 48px);
+}
+
+.project-intro-inner .project-page-crumb {
+  margin-bottom: 28px;
+}
+
+.project-intro-inner.is-on-hero .project-page-crumb,
+.project-intro-inner.is-on-hero .project-page-role,
+.project-intro-inner.is-on-hero .project-intro-body,
+.project-intro-inner.is-on-hero .project-thesis-meta,
+.project-intro-inner.is-on-hero .project-intro-label {
+  color: rgba(230, 230, 230, 0.88);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.65);
+}
+
+.project-intro-inner.is-on-hero .project-page-crumb a {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.project-intro-inner.is-on-hero .project-page-title,
+.project-intro-inner.is-on-hero .project-intro-lead {
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.75);
+}
+
+.project-intro-heading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: clamp(28px, 4vw, 40px);
+}
+
+.project-intro-title {
+  justify-content: center;
+}
+
+.project-intro-title .project-page-title-icon {
+  position: static;
+  translate: none;
+  margin-right: 4px;
+}
+
+.project-intro-title.has-icon {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 18px);
+}
+
+.project-intro-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-family: var(--font-family-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(140, 140, 140);
+}
+
+.project-intro-lead {
+  margin: 0 0 18px;
+  max-width: 18ch;
+  font-family: var(--font-family-pixel);
+  font-size: clamp(28px, 4.5vw, 48px);
+  font-weight: 400;
+  line-height: 1.15;
+  color: #fff;
+}
+
+.project-intro-body {
+  margin: 0;
+  max-width: 42ch;
+  font-size: 16px;
+  line-height: 1.65;
+  color: rgb(160, 160, 160);
+}
+
+.project-intro-inner .project-thesis-meta {
+  margin-top: 20px;
+}
+
+.project-reveal {
+  position: relative;
+  z-index: 1;
+  /* Tall track: scroll here only drives color reveal while sticky locks the frame */
+  height: 300vh;
+  background: #000;
+  margin-bottom: 0;
+}
+
+.project-reveal-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.project-reveal-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.project-reveal-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.project-reveal-layer.is-bw {
+  z-index: 1;
+}
+
+.project-reveal-layer.is-color {
+  z-index: 2;
+  overflow: hidden;
+}
+
+.project-reveal-zoom {
+  position: absolute;
+  inset: 0;
+  transform-origin: center center;
+  will-change: transform;
+  transition: transform 0.1s ease-out;
+}
+
+.project-reveal-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  height: 2px;
+  transform: translateY(-50%);
+  pointer-events: none;
+  background: rgba(245, 242, 238, 0.45);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.55);
+}
+
+.project-reveal-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% 45%, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.2) 45%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+.project-reveal-copy {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 3.5rem;
+  pointer-events: none;
+}
+
+.project-reveal-copy a {
+  pointer-events: auto;
+}
+
+.project-reveal-hint {
+  position: absolute;
+  bottom: 32px;
+  left: 50%;
+  z-index: 6;
+  translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.project-reveal-hint span {
+  font-family: var(--font-family-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.project-reveal-hint i {
+  display: block;
+  width: 1px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.5);
+  animation: project-reveal-pulse 2s infinite;
+}
+
+@keyframes project-reveal-pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scaleY(0.7);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* SKNAT about services pattern (dark portfolio) */
+.project-services {
+  position: relative;
+  z-index: 2;
+  margin-top: 0;
+  padding-top: clamp(40px, 5vw, 64px);
+  padding-bottom: clamp(40px, 6vw, 72px);
+  background: #000;
+}
+
+.project-services-rule {
+  width: 100%;
+  height: 1px;
+  margin-bottom: clamp(28px, 4vw, 40px);
+  background: #2a2a2a;
+}
+
+.project-services-head {
+  display: grid;
+  gap: 20px 48px;
+  margin-bottom: clamp(36px, 5vw, 56px);
+}
+
+@media (min-width: 960px) {
+  .project-services-head {
+    grid-template-columns: minmax(160px, 1fr) minmax(0, 2fr);
+    align-items: start;
+  }
+}
+
+.project-services-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-family-mono, ui-monospace, monospace);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgb(140, 140, 140);
+}
+
+.project-services-label span:first-child {
+  color: rgb(120, 120, 120);
+}
+
+.project-services-headline {
+  margin: 0;
+  max-width: 36ch;
+  font-size: clamp(26px, 3.4vw, 42px);
+  font-weight: 300;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.project-services-rule-partial {
+  display: grid;
+  gap: 0 48px;
+  margin-bottom: clamp(28px, 4vw, 48px);
+}
+
+@media (min-width: 960px) {
+  .project-services-rule-partial {
+    grid-template-columns: minmax(160px, 1fr) minmax(0, 2fr);
+  }
+}
+
+.project-services-rule-partial i {
+  display: block;
+  height: 1px;
+  background: #2a2a2a;
+}
+
+.project-services-item {
+  display: grid;
+  gap: 16px 48px;
+}
+
+@media (min-width: 960px) {
+  .project-services-item {
+    grid-template-columns: minmax(160px, 1fr) minmax(0, 2fr);
+  }
+}
+
+.project-services-item.has-rule .project-services-item-main {
+  border-top: 1px solid #2a2a2a;
+}
+
+.project-services-item-main {
+  padding-block: clamp(28px, 4vw, 44px);
+}
+
+.project-services-item-grid {
+  display: grid;
+  gap: 16px 32px;
+}
+
+@media (min-width: 760px) {
+  .project-services-item-grid {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+}
+
+.project-services-item-grid h3 {
+  margin: 0;
+  font-size: clamp(16px, 1.6vw, 18px);
+  font-weight: 500;
+  line-height: 1.35;
+  color: #fff;
+}
+
+.project-services-item-grid p {
+  margin: 0 0 18px;
+  font-size: 15px;
+  line-height: 1.8;
+  color: rgb(160, 160, 160);
+}
+
+.project-services-item-grid ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.project-services-item-grid li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgb(170, 170, 170);
+}
+
+.project-services-item-grid li span {
+  color: rgb(120, 120, 120);
+  flex-shrink: 0;
+}
+
+.project-services-stack {
+  margin-top: clamp(28px, 4vw, 48px);
+  padding-top: clamp(28px, 4vw, 48px);
+  border-top: 1px solid #2a2a2a;
+  display: grid;
+  gap: 16px;
+}
+
+.project-services-stack ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.project-services-stack li {
+  padding: 8px 12px;
+  border: 1px solid #2a2a2a;
+  font-size: 13px;
+  color: rgb(190, 190, 190);
+}
+
+.project-services-cta {
+  margin-top: 28px;
 }
 
 .project-thesis-accent {
@@ -3210,7 +3678,30 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   position: relative;
   z-index: 1;
   padding-block: clamp(40px, 6vw, 72px);
-  border-top: 1px solid #353535;
+  border-top: 1px solid #2a2a2a;
+}
+
+.project-more {
+  position: relative;
+  z-index: 1;
+  padding-block: clamp(36px, 5vw, 64px);
+  border-top: 1px solid #2a2a2a;
+}
+
+.project-more-list {
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.project-more-list .project-docs-row {
+  border-bottom: 0;
+}
+
+.project-more-list .project-docs-row + .project-docs-row {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #2a2a2a;
 }
 
 .project-docs-layout {
@@ -3354,24 +3845,6 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   margin: 0;
   font-size: 14px;
   color: rgb(120, 120, 120);
-}
-
-.project-more {
-  position: relative;
-  z-index: 1;
-  padding-block: clamp(36px, 5vw, 64px);
-  border-top: 1px solid #353535;
-}
-
-.project-more-list {
-  margin: 8px 0 0;
-  padding: 0;
-  list-style: none;
-  border-top: 1px solid #353535;
-}
-
-.project-more-list .project-docs-row {
-  border-bottom: 1px solid #353535;
 }
 
 .project-more-list .project-docs-row-hit {

@@ -15,6 +15,8 @@ import {
 import gsap from "gsap";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { Bouncy } from "ldrs/react";
+import "ldrs/react/Bouncy.css";
 
 type SiteChatContextValue = {
   open: boolean;
@@ -61,6 +63,48 @@ function messageText(message: { parts: Array<{ type: string; text?: string }> })
 
 const WELCOME =
   "Hi! I'm the ShiftBOi assistant. Ask me anything about the portfolio, focus areas, engagement, or getting in touch.";
+
+const CHAT_STORAGE_KEY = "shiftboi-site-chat-v1";
+
+type StoredChatMessage = {
+  id: string;
+  role: "user" | "assistant" | "system";
+  parts: Array<{ type: "text"; text: string }>;
+};
+
+function loadStoredMessages(): StoredChatMessage[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = sessionStorage.getItem(CHAT_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (m): m is StoredChatMessage =>
+        !!m &&
+        typeof m === "object" &&
+        typeof (m as StoredChatMessage).id === "string" &&
+        ((m as StoredChatMessage).role === "user" ||
+          (m as StoredChatMessage).role === "assistant") &&
+        Array.isArray((m as StoredChatMessage).parts),
+    );
+  } catch {
+    return [];
+  }
+}
+
+function saveStoredMessages(messages: StoredChatMessage[]) {
+  if (typeof window === "undefined") return;
+  try {
+    if (messages.length === 0) {
+      sessionStorage.removeItem(CHAT_STORAGE_KEY);
+      return;
+    }
+    sessionStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+  } catch {
+    // ignore quota / private mode
+  }
+}
 
 function useDustHover(
   wrapRef: RefObject<HTMLElement | null>,
@@ -242,10 +286,12 @@ function SiteChatWidget() {
   const { open, closeChat, toggleChat } = useSiteChat();
   const [input, setInput] = useState("");
   const [bootError, setBootError] = useState<string | null>(null);
+  const [hydrated, setHydrated] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
   const dustRef = useRef<HTMLSpanElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
 
   useDustHover(wrapRef, fabRef, dustRef);
 
@@ -254,6 +300,30 @@ function SiteChatWidget() {
   });
 
   const busy = status === "submitted" || status === "streaming";
+
+  useEffect(() => {
+    const stored = loadStoredMessages();
+    if (stored.length > 0) {
+      setMessages(stored);
+    }
+    setHydrated(true);
+  }, [setMessages]);
+
+  useEffect(() => {
+    if (!hydrated || busy) return;
+    saveStoredMessages(
+      messages.map((m) => ({
+        id: m.id,
+        role: m.role,
+        parts: m.parts
+          .filter(
+            (p): p is { type: "text"; text: string } =>
+              p.type === "text" && typeof p.text === "string",
+          )
+          .map((p) => ({ type: "text" as const, text: p.text })),
+      })),
+    );
+  }, [messages, busy, hydrated]);
 
   useEffect(() => {
     if (!open) return;
@@ -265,18 +335,38 @@ function SiteChatWidget() {
   }, [open, closeChat]);
 
   useEffect(() => {
-    if (error) {
-      setBootError(
-        error.message.includes("503") || error.message.toLowerCase().includes("fetch")
-          ? "ยังเชื่อมต่อ Ollama ไม่ได้ — รัน `ollama serve` แล้ว `ollama pull llama3.2`"
-          : error.message,
-      );
-    }
+    if (!error) return;
+    const msg = error.message.toLowerCase();
+    const offline =
+      msg.includes("503") ||
+      msg.includes("fetch") ||
+      msg.includes("econnrefused") ||
+      msg.includes("cannot connect") ||
+      msg.includes("an error occurred");
+    setBootError(
+      offline
+        ? "ยังเชื่อมต่อ Ollama ไม่ได้ — เปิด Terminal แล้วรัน `ollama serve`"
+        : error.message,
+    );
   }, [error]);
 
   useEffect(() => {
     const el = listRef.current;
     if (!el) return;
+
+    const onScroll = () => {
+      const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight;
+      stickToBottomRef.current = distanceFromBottom < 80;
+    };
+
+    onScroll();
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [open]);
+
+  useEffect(() => {
+    const el = listRef.current;
+    if (!el || !stickToBottomRef.current) return;
     el.scrollTop = el.scrollHeight;
   }, [messages, busy, open]);
 
@@ -286,12 +376,19 @@ function SiteChatWidget() {
     if (!text || busy) return;
     setBootError(null);
     setInput("");
+    stickToBottomRef.current = true;
     void sendMessage({ text });
   };
 
   const talkToHuman = () => {
     closeChat();
     document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const clearChat = () => {
+    setMessages([]);
+    setBootError(null);
+    saveStoredMessages([]);
   };
 
   return (
@@ -332,7 +429,11 @@ function SiteChatWidget() {
               <p>{messageText(m)}</p>
             </div>
           ))}
-          {busy ? <p className="site-chat-typing">กำลังพิมพ์…</p> : null}
+          {busy ? (
+            <div className="site-chat-typing" aria-live="polite" aria-label="Thinking">
+              <Bouncy size="22" speed="1.75" color="#8b5cf6" />
+            </div>
+          ) : null}
           {bootError ? <p className="site-chat-error">{bootError}</p> : null}
         </div>
 
@@ -355,14 +456,7 @@ function SiteChatWidget() {
           </button>
         </form>
         {messages.length > 0 ? (
-          <button
-            type="button"
-            className="site-chat-card-clear"
-            onClick={() => {
-              setMessages([]);
-              setBootError(null);
-            }}
-          >
+          <button type="button" className="site-chat-card-clear" onClick={clearChat}>
             Clear
           </button>
         ) : null}
