@@ -19,18 +19,33 @@ type ProjectHeroRevealProps = {
   colorSrc: string;
   bwSrc: string;
   alt: string;
+  poster?: string;
   children?: ReactNode;
 };
+
+function isVideoSrc(src: string) {
+  return /\.(mov|mp4|webm)(\?|$)/i.test(src);
+}
 
 /**
  * Sticky B&W → color reveal.
  * Scroll while locked only drives the color wipe.
  * Content below is unreachable until revealProgress === 1.
  */
-export function ProjectHeroReveal({ colorSrc, bwSrc, alt, children }: ProjectHeroRevealProps) {
+export function ProjectHeroReveal({
+  colorSrc,
+  bwSrc,
+  alt,
+  poster,
+  children,
+}: ProjectHeroRevealProps) {
   const containerRef = useRef<HTMLElement>(null);
+  const bwVideoRef = useRef<HTMLVideoElement>(null);
+  const colorVideoRef = useRef<HTMLVideoElement>(null);
   const [revealProgress, setRevealProgress] = useState(0);
   const progressRef = useRef(0);
+  const colorIsVideo = isVideoSrc(colorSrc);
+  const bwIsVideo = isVideoSrc(bwSrc);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -88,6 +103,34 @@ export function ProjectHeroReveal({ colorSrc, bwSrc, alt, children }: ProjectHer
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  // Keep dual hero videos in sync (B&W + color layers)
+  useEffect(() => {
+    if (!colorIsVideo || !bwIsVideo) return;
+    const color = colorVideoRef.current;
+    const bw = bwVideoRef.current;
+    if (!color || !bw) return;
+
+    const sync = () => {
+      if (Math.abs(color.currentTime - bw.currentTime) > 0.12) {
+        bw.currentTime = color.currentTime;
+      }
+    };
+
+    const playBoth = () => {
+      void color.play().catch(() => undefined);
+      void bw.play().catch(() => undefined);
+    };
+
+    color.addEventListener("timeupdate", sync);
+    color.addEventListener("play", playBoth);
+    playBoth();
+
+    return () => {
+      color.removeEventListener("timeupdate", sync);
+      color.removeEventListener("play", playBoth);
+    };
+  }, [colorIsVideo, bwIsVideo, colorSrc, bwSrc]);
 
   // Block wheel / touch from jumping past unlock while incomplete
   useEffect(() => {
@@ -149,19 +192,44 @@ export function ProjectHeroReveal({ colorSrc, bwSrc, alt, children }: ProjectHer
       <div className="project-reveal-sticky">
         <div className="project-reveal-frame">
           <div className="project-reveal-layer is-bw">
-            <Image src={bwSrc} alt="" fill priority className="object-cover" sizes="100vw" />
+            {bwIsVideo ? (
+              <video
+                ref={bwVideoRef}
+                className="project-reveal-media is-bw-video"
+                src={bwSrc}
+                poster={poster}
+                muted
+                loop
+                playsInline
+                autoPlay
+                preload="auto"
+                aria-hidden
+              />
+            ) : (
+              <Image src={bwSrc} alt="" fill priority className="object-cover" sizes="100vw" />
+            )}
           </div>
 
           <div
             className="project-reveal-layer is-color"
             style={{ clipPath: `inset(${(1 - revealProgress) * 100}% 0 0 0)` }}
           >
-            <div
-              className="project-reveal-zoom"
-              style={{ transform: `scale(${1 + revealProgress * 0.08})` }}
-            >
+            {colorIsVideo ? (
+              <video
+                ref={colorVideoRef}
+                className="project-reveal-media"
+                src={colorSrc}
+                poster={poster}
+                muted
+                loop
+                playsInline
+                autoPlay
+                preload="auto"
+                aria-label={alt}
+              />
+            ) : (
               <Image src={colorSrc} alt={alt} fill priority className="object-cover" sizes="100vw" />
-            </div>
+            )}
           </div>
 
           <div
@@ -174,10 +242,7 @@ export function ProjectHeroReveal({ colorSrc, bwSrc, alt, children }: ProjectHer
         </div>
 
         {children ? (
-          <div
-            className="project-reveal-copy"
-            style={{ opacity: Math.max(0.25, 1 - revealProgress * 0.9) }}
-          >
+          <div className="project-reveal-copy">
             {children}
           </div>
         ) : null}

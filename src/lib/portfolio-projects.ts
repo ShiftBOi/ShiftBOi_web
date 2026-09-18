@@ -26,6 +26,8 @@ export type PortfolioProject = {
     colorSrc?: string;
     bwSrc?: string;
   };
+  /** Hover preview in “More projects” lists */
+  introSrc?: string;
   titleIcon?: string;
   download?: {
     label: string;
@@ -62,11 +64,12 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     media: {
       type: "video",
       src: "/images/projects/vibesaur/vibesaur-demo.mov",
-      poster: "/images/projects/vibesaur/vibesaur_test.png",
-      colorSrc: "/images/projects/vibesaur/vibesaur_test.png",
-      bwSrc: "/images/projects/vibesaur/vibesaur_test_bw.png",
+      poster: "/images/projects/vibesaur/hero_pic.png",
+      colorSrc: "/images/projects/vibesaur/hero_vid.mov",
+      bwSrc: "/images/projects/vibesaur/hero_vid.mov",
     },
     titleIcon: "/images/projects/vibesaur/icon.png",
+    introSrc: "/images/projects/vibesaur/hero_pic.png",
     download: {
       label: "Download",
       href: "cursor:extension/vibesaur.vibesaur",
@@ -175,6 +178,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     heroTitle: "Browse, compare, and manage listings end to end",
     heroBody:
       "A single product surface for discovery and operations — so agents aren’t stuck in one tool while buyers live in another.",
+    introSrc: "/images/projects/sknat/intro.png",
     highlights: [
       {
         metric: "Map",

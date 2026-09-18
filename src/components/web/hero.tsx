@@ -15,7 +15,7 @@ const nav = [
 
 export function SiteHeader() {
   return (
-    <header className="fixed inset-x-0 top-0 z-50 border-y border-[var(--color-border-default)] bg-black/90 backdrop-blur-md">
+    <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-white/[0.04] backdrop-blur-xl backdrop-saturate-150 supports-[backdrop-filter]:bg-white/[0.03]">
       <div className="mx-auto flex h-12 max-w-[1400px] items-center justify-between gap-6 px-5 md:h-14 md:px-10">
         <Link
           href="/"

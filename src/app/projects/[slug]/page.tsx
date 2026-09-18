@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import Image from "next/image";
@@ -11,6 +10,7 @@ import {
   ProjectHeroReveal,
 } from "@/components/web/project-hero-reveal";
 import { ProjectServices } from "@/components/web/project-services";
+import { ProjectMoreList } from "@/components/web/project-more-list";
 import {
   getPortfolioProject,
   getPortfolioSlugs,
@@ -72,6 +72,7 @@ export default async function ProjectPage({ params }: Props) {
             <ProjectHeroReveal
               colorSrc={revealColor!}
               bwSrc={revealBw!}
+              poster={project.media?.poster}
               alt={`${project.title} visual`}
             >
               {heroCopy}
@@ -133,22 +134,15 @@ export default async function ProjectPage({ params }: Props) {
             <section className="project-more" aria-label="More projects">
               <div className="project-page-shell">
                 <p className="project-docs-list-head">More projects</p>
-                <ul className="project-more-list">
-                  {others.map((p) => (
-                    <li key={p.slug} className="project-docs-row">
-                      <Link href={`/projects/${p.slug}`} className="project-docs-row-hit is-link">
-                        <span className="project-docs-row-date">{p.year}</span>
-                        <span className="project-docs-row-center">
-                          <span className="project-docs-row-title">{p.title}</span>
-                          <span className="project-docs-row-sub">{p.summary}</span>
-                        </span>
-                        <span className="project-docs-row-mins" aria-hidden>
-                          →
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                <ProjectMoreList
+                  projects={others.map((p) => ({
+                    slug: p.slug,
+                    title: p.title,
+                    summary: p.summary,
+                    year: p.year,
+                    introSrc: p.introSrc,
+                  }))}
+                />
               </div>
             </section>
           ) : null}
