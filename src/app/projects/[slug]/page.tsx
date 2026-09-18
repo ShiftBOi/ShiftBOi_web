@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/web/hero";
 import { SiteFooter } from "@/components/web/site-footer";
 import { SiteShell } from "@/components/web/site-shell";
 import { SmoothScroll } from "@/components/web/smooth-scroll";
+import { ProjectDocs } from "@/components/web/project-docs";
 import {
   getPortfolioProject,
   getPortfolioSlugs,
@@ -34,7 +35,6 @@ export default async function ProjectPage({ params }: Props) {
   if (!project) notFound();
 
   const others = PORTFOLIO_PROJECTS.filter((p) => p.slug !== project.slug).slice(0, 3);
-  const [firstSection, ...restSections] = project.sections;
 
   return (
     <SmoothScroll>
@@ -59,8 +59,8 @@ export default async function ProjectPage({ params }: Props) {
                     <Image
                       src={project.titleIcon}
                       alt=""
-                      width={64}
-                      height={64}
+                      width={88}
+                      height={88}
                       unoptimized
                       className="project-page-title-icon"
                     />
@@ -137,104 +137,32 @@ export default async function ProjectPage({ params }: Props) {
             </div>
           </section>
 
-          {firstSection ? (
-            <section className="project-band">
-              <div className="project-page-shell">
-                <div className="project-split">
-                  <div>
-                    <p className="project-eyebrow">{firstSection.label}</p>
-                    <h2 className="project-block-title is-lg">{firstSection.title}</h2>
-                  </div>
-                  <div>
-                    {firstSection.paragraphs.map((p) => (
-                      <p key={p.slice(0, 48)} className="project-block-body is-loose">
-                        {p}
-                      </p>
-                    ))}
-                    {firstSection.bullets?.length ? (
-                      <ul className="project-bullets">
-                        {firstSection.bullets.map((b) => (
-                          <li key={b}>{b}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </section>
-          ) : null}
-
-          <section className="project-band project-band-flush" aria-label="Highlights">
-            <div className="project-cells">
-              {project.highlights.map((item) => (
-                <article key={item.title} className="project-cell">
-                  <p className="project-metric">{item.metric}</p>
-                  <p className="project-metric-label">{item.label}</p>
-                  <h3 className="project-block-title">{item.title}</h3>
-                  <p className="project-block-body">{item.body}</p>
-                </article>
-              ))}
-            </div>
-          </section>
-
-          {restSections.map((section) => (
-            <section key={section.title} className="project-band">
-              <div className="project-page-shell">
-                <div className="project-split">
-                  <div>
-                    <p className="project-eyebrow">{section.label}</p>
-                    <h2 className="project-block-title is-lg">{section.title}</h2>
-                  </div>
-                  <div>
-                    {section.paragraphs.map((p) => (
-                      <p key={p.slice(0, 48)} className="project-block-body is-loose">
-                        {p}
-                      </p>
-                    ))}
-                    {section.bullets?.length ? (
-                      <ul className="project-bullets">
-                        {section.bullets.map((b) => (
-                          <li key={b}>{b}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-            </section>
-          ))}
-
-          <section className="project-band" aria-label="Tech stack">
-            <div className="project-page-shell">
-              <div className="project-split">
-                <div>
-                  <p className="project-eyebrow">Stack</p>
-                  <h2 className="project-block-title is-lg">Tools behind the build</h2>
-                </div>
-                <ul className="project-stack-line">
-                  {project.stack.map((item) => (
-                    <li key={item}>{item}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </section>
+          <ProjectDocs project={project} />
 
           {others.length > 0 ? (
-            <section className="project-band project-band-flush" aria-label="More projects">
-              <div className="project-page-shell project-more-head">
-                <p className="project-eyebrow">More projects</p>
-              </div>
-              <div className="project-cells project-cells-more">
-                {others.map((p) => (
-                  <Link key={p.slug} href={`/projects/${p.slug}`} className="project-cell is-link">
-                    <span className="project-block-title">{p.title}</span>
-                    <span className="project-block-body">{p.summary}</span>
-                    <span className="project-cell-go" aria-hidden>
-                      →
-                    </span>
-                  </Link>
-                ))}
+            <section className="project-more" aria-label="More projects">
+              <div className="project-page-shell">
+                <p className="project-docs-list-head">More projects</p>
+                <ul className="project-docs-list project-more-list">
+                  {others.map((p) => (
+                    <li key={p.slug} className="project-docs-row">
+                      <Link href={`/projects/${p.slug}`} className="project-docs-row-hit is-link">
+                        <span className="project-docs-row-date">{p.year}</span>
+                        <span className="project-docs-row-center">
+                          <span className="project-docs-badges">
+                            <span className="project-docs-badge is-fill">Project</span>
+                            <span className="project-docs-badge is-outline">{p.role}</span>
+                          </span>
+                          <span className="project-docs-row-title">{p.title}</span>
+                          <span className="project-docs-row-sub">{p.summary}</span>
+                        </span>
+                        <span className="project-docs-row-mins" aria-hidden>
+                          →
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </section>
           ) : null}
