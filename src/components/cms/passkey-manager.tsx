@@ -27,27 +27,29 @@ export function PasskeyManager() {
   }
 
   return (
-    <div className="max-w-lg border border-[var(--color-border-default)] p-6">
-      <h2 className="text-[length:var(--font-size-3xl)] tracking-tight">Passkeys</h2>
-      <p className="mt-3 text-[length:var(--font-size-lg)] leading-relaxed text-[var(--color-text-inverse)]">
+    <div>
+      <h2 className="cms-panel-title">Device passkeys</h2>
+      <p className="cms-panel-lead">
         After OTP login, register a passkey for passwordless return visits. No
         password accounts are created.
       </p>
-      <button
-        type="button"
-        onClick={registerPasskey}
-        disabled={pending}
-        className="mt-6 min-h-11 bg-white px-5 text-[length:var(--font-size-lg)] text-black disabled:opacity-40"
-      >
-        {pending ? "Waiting for authenticator…" : "Register passkey"}
-      </button>
+      <div className="cms-actions">
+        <button
+          type="button"
+          onClick={registerPasskey}
+          disabled={pending}
+          className="cms-btn cms-btn-primary"
+        >
+          {pending ? "Waiting for authenticator…" : "Register passkey"}
+        </button>
+      </div>
       {message ? (
-        <p className="mt-4 text-[length:var(--font-size-md)]" role="status">
+        <p className="cms-panel-lead" role="status" style={{ marginTop: "0.85rem" }}>
           {message}
         </p>
       ) : null}
       {error ? (
-        <p className="mt-4 text-[length:var(--font-size-md)] text-red-300" role="alert">
+        <p className="cms-error" role="alert">
           {error}
         </p>
       ) : null}

@@ -1,22 +1,41 @@
 import { prisma } from "@/lib/prisma";
-import { ProjectCreateForm, ProjectList } from "@/components/cms/projects";
+import { ProjectCreateForm, ProjectList, type ProjectRow } from "@/components/cms/projects";
 
 export const metadata = {
   title: "Projects",
 };
 
 export default async function CmsProjectsPage() {
-  const projects = await prisma.project.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-  });
+  const projects = await prisma.$queryRaw<ProjectRow[]>`
+    SELECT
+      id,
+      slug,
+      title,
+      summary,
+      published,
+      year,
+      visibility::text AS visibility
+    FROM project
+    ORDER BY "sortOrder" ASC, "createdAt" DESC
+  `;
 
   return (
     <div>
-      <h1 className="text-[length:var(--font-size-4xl)] tracking-tight">Projects</h1>
-      <p className="mt-3 text-[length:var(--font-size-lg)] text-[var(--color-text-inverse)]">
-        Create and publish portfolio entries shown on the marketing site.
+      <h1 className="cms-page-title">Projects</h1>
+      <p className="cms-page-lead">
+        Selected projects appear in the homepage 2-column grid and get a public
+        case-study page. Limited projects appear as one full-width box per row
+        under the purple divider.
       </p>
-      <ProjectList projects={projects} />
+
+      <div className="cms-panel" style={{ marginBottom: "1rem" }}>
+        <h2 className="cms-panel-title">All projects</h2>
+        <p className="cms-panel-lead" style={{ marginBottom: "1rem" }}>
+          Gradient cards: violet/cyan = Selected, pink/amber = Limited.
+        </p>
+        <ProjectList projects={projects} />
+      </div>
+
       <ProjectCreateForm />
     </div>
   );

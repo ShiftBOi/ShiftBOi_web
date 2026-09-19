@@ -8,18 +8,24 @@ export const metadata = {
 
 export default function CmsLoginPage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center px-5 py-16">
-      <div className="mb-6 w-full max-w-md">
-        <Link
-          href="/"
-          className="text-[length:var(--font-size-sm)] text-[var(--color-text-tertiary)] hover:text-white"
-        >
-          ← Back to site
-        </Link>
+    <main className="cms-login-page">
+      <div className="cms-login-orb cms-login-orb-a" aria-hidden />
+      <div className="cms-login-orb cms-login-orb-b" aria-hidden />
+      <div className="cms-login-orb cms-login-orb-c" aria-hidden />
+
+      <div className="cms-login-frame">
+        <div className="cms-login-topbar">
+          <Link href="/" className="cms-login-back">
+            ← Back to site
+          </Link>
+        </div>
+
+        <div className="cms-login-glass">
+          <Suspense fallback={<p className="cms-empty">Loading…</p>}>
+            <CmsLoginForm />
+          </Suspense>
+        </div>
       </div>
-      <Suspense fallback={<p className="token-muted">Loading…</p>}>
-        <CmsLoginForm />
-      </Suspense>
     </main>
   );
 }

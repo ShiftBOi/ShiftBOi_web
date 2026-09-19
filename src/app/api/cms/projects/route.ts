@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -24,16 +26,44 @@ const createSchema = z.object({
   year: z.string().max(4).nullable().optional(),
   published: z.boolean().optional(),
   techStack: z.array(z.string()).optional(),
+  visibility: z.enum(["PUBLIC", "CONFIDENTIAL"]).optional(),
 });
+
+type ProjectRow = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  description: string;
+  published: boolean;
+  year: string | null;
+  visibility: "PUBLIC" | "CONFIDENTIAL";
+  sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+};
 
 export async function GET(request: NextRequest) {
   if (!(await requireAdmin(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const projects = await prisma.project.findMany({
-    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
-  });
+  const projects = await prisma.$queryRaw<ProjectRow[]>`
+    SELECT
+      id,
+      slug,
+      title,
+      summary,
+      description,
+      published,
+      year,
+      visibility::text AS visibility,
+      "sortOrder",
+      "createdAt",
+      "updatedAt"
+    FROM project
+    ORDER BY "sortOrder" ASC, "createdAt" DESC
+  `;
 
   return NextResponse.json({ projects });
 }
@@ -53,20 +83,43 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  try {
-    const project = await prisma.project.create({
-      data: {
-        title: parsed.data.title,
-        slug: parsed.data.slug,
-        summary: parsed.data.summary,
-        description: parsed.data.description,
-        year: parsed.data.year || null,
-        published: parsed.data.published ?? false,
-        techStack: parsed.data.techStack ?? [],
-      },
-    });
+  const id = randomUUID();
+  const visibility = parsed.data.visibility ?? "PUBLIC";
+  const published = parsed.data.published ?? false;
+  const year = parsed.data.year || null;
+  const techStack = parsed.data.techStack ?? [];
+  const techStackSql =
+    techStack.length === 0
+      ? Prisma.sql`ARRAY[]::text[]`
+      : Prisma.sql`ARRAY[${Prisma.join(techStack)}]::text[]`;
 
-    return NextResponse.json({ project }, { status: 201 });
+  try {
+    // Raw insert so a stale Prisma Client (pre-visibility) still works after schema push.
+    const created = await prisma.$queryRaw<ProjectRow[]>`
+      INSERT INTO project (
+        id, slug, title, summary, description, year, published,
+        "techStack", visibility, "sortOrder", "createdAt", "updatedAt"
+      )
+      VALUES (
+        ${id},
+        ${parsed.data.slug},
+        ${parsed.data.title},
+        ${parsed.data.summary},
+        ${parsed.data.description},
+        ${year},
+        ${published},
+        ${techStackSql},
+        ${visibility}::"ProjectVisibility",
+        0,
+        NOW(),
+        NOW()
+      )
+      RETURNING
+        id, slug, title, summary, description, published, year,
+        visibility::text AS visibility, "sortOrder", "createdAt", "updatedAt"
+    `;
+
+    return NextResponse.json({ project: created[0] }, { status: 201 });
   } catch {
     return NextResponse.json(
       { error: "Could not create project. Slug may already exist." },

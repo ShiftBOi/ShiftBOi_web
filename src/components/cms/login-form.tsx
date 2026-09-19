@@ -4,7 +4,6 @@ import {
   FormEvent,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -13,9 +12,10 @@ import { authClient } from "@/lib/auth-client";
 import { OtpDigitInput, OTP_LENGTH } from "@/components/cms/otp-digit-input";
 
 type Mode = "otp" | "passkey";
-type Step = "email" | "code";
+type Step = "ready" | "code";
 
-const ADMIN_HINT = "rapeepongapic@gmail.com";
+/** Locked admin inbox — never collected from the login UI. */
+const ADMIN_EMAIL = "rapeepongapic@gmail.com";
 const RESEND_SECONDS = 45;
 
 function formatCountdown(total: number) {
@@ -30,8 +30,7 @@ export function CmsLoginForm() {
   const nextPath = searchParams.get("next") || "/cms";
 
   const [mode, setMode] = useState<Mode>("otp");
-  const [step, setStep] = useState<Step>("email");
-  const [email, setEmail] = useState(ADMIN_HINT);
+  const [step, setStep] = useState<Step>("ready");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -43,11 +42,6 @@ export function CmsLoginForm() {
   const verifyLock = useRef(false);
   const lastAutoVerified = useRef("");
 
-  const canSubmitOtpEmail = useMemo(
-    () => email.trim().length > 3 && !sending,
-    [email, sending],
-  );
-
   useEffect(() => {
     if (resendIn <= 0) return;
     const id = window.setInterval(() => {
@@ -56,11 +50,12 @@ export function CmsLoginForm() {
     return () => window.clearInterval(id);
   }, [resendIn]);
 
-  const deliverOtp = useCallback(async (targetEmail: string) => {
+  const deliverOtp = useCallback(async () => {
+    // Server ignores any client email and always uses the locked admin address.
     const res = await fetch("/api/cms/otp/request", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email: targetEmail }),
+      body: JSON.stringify({}),
     });
     const data = await res.json().catch(() => ({}));
     return { ok: res.ok, data };
@@ -68,25 +63,23 @@ export function CmsLoginForm() {
 
   async function requestOtp(event?: FormEvent) {
     event?.preventDefault();
-    const normalized = email.trim().toLowerCase();
     setError(null);
     setInfo(null);
     setDevOtp(null);
     setOtp("");
     lastAutoVerified.current = "";
 
-    // Optimistic: jump to code UI immediately so send feels instant
     setStep("code");
     setSending(true);
     setInfo("Sending code…");
 
-    const { ok, data } = await deliverOtp(normalized);
+    const { ok, data } = await deliverOtp();
     setSending(false);
 
     if (!ok) {
       setError(data.error || "Could not send OTP.");
       setInfo(null);
-      setStep("email");
+      setStep("ready");
       return;
     }
 
@@ -98,7 +91,7 @@ export function CmsLoginForm() {
     } else {
       setInfo(
         data.delivery === "email"
-          ? "Code sent. Check inbox & spam."
+          ? "Code sent to the admin inbox. Check email & spam."
           : "SMTP off — check the server terminal for the code.",
       );
     }
@@ -106,14 +99,13 @@ export function CmsLoginForm() {
 
   async function resendOtp() {
     if (sending || resendIn > 0) return;
-    const normalized = email.trim().toLowerCase();
     setError(null);
     setSending(true);
     setInfo("Sending code…");
     setOtp("");
     lastAutoVerified.current = "";
 
-    const { ok, data } = await deliverOtp(normalized);
+    const { ok, data } = await deliverOtp();
     setSending(false);
 
     if (!ok) {
@@ -130,7 +122,7 @@ export function CmsLoginForm() {
     } else {
       setInfo(
         data.delivery === "email"
-          ? "New code sent."
+          ? "New code sent to the admin inbox."
           : "New code logged in the server terminal.",
       );
     }
@@ -146,7 +138,7 @@ export function CmsLoginForm() {
       setError(null);
 
       const { error: verifyError } = await authClient.signIn.emailOtp({
-        email: email.trim().toLowerCase(),
+        email: ADMIN_EMAIL,
         otp: trimmed,
       });
 
@@ -170,7 +162,7 @@ export function CmsLoginForm() {
       router.replace(nextPath);
       router.refresh();
     },
-    [email, nextPath, router],
+    [nextPath, router],
   );
 
   function onOtpChange(next: string) {
@@ -210,13 +202,12 @@ export function CmsLoginForm() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md border border-[var(--color-border-default)] bg-[var(--color-surface-elevated)] p-6 md:p-8">
+    <div className="cms-login-form">
       {!(mode === "otp" && step === "code") ? (
         <>
-          <h1 className="text-[length:var(--font-size-4xl)] tracking-tight text-white">
-            CMS sign in
-          </h1>
-          <div className="mt-5 flex gap-2 border-b border-[var(--color-border-subtle)] pb-4">
+          <p className="cms-login-kicker">ShiftBOi CMS</p>
+          <h1 className="cms-login-title">Sign in</h1>
+          <div className="cms-login-tabs" role="tablist" aria-label="Sign-in method">
             {(
               [
                 ["otp", "Email OTP"],
@@ -226,17 +217,14 @@ export function CmsLoginForm() {
               <button
                 key={id}
                 type="button"
+                role="tab"
                 onClick={() => {
                   setMode(id);
                   setError(null);
                   setInfo(null);
-                  if (id === "otp") setStep("email");
+                  if (id === "otp") setStep("ready");
                 }}
-                className={`min-h-10 flex-1 px-3 text-[length:var(--font-size-md)] transition-colors duration-[var(--motion-fast)] ${
-                  mode === id
-                    ? "bg-white text-black"
-                    : "text-[var(--color-text-inverse)] hover:text-white"
-                }`}
+                className={`cms-login-tab${mode === id ? " is-active" : ""}`}
                 aria-pressed={mode === id}
               >
                 {label}
@@ -246,62 +234,37 @@ export function CmsLoginForm() {
         </>
       ) : null}
 
-      {mode === "otp" && step === "email" ? (
+      {mode === "otp" && step === "ready" ? (
         <>
-          <p className="mt-5 text-[length:var(--font-size-md)] leading-relaxed text-[var(--color-text-inverse)]">
-            Password login is disabled. Only the allowlisted admin email can
-            access the CMS.
+          <p className="cms-login-copy">
+            Access is locked to the admin account. Send a one-time code to the
+            configured inbox — no email typing needed.
           </p>
-          <form onSubmit={requestOtp} className="mt-6 space-y-4">
-            <label className="block">
-              <span className="mb-2 block text-[length:var(--font-size-sm)] text-[var(--color-text-tertiary)]">
-                Email
-              </span>
-              <input
-                type="email"
-                autoComplete="username webauthn"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="min-h-11 w-full border border-[var(--color-border-default)] bg-black px-3 text-[length:var(--font-size-lg)] text-white"
-              />
-            </label>
-            <button
-              type="submit"
-              disabled={!canSubmitOtpEmail}
-              className="min-h-11 w-full bg-[var(--color-violet)] text-[length:var(--font-size-lg)] text-white transition-opacity duration-[var(--motion-fast)] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {sending ? "Sending…" : "Send code"}
+          <form onSubmit={requestOtp} className="cms-login-stack">
+            <button type="submit" disabled={sending} className="cms-login-btn">
+              {sending ? "Sending…" : "Send login code"}
             </button>
           </form>
         </>
       ) : null}
 
       {mode === "otp" && step === "code" ? (
-        <form onSubmit={onVerifySubmit} className="space-y-6">
+        <form onSubmit={onVerifySubmit} className="cms-login-stack">
           <div>
-            <p className="text-[length:var(--font-size-sm)] uppercase tracking-[0.16em] text-[var(--color-text-tertiary)]">
-              Verification
-            </p>
-            <h2 className="mt-2 text-[length:var(--font-size-4xl)] tracking-tight text-white">
-              Check your email
-            </h2>
-            <p className="mt-3 text-[length:var(--font-size-lg)] leading-relaxed text-[var(--color-text-secondary)]">
-              Enter the {OTP_LENGTH}-digit code we sent to{" "}
-              <span className="font-medium text-white">{email.trim()}</span>
+            <p className="cms-login-kicker">Verification</p>
+            <h2 className="cms-login-title">Check your email</h2>
+            <p className="cms-login-copy">
+              Enter the {OTP_LENGTH}-digit code sent to the admin inbox.
             </p>
           </div>
 
           {devOtp ? (
-            <p
-              className="border border-[var(--color-accent-purple)]/40 bg-black px-3 py-2 font-[Pix32,ui-monospace,monospace] text-[length:var(--font-size-md)] tracking-[0.2em] text-[var(--color-text-primary)]"
-              role="status"
-            >
+            <p className="cms-login-dev" role="status">
               DEV {devOtp}
             </p>
           ) : null}
 
-          <div className={sending ? "pointer-events-none opacity-60" : undefined}>
+          <div className={sending ? "cms-login-otp is-busy" : "cms-login-otp"}>
             <OtpDigitInput
               value={otp}
               onChange={onOtpChange}
@@ -312,30 +275,26 @@ export function CmsLoginForm() {
 
           <button
             type="submit"
-            disabled={
-              sending || verifying || otp.trim().length !== OTP_LENGTH
-            }
-            className="min-h-12 w-full bg-[var(--color-violet)] text-[length:var(--font-size-xl)] text-white transition-opacity duration-[var(--motion-fast)] disabled:cursor-not-allowed disabled:opacity-40"
+            disabled={sending || verifying || otp.trim().length !== OTP_LENGTH}
+            className="cms-login-btn"
           >
             {verifying ? "Signing in…" : sending ? "Sending…" : "Confirm"}
           </button>
 
-          <div className="space-y-3 text-center">
-            <p className="text-[length:var(--font-size-md)] text-[var(--color-text-tertiary)]">
+          <div className="cms-login-foot">
+            <p className="cms-login-muted">
               {sending ? (
                 "Sending now…"
               ) : resendIn > 0 ? (
                 <>
                   Didn&apos;t get the email? Resend in{" "}
-                  <span className="tabular-nums text-[var(--color-text-secondary)]">
-                    {formatCountdown(resendIn)}
-                  </span>
+                  <span className="cms-login-count">{formatCountdown(resendIn)}</span>
                 </>
               ) : (
                 <button
                   type="button"
                   onClick={() => void resendOtp()}
-                  className="text-[var(--color-violet-bright)] hover:text-white"
+                  className="cms-login-link"
                 >
                   Didn&apos;t get the email? Resend
                 </button>
@@ -343,9 +302,9 @@ export function CmsLoginForm() {
             </p>
             <button
               type="button"
-              className="text-[length:var(--font-size-md)] text-[var(--color-text-inverse)] hover:text-white"
+              className="cms-login-link"
               onClick={() => {
-                setStep("email");
+                setStep("ready");
                 setOtp("");
                 setError(null);
                 setInfo(null);
@@ -360,58 +319,32 @@ export function CmsLoginForm() {
       ) : null}
 
       {mode === "passkey" ? (
-        <div className="mt-6 space-y-4">
-          <p className="text-[length:var(--font-size-md)] leading-relaxed text-[var(--color-text-inverse)]">
-            Password login is disabled. Only the allowlisted admin email can
-            access the CMS.
+        <div className="cms-login-stack">
+          <p className="cms-login-copy">
+            Use a registered device passkey. Only the admin account can access
+            the CMS.
           </p>
-          <label className="block">
-            <span className="mb-2 block text-[length:var(--font-size-sm)] text-[var(--color-text-tertiary)]">
-              Email (optional hint)
-            </span>
-            <input
-              type="email"
-              autoComplete="username webauthn"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="min-h-11 w-full border border-[var(--color-border-default)] bg-black px-3 text-[length:var(--font-size-lg)] text-white"
-            />
-          </label>
           <button
             type="button"
             onClick={signInWithPasskey}
             disabled={passkeyPending}
-            className="min-h-11 w-full bg-white text-[length:var(--font-size-lg)] text-black disabled:opacity-40"
+            className="cms-login-btn cms-login-btn-alt"
           >
             {passkeyPending ? "Waiting for passkey…" : "Sign in with passkey"}
           </button>
-          <p className="text-[length:var(--font-size-sm)] text-[var(--color-text-tertiary)]">
-            Register a passkey from the CMS settings after your first OTP login.
+          <p className="cms-login-muted">
+            Register a passkey from CMS settings after your first OTP login.
           </p>
         </div>
       ) : null}
 
-      {info && mode === "otp" && step === "email" ? (
-        <p
-          className="mt-4 text-[length:var(--font-size-md)] text-[var(--color-text-primary)]"
-          role="status"
-        >
-          {info}
-        </p>
-      ) : null}
-      {info && mode === "passkey" ? (
-        <p
-          className="mt-4 text-[length:var(--font-size-md)] text-[var(--color-text-primary)]"
-          role="status"
-        >
+      {info && ((mode === "otp" && step === "ready") || mode === "passkey") ? (
+        <p className="cms-login-info" role="status">
           {info}
         </p>
       ) : null}
       {error ? (
-        <p
-          className="mt-4 text-[length:var(--font-size-md)] text-red-300"
-          role="alert"
-        >
+        <p className="cms-login-error" role="alert">
           {error}
         </p>
       ) : null}

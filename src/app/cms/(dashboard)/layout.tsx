@@ -9,9 +9,9 @@ export default async function CmsDashboardLayout({
   const session = await requireCmsSession();
 
   return (
-    <div className="flex min-h-screen flex-col md:flex-row">
+    <div className="cms-app">
       <CmsNav email={session.user.email} />
-      <div className="flex-1 px-5 py-8 md:px-10">{children}</div>
+      <div className="cms-main">{children}</div>
     </div>
   );
 }

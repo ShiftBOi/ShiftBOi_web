@@ -91,22 +91,31 @@ model Passkey {
 
 // ─── CMS content ───────────────────────────────────────────────
 
+enum ProjectVisibility {
+  PUBLIC
+  CONFIDENTIAL
+}
+
 model Project {
-  id          String   @id @default(cuid())
-  slug        String   @unique
+  id          String             @id @default(cuid())
+  slug        String             @unique
   title       String
   summary     String
-  description String   @db.Text
+  description String             @db.Text
   coverImage  String?
-  techStack   String[] @default([])
+  techStack   String[]           @default([])
   links       Json?
   year        String?
-  published   Boolean  @default(false)
-  sortOrder   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  /// PUBLIC = Selected Projects (detail page, 2-col grid)
+  /// CONFIDENTIAL = limited disclose (homepage full-row only, no deep page)
+  visibility  ProjectVisibility  @default(PUBLIC)
+  published   Boolean            @default(false)
+  sortOrder   Int                @default(0)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
 
   @@index([published])
+  @@index([visibility])
   @@index([sortOrder])
   @@map("project")
 }

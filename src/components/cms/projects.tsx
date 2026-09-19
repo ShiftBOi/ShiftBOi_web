@@ -3,13 +3,14 @@
 import { FormEvent, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
-type ProjectRow = {
+export type ProjectRow = {
   id: string;
   slug: string;
   title: string;
   summary: string;
   published: boolean;
   year: string | null;
+  visibility: "PUBLIC" | "CONFIDENTIAL";
 };
 
 export function ProjectCreateForm() {
@@ -33,6 +34,7 @@ export function ProjectCreateForm() {
           description: form.get("description"),
           year: form.get("year") || null,
           published: form.get("published") === "on",
+          visibility: form.get("visibility") || "PUBLIC",
         }),
       });
 
@@ -48,52 +50,54 @@ export function ProjectCreateForm() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mt-10 max-w-xl space-y-4 border border-[var(--color-border-default)] p-5">
-      <h2 className="text-[length:var(--font-size-2xl)]">New project</h2>
-      {(
-        [
-          ["title", "Title", "text"],
-          ["slug", "Slug", "text"],
-          ["summary", "Summary", "text"],
-          ["year", "Year", "text"],
-        ] as const
-      ).map(([name, label, type]) => (
-        <label key={name} className="block">
-          <span className="mb-2 block text-[length:var(--font-size-sm)] text-[var(--color-text-tertiary)]">
-            {label}
-          </span>
-          <input
-            name={name}
-            type={type}
-            required={name !== "year"}
-            className="min-h-11 w-full border border-[var(--color-border-default)] bg-black px-3 text-[length:var(--font-size-lg)]"
-          />
+    <form onSubmit={onSubmit} className="cms-panel">
+      <h2 className="cms-panel-title">New project</h2>
+      <p className="cms-panel-lead">
+        Choose Selected for the 2-column public grid, or Limited for a
+        single-row teaser under the purple divider.
+      </p>
+
+      <div className="cms-form-grid is-2">
+        {(
+          [
+            ["title", "Title", "text"],
+            ["slug", "Slug", "text"],
+            ["summary", "Summary", "text"],
+            ["year", "Year", "text"],
+          ] as const
+        ).map(([name, label, type]) => (
+          <label key={name} className="cms-field">
+            <span>{label}</span>
+            <input name={name} type={type} required={name !== "year"} />
+          </label>
+        ))}
+
+        <label className="cms-field">
+          <span>Homepage placement</span>
+          <select name="visibility" defaultValue="PUBLIC">
+            <option value="PUBLIC">Selected · 2-column grid + detail page</option>
+            <option value="CONFIDENTIAL">Limited · 1 box per row (teaser)</option>
+          </select>
         </label>
-      ))}
-      <label className="block">
-        <span className="mb-2 block text-[length:var(--font-size-sm)] text-[var(--color-text-tertiary)]">
-          Description
-        </span>
-        <textarea
-          name="description"
-          required
-          rows={4}
-          className="w-full border border-[var(--color-border-default)] bg-black px-3 py-2 text-[length:var(--font-size-lg)]"
-        />
-      </label>
-      <label className="flex items-center gap-2 text-[length:var(--font-size-md)]">
-        <input type="checkbox" name="published" />
-        Published
-      </label>
-      <button
-        type="submit"
-        disabled={pending}
-        className="min-h-11 bg-white px-5 text-black disabled:opacity-40"
-      >
-        {pending ? "Saving…" : "Create project"}
-      </button>
+
+        <label className="cms-field" style={{ gridColumn: "1 / -1" }}>
+          <span>Description</span>
+          <textarea name="description" required rows={4} />
+        </label>
+      </div>
+
+      <div className="cms-actions">
+        <label className="cms-check">
+          <input type="checkbox" name="published" />
+          Publish now
+        </label>
+        <button type="submit" disabled={pending} className="cms-btn cms-btn-primary">
+          {pending ? "Saving…" : "Create project"}
+        </button>
+      </div>
+
       {error ? (
-        <p className="text-[length:var(--font-size-md)] text-red-300" role="alert">
+        <p className="cms-error" role="alert">
           {error}
         </p>
       ) : null}
@@ -125,45 +129,50 @@ export function ProjectList({ projects }: { projects: ProjectRow[] }) {
   }
 
   if (projects.length === 0) {
-    return (
-      <p className="mt-8 text-[length:var(--font-size-lg)] text-[var(--color-text-inverse)]">
-        No projects yet.
-      </p>
-    );
+    return <p className="cms-empty">No projects yet — create the first one below.</p>;
   }
 
   return (
-    <ul className="mt-8 divide-y divide-[var(--color-border-subtle)] border-t border-[var(--color-border-subtle)]">
-      {projects.map((project) => (
-        <li key={project.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
-          <div>
-            <p className="text-[length:var(--font-size-xl)]">{project.title}</p>
-            <p className="text-[length:var(--font-size-sm)] text-[var(--color-text-tertiary)]">
-              /{project.slug}
-              {project.year ? ` · ${project.year}` : ""}
-              {project.published ? " · published" : " · draft"}
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              type="button"
-              disabled={pendingId === project.id}
-              onClick={() => togglePublished(project)}
-              className="text-[length:var(--font-size-md)] text-[var(--color-text-inverse)] hover:text-white"
-            >
-              {project.published ? "Unpublish" : "Publish"}
-            </button>
-            <button
-              type="button"
-              disabled={pendingId === project.id}
-              onClick={() => remove(project)}
-              className="text-[length:var(--font-size-md)] text-red-300 hover:text-red-200"
-            >
-              Delete
-            </button>
-          </div>
-        </li>
-      ))}
+    <ul className="cms-project-list">
+      {projects.map((project) => {
+        const isPublic = project.visibility === "PUBLIC";
+        return (
+          <li
+            key={project.id}
+            className={`cms-project-card${isPublic ? " is-public" : " is-confidential"}`}
+          >
+            <div>
+              <h3>{project.title}</h3>
+              <p className="cms-project-meta">
+                /{project.slug}
+                {project.year ? ` · ${project.year}` : ""}
+                {" · "}
+                {isPublic ? "Selected · 2-col" : "Limited · 1-row"}
+                {" · "}
+                {project.published ? "published" : "draft"}
+              </p>
+            </div>
+            <div className="cms-project-actions">
+              <button
+                type="button"
+                disabled={pendingId === project.id}
+                onClick={() => togglePublished(project)}
+                className="cms-chip-btn"
+              >
+                {project.published ? "Unpublish" : "Publish"}
+              </button>
+              <button
+                type="button"
+                disabled={pendingId === project.id}
+                onClick={() => remove(project)}
+                className="cms-chip-btn is-danger"
+              >
+                Delete
+              </button>
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }

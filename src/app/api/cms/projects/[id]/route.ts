@@ -20,6 +20,7 @@ const patchSchema = z.object({
   published: z.boolean().optional(),
   techStack: z.array(z.string()).optional(),
   sortOrder: z.number().int().optional(),
+  visibility: z.enum(["PUBLIC", "CONFIDENTIAL"]).optional(),
 });
 
 type Params = { params: Promise<{ id: string }> };

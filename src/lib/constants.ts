@@ -1,3 +1,4 @@
+/** Locked CMS admin — never collected from the login form. */
 export const ADMIN_EMAIL =
   process.env.ADMIN_EMAIL?.toLowerCase().trim() || "rapeepongapic@gmail.com";
 

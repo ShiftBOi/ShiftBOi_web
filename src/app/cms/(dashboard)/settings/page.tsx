@@ -5,5 +5,15 @@ export const metadata = {
 };
 
 export default function CmsSettingsPage() {
-  return <PasskeyManager />;
+  return (
+    <div>
+      <h1 className="cms-page-title">Passkeys</h1>
+      <p className="cms-page-lead">
+        Register a device passkey after OTP login for faster return visits.
+      </p>
+      <div className="cms-panel" style={{ maxWidth: 520 }}>
+        <PasskeyManager />
+      </div>
+    </div>
+  );
 }
