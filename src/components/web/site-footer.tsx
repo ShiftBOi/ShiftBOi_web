@@ -1,4 +1,5 @@
 import { HydraFooterRule, ShiftBoiMark } from "@/components/web/hydra-primitives";
+import { MatrixPortrait } from "@/components/web/matrix-portrait";
 
 const FOOTER_COLS = [
   {
@@ -125,19 +126,13 @@ export function SiteFooter() {
                   </div>
                   <span className="site-footer-media-rule" aria-hidden />
                 </div>
-                <video
-                  className="site-footer-media-video"
-                  src="/videos/ai-hologram-purple-cubic.mp4"
-                  poster="/videos/ai-hologram-purple-cubic-poster.jpg"
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  aria-hidden
-                />
+                <div className="site-footer-media-stage">
+                  <div className="site-footer-media-portrait" aria-hidden>
+                    <MatrixPortrait />
+                  </div>
+                </div>
+                <p className="site-footer-copy">© {new Date().getFullYear()} ShiftBOi</p>
               </div>
-              <p className="site-footer-copy">© {new Date().getFullYear()} ShiftBOi</p>
             </div>
           </div>
         </div>

@@ -31,7 +31,7 @@ export default async function CmsProjectsPage() {
       <div className="cms-panel" style={{ marginBottom: "1rem" }}>
         <h2 className="cms-panel-title">All projects</h2>
         <p className="cms-panel-lead" style={{ marginBottom: "1rem" }}>
-          Gradient cards: violet/cyan = Selected, pink/amber = Limited.
+          Aurora glass cards: cool = Selected, warm = Limited.
         </p>
         <ProjectList projects={projects} />
       </div>

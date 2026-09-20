@@ -266,6 +266,7 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     heroTitle: "Tourism discovery with real operator tooling",
     heroBody:
       "A bilingual-capable (and beyond) platform where travelers explore — and communities / businesses actually manage what travelers see.",
+    introSrc: "/images/projects/tastesiam/intro.png",
     highlights: [
       {
         metric: "Map",

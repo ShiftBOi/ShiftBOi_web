@@ -126,6 +126,103 @@ const JUMP_POWER: Record<ObstacleKind, number> = {
   cactus3: 0.95,
 };
 
+/** Player jump constants — keep spawn math in sync with usePlayerDinoLoop */
+const PLAY_JUMP_V = 3.35;
+const PLAY_GRAVITY = 6.2;
+const PLAY_CLEAR_Y = 0.28;
+
+/** How far the dino travels while still above the clear height */
+function clearTravel(speed: number) {
+  const a = 0.5 * PLAY_GRAVITY;
+  const b = -PLAY_JUMP_V;
+  const c = PLAY_CLEAR_Y;
+  const disc = b * b - 4 * a * c;
+  if (disc <= 0) return speed * 0.5;
+  const s = Math.sqrt(disc);
+  const t1 = (-b - s) / (2 * a);
+  const t2 = (-b + s) / (2 * a);
+  return speed * Math.max(0.2, t2 - t1);
+}
+
+/**
+ * Empty space from previous obstacle's RIGHT edge to next LEFT edge.
+ * Always large enough to land and jump again.
+ */
+function safeMinGap(speed: number) {
+  return clearTravel(speed) * 0.92 + 0.08;
+}
+
+/**
+ * Irregular gap — still always ≥ safeMinGap so every challenge is passable.
+ */
+function rollObstacleGap(speed: number, tightStreak: number) {
+  const base = safeMinGap(speed);
+
+  if (tightStreak >= 2) {
+    return { gap: base + 0.28 + Math.random() * 0.42, tight: false };
+  }
+
+  const roll = Math.random();
+  if (roll < 0.22) {
+    // Tight but still clearable
+    return { gap: base + Math.random() * 0.06, tight: true };
+  }
+  if (roll < 0.45) {
+    return { gap: base + 0.08 + Math.random() * 0.14, tight: true };
+  }
+  if (roll < 0.68) {
+    return { gap: base + 0.18 + Math.random() * 0.26, tight: false };
+  }
+  if (roll < 0.86) {
+    return { gap: base + 0.4 + Math.random() * 0.35, tight: false };
+  }
+  return { gap: base + 0.7 + Math.random() * 0.55, tight: false };
+}
+
+/** Max pack width (left of first → right of last) clearable in one jump */
+function maxPackSpan(speed: number) {
+  return clearTravel(speed) * 0.62;
+}
+
+/** Intra-pack step — snug, but pack total stays under maxPackSpan */
+function rollPackStep(kind: ObstacleKind) {
+  return OBSTACLE_LANE_W[kind] + 0.012 + Math.random() * 0.02;
+}
+
+function rollSpawnBurst(speed: number): 1 | 2 | 3 {
+  const roll = Math.random();
+  // Triples only when speed gives enough clear room
+  if (roll < 0.74) return 1;
+  if (roll < 0.94 || maxPackSpan(speed) < 0.16) return 2;
+  return 3;
+}
+
+function pickObstacleKind(
+  recent: ObstacleKind[],
+  opts?: { preferSmall?: boolean },
+): ObstacleKind {
+  const last = recent[recent.length - 1];
+  const sameRun =
+    last &&
+    recent.length >= 2 &&
+    recent[recent.length - 1] === recent[recent.length - 2]
+      ? last
+      : null;
+
+  let kind: ObstacleKind;
+  const roll = Math.random();
+  if (opts?.preferSmall) {
+    kind = roll < 0.55 ? "cactus3" : "cactus1";
+  } else if (roll < 0.42) kind = "cactus1";
+  else if (roll < 0.72) kind = "cactus3";
+  else kind = "cactus2";
+
+  if (sameRun && kind === sameRun) {
+    kind = sameRun === "cactus2" ? "cactus1" : "cactus2";
+  }
+  return kind;
+}
+
 function randomChar() {
   return GEN_CHARS[Math.floor(Math.random() * GEN_CHARS.length)] ?? "#";
 }
@@ -320,17 +417,25 @@ function spawnObstacle(
   id: number,
   withPlan: boolean,
   x = 1.12,
+  kind?: ObstacleKind,
 ): Obstacle {
-  const roll = Math.random();
-  const kind: ObstacleKind =
-    roll < 0.5 ? "cactus1" : roll < 0.78 ? "cactus3" : "cactus2";
+  const resolved =
+    kind ??
+    (() => {
+      const roll = Math.random();
+      return roll < 0.42
+        ? ("cactus1" as const)
+        : roll < 0.72
+          ? ("cactus3" as const)
+          : ("cactus2" as const);
+    })();
 
   if (!withPlan) {
     return {
       id,
-      kind,
+      kind: resolved,
       x,
-      width: OBSTACLE_LANE_W[kind],
+      width: OBSTACLE_LANE_W[resolved],
       hit: false,
     };
   }
@@ -339,9 +444,9 @@ function spawnObstacle(
   const plan: JumpPlan = r < 0.8 ? "clear" : r < 0.92 ? "late" : "none";
   return {
     id,
-    kind,
+    kind: resolved,
     x,
-    width: OBSTACLE_LANE_W[kind],
+    width: OBSTACLE_LANE_W[resolved],
     hit: false,
     plan,
     reacted: false,
@@ -529,12 +634,14 @@ function useDemoDinoLoop(
         runningTimeRef.current > 2.2
       ) {
         const lastX = moved.reduce((m, o) => Math.max(m, o.x), 0);
-        const minGap = 0.7 + speed * 0.65;
+        const { gap } = rollObstacleGap(speed, 0);
+        // Demo stays calmer than play, but still avoid a fixed beat
+        const minGap = Math.max(0.55, gap * 0.85);
         if (lastX < 1.1 - minGap) {
           moved.push(spawnObstacle(idRef.current++, true));
-          nextSpawnRef.current = 1.05 + Math.random() * 1.15;
+          nextSpawnRef.current = 0.7 + Math.random() * 1.55;
         } else {
-          nextSpawnRef.current = 0.12;
+          nextSpawnRef.current = 0.1 + Math.random() * 0.12;
         }
       }
 
@@ -618,10 +725,13 @@ function usePlayerDinoLoop(
   const deathFrozenRef = useRef(false);
   const jumpQueuedRef = useRef(false);
   const lastObstacleKeyRef = useRef("");
+  const recentKindsRef = useRef<ObstacleKind[]>([]);
+  const tightStreakRef = useRef(0);
+  const pendingGapRef = useRef(0.55);
 
-  const JUMP_V = 3.35;
-  const GRAVITY = 6.2;
-  const CLEAR_Y = 0.28;
+  const JUMP_V = PLAY_JUMP_V;
+  const GRAVITY = PLAY_GRAVITY;
+  const CLEAR_Y = PLAY_CLEAR_Y;
   const DINO_X = 0.12;
   const DINO_W = 0.065;
   const AIR_FRAME = 1;
@@ -642,6 +752,9 @@ function usePlayerDinoLoop(
       scoreRef.current = 0;
       obstaclesRef.current = [];
       lastObstacleKeyRef.current = "";
+      recentKindsRef.current = [];
+      tightStreakRef.current = 0;
+      pendingGapRef.current = 0.55;
       setObstacleSnapshot([]);
       velYRef.current = 0;
       yRef.current = 0;
@@ -658,15 +771,32 @@ function usePlayerDinoLoop(
     deadRef.current = false;
     deathFrozenRef.current = false;
     scoreRef.current = 0;
-    // Seed 2 ahead so the lane already shows upcoming cacti
+    // Seed with irregular but always-passable spacing
     idRef.current = 1;
+    recentKindsRef.current = [];
+    tightStreakRef.current = 0;
+    const seedA = pickObstacleKind(recentKindsRef.current);
+    recentKindsRef.current.push(seedA);
+    const seedB = pickObstacleKind(recentKindsRef.current);
+    recentKindsRef.current.push(seedB);
+    const seedSpeed = 0.28;
+    const seedGap = safeMinGap(seedSpeed) + Math.random() * 0.22;
+    const seedX0 = 0.5 + Math.random() * 0.1;
     obstaclesRef.current = [
-      spawnObstacle(idRef.current++, false, 0.58),
-      spawnObstacle(idRef.current++, false, 0.88),
+      spawnObstacle(idRef.current++, false, seedX0, seedA),
+      spawnObstacle(
+        idRef.current++,
+        false,
+        seedX0 + OBSTACLE_LANE_W[seedA] + seedGap,
+        seedB,
+      ),
     ];
     lastObstacleKeyRef.current = "";
-    speedRef.current = 0.28;
-    nextSpawnRef.current = 0.55;
+    speedRef.current = seedSpeed;
+    const firstGap = rollObstacleGap(seedSpeed, 0);
+    pendingGapRef.current = Math.max(firstGap.gap, safeMinGap(seedSpeed));
+    tightStreakRef.current = firstGap.tight ? 1 : 0;
+    nextSpawnRef.current = 0.4 + Math.random() * 0.5;
     runningTimeRef.current = 0;
     jumpQueuedRef.current = false;
     velYRef.current = 0;
@@ -786,16 +916,58 @@ function usePlayerDinoLoop(
         .filter((o) => o.x > -0.2);
 
       nextSpawnRef.current -= dt;
-      if (nextSpawnRef.current <= 0 && runningTimeRef.current > 0.15) {
-        const lastX = moved.reduce((m, o) => Math.max(m, o.x), 0);
-        // Keep ~1–3 obstacles visible ahead on the long track
-        const minGap = 0.26 + speed * 0.22;
-        const onScreen = moved.filter((o) => o.x > 0.15 && o.x < 1.05).length;
-        if (lastX < 1.05 - minGap && onScreen < 3) {
-          moved.push(spawnObstacle(idRef.current++, false, 1.08));
-          nextSpawnRef.current = 0.28 + Math.random() * 0.45;
+      if (nextSpawnRef.current <= 0 && runningTimeRef.current > 0.12) {
+        // Gap is measured from the RIGHT edge of the furthest obstacle
+        const lastRight = moved.reduce(
+          (m, o) => Math.max(m, o.x + o.width),
+          -1,
+        );
+        const needGap = Math.max(pendingGapRef.current, safeMinGap(speed));
+        const onScreen = moved.filter((o) => o.x > 0.12 && o.x < 1.08).length;
+
+        if (lastRight < 1.08 - needGap && onScreen < 4) {
+          const burst = rollSpawnBurst(speed);
+          const packCap = maxPackSpan(speed);
+          let cursor = Math.max(1.06, lastRight + needGap);
+          let packLeft = cursor;
+
+          for (let i = 0; i < burst; i++) {
+            const preferSmall = burst > 1;
+            const kind = pickObstacleKind(recentKindsRef.current, {
+              preferSmall,
+            });
+            // Wide cactus only as a lone hazard — never inside a pack
+            const useKind =
+              burst > 1 && kind === "cactus2" ? "cactus1" : kind;
+
+            if (i > 0) {
+              const step = rollPackStep(useKind);
+              const nextRight = cursor + step + OBSTACLE_LANE_W[useKind];
+              // Stop adding pack members if the cluster would exceed one jump
+              if (nextRight - packLeft > packCap) break;
+              cursor += step;
+            }
+
+            recentKindsRef.current = [
+              ...recentKindsRef.current.slice(-3),
+              useKind,
+            ];
+            moved.push(
+              spawnObstacle(idRef.current++, false, cursor, useKind),
+            );
+          }
+
+          const next = rollObstacleGap(speed, tightStreakRef.current);
+          pendingGapRef.current = Math.max(next.gap, safeMinGap(speed));
+          tightStreakRef.current = next.tight
+            ? tightStreakRef.current + 1
+            : 0;
+          nextSpawnRef.current =
+            0.14 +
+            Math.random() * 0.5 +
+            (next.tight ? 0 : Math.random() * 0.3);
         } else {
-          nextSpawnRef.current = 0.08;
+          nextSpawnRef.current = 0.05 + Math.random() * 0.08;
         }
       }
 

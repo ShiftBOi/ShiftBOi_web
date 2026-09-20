@@ -27,12 +27,13 @@ export function CmsThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "light" || stored === "dark") {
-      setThemeState(stored);
-    } else {
-      setThemeState("light");
-    }
+    const next = stored === "dark" || stored === "light" ? stored : "light";
+    setThemeState(next);
+    document.documentElement.dataset.cmsTheme = next;
     setMounted(true);
+    return () => {
+      delete document.documentElement.dataset.cmsTheme;
+    };
   }, []);
 
   useEffect(() => {
@@ -57,6 +58,7 @@ export function CmsThemeProvider({ children }: { children: ReactNode }) {
   return (
     <CmsThemeContext.Provider value={value}>
       <div className="cms-shell" data-cms-theme={theme}>
+        <div className="cms-atmosphere" aria-hidden />
         {children}
       </div>
     </CmsThemeContext.Provider>

@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump when schema enums/fields change so the Next.js global singleton is rebuilt. */
-const SCHEMA_VERSION = "project-visibility-v2";
+const SCHEMA_VERSION = "site-traffic-v1";
 
 function createPrismaClient() {
   return new PrismaClient({

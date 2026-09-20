@@ -128,3 +128,24 @@ model SiteSetting {
 
   @@map("site_setting")
 }
+
+/// Daily portfolio traffic rollup (public site only)
+model SiteTrafficDay {
+  day       DateTime @id @db.Date
+  pageViews Int      @default(0)
+  visitors  Int      @default(0)
+
+  @@map("site_traffic_day")
+}
+
+/// Unique visitor fingerprint per day
+model SiteVisitorDay {
+  id        String   @id @default(cuid())
+  day       DateTime @db.Date
+  visitorId String
+  createdAt DateTime @default(now())
+
+  @@unique([day, visitorId])
+  @@index([day])
+  @@map("site_visitor_day")
+}
