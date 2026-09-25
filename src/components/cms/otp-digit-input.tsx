@@ -108,38 +108,32 @@ export function OtpDigitInput({
     <div
       role="group"
       aria-labelledby={labelId}
-      className="flex w-full justify-between gap-2 sm:gap-3"
+      className="cms-login-otp-cells"
     >
       <span id={labelId} className="sr-only">
         6-digit verification code
       </span>
-      {digits.map((digit, index) => {
-        const filled = digit !== "";
-        const isActiveSlot = index === Math.min(value.length, OTP_LENGTH - 1);
-
-        return (
-          <input
-            key={index}
-            ref={(el) => {
-              refs.current[index] = el;
-            }}
-            type="text"
-            inputMode="numeric"
-            autoComplete={index === 0 ? "one-time-code" : "off"}
-            maxLength={6}
-            disabled={disabled}
-            value={digit}
-            aria-label={`Digit ${index + 1} of ${OTP_LENGTH}`}
-            onChange={(e) => handleChange(index, e.target.value)}
-            onKeyDown={(e) => handleKeyDown(index, e)}
-            onPaste={handlePaste}
-            onFocus={(e) => e.currentTarget.select()}
-            className={`otp-pixel-cell ${filled ? "is-filled" : ""} ${
-              isActiveSlot ? "is-active" : ""
-            }`}
-          />
-        );
-      })}
+      {digits.map((digit, index) => (
+        <input
+          key={index}
+          ref={(el) => {
+            refs.current[index] = el;
+          }}
+          type="text"
+          inputMode="numeric"
+          autoComplete={index === 0 ? "one-time-code" : "off"}
+          pattern="[0-9]*"
+          maxLength={1}
+          disabled={disabled}
+          value={digit}
+          aria-label={`Digit ${index + 1} of ${OTP_LENGTH}`}
+          onChange={(e) => handleChange(index, e.target.value)}
+          onKeyDown={(e) => handleKeyDown(index, e)}
+          onPaste={handlePaste}
+          onFocus={(e) => e.currentTarget.select()}
+          className="cms-login-otp__cell"
+        />
+      ))}
     </div>
   );
 }

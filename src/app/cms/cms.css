@@ -2757,10 +2757,63 @@ html:has(.cms-shell[data-cms-theme="dark"]) body {
   pointer-events: none;
 }
 
-.cms-login-glass .otp-pixel-cell {
-  border-color: rgba(18, 20, 28, 0.12) !important;
-  background: rgba(255, 255, 255, 0.7) !important;
-  color: #12141c !important;
+/* Worldgate-style OTP digit cells */
+.cms-login-otp-cells {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.cms-login-otp__cell {
+  width: 2.75rem;
+  height: 3.25rem;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  border: 1px solid rgba(18, 20, 28, 0.16);
+  border-radius: 0.85rem;
+  background: #fff;
+  color: #12141c;
+  font-family: var(--cms-font);
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: center;
+  outline: none;
+  caret-color: #1b54f0;
+  box-shadow: none;
+  image-rendering: auto;
+  -moz-appearance: textfield;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.cms-login-otp__cell::-webkit-outer-spin-button,
+.cms-login-otp__cell::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.cms-login-otp__cell:focus {
+  border-color: #1b54f0;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #1b54f0 18%, transparent);
+}
+
+.cms-login-otp__cell:disabled {
+  opacity: 0.5;
+  background: #f7f7f7;
+}
+
+@media (max-width: 400px) {
+  .cms-login-otp-cells {
+    gap: 0.35rem;
+  }
+
+  .cms-login-otp__cell {
+    width: 2.4rem;
+    height: 2.9rem;
+    font-size: 1.15rem;
+  }
 }
 
 .cms-login-foot {
@@ -2855,10 +2908,20 @@ html:has(.cms-shell[data-cms-theme="dark"]) body {
   color: #12141c;
 }
 
-.cms-shell[data-cms-theme="dark"] .cms-login-glass .otp-pixel-cell {
-  border-color: rgba(255, 255, 255, 0.14) !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  color: #f4f6fb !important;
+.cms-shell[data-cms-theme="dark"] .cms-login-otp__cell {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f6fb;
+  caret-color: #7aa2ff;
+}
+
+.cms-shell[data-cms-theme="dark"] .cms-login-otp__cell:focus {
+  border-color: #7aa2ff;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #7aa2ff 22%, transparent);
+}
+
+.cms-shell[data-cms-theme="dark"] .cms-login-otp__cell:disabled {
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .cms-shell[data-cms-theme="dark"] .cms-login-dev {
