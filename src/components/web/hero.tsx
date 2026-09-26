@@ -9,8 +9,8 @@ import { DinoDashHorizon, DinoDashStage } from "@/components/web/dino-dash";
 const nav = [
   { href: "#work", label: "Work" },
   { href: "#use-cases", label: "Focus" },
-  { href: "#architecture", label: "Skills" },
-  { href: "#contact", label: "Contact" },
+  { href: "#stack", label: "Stack" },
+  { href: "#site-footer", label: "Contact" },
 ];
 
 export function SiteHeader() {
@@ -50,7 +50,7 @@ export function SiteHeader() {
         </nav>
 
         <Link
-          href="#contact"
+          href="#site-footer"
           className="shrink-0 text-[14px] leading-none text-white transition-opacity hover:opacity-80"
         >
           Contact

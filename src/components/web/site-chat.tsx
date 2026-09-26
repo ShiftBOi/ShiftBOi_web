@@ -382,7 +382,7 @@ function SiteChatWidget() {
 
   const talkToHuman = () => {
     closeChat();
-    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const clearChat = () => {

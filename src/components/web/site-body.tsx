@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import {
   HydraAccentSquare,
-  HydraFrameCorners,
   HydraBandCornerSquares,
   HydraPointerIcon,
   HydraStatCorners,
@@ -13,7 +12,6 @@ import {
 } from "@/components/web/hydra-primitives";
 import { useHydraScroll } from "@/components/web/use-hydra-scroll";
 import { MatrixPortrait } from "@/components/web/matrix-portrait";
-import { useSiteChat } from "@/components/web/site-chat";
 import { ProjectFeatureCell, ComingSoonFeatureCell } from "@/components/web/project-feature-cell";
 import { SiteFooter } from "@/components/web/site-footer";
 import type { SiteContent } from "@/lib/content";
@@ -445,32 +443,75 @@ const WITH_ROWS = [
   "Architecture that grows from prototype to production without a reset",
 ];
 
-const ARCH_FLOW = [
-  { title: "You", sub: "" },
-  { title: "Scope & UX", sub: "goals · flows · brand · constraints" },
-  { title: "Build & Ship", sub: "UI · API · data · deploy" },
-];
+const PRACTICE_LEAD =
+  "After the selected work, this is the honest close — how the practice runs, what fits, and what is in motion right now. Contact lives in the footer and chat; this page stays about the work.";
 
-const ARCH_PLUGINS = [
-  { title: "Design system", sub: "tokens · components · motion" },
-  { title: "Integrations", sub: "auth · payments · third-party APIs" },
-  { title: "Owner tools", sub: "CMS · content · project CRUD" },
-];
+const PRACTICE_RULES = [
+  {
+    kicker: "01",
+    title: "Own the loop",
+    body: "UI, API, data, and deploy stay one story — so demos survive real auth, real content, and real edge cases.",
+  },
+  {
+    kicker: "02",
+    title: "Clarity under complexity",
+    body: "Maps, CMS, roles, and AI features only earn a place when the product stays readable for the next person who opens it.",
+  },
+  {
+    kicker: "03",
+    title: "Ship in phases",
+    body: "Prototype → MVP → production without a rewrite tax. Each phase should feel intentional, not disposable.",
+  },
+] as const;
 
-const ARCH_NODES = [
-  { title: "Frontend", sub: "Next.js / React · responsive · accessible" },
-  { title: "Backend", sub: "APIs · auth · Postgres · Prisma" },
-  { title: "Mobile", sub: "shared contracts · touch-first UI" },
-];
+const PRACTICE_FIT = [
+  {
+    name: "Product builds",
+    detail:
+      "New web or mobile products from brief to first production deploy — including the operator tools that keep them alive.",
+  },
+  {
+    name: "Platform & CMS",
+    detail:
+      "Marketing sites, dashboards, and content pipelines where the public surface and the edit loop share one system.",
+  },
+  {
+    name: "AI inside the product",
+    detail:
+      "Assistants, workflows, and LLM features that live in the UX — with clear failure paths, not bolted-on demos.",
+  },
+] as const;
 
-function HydraArrow() {
-  return (
-    <div className="hydra-arrow hidden md:flex" aria-hidden>
-      <span className="hydra-arrow-line" />
-      <span className="hydra-arrow-head" />
-    </div>
-  );
-}
+const PRACTICE_SKIP = [
+  "Design-only passes with no engineering ownership",
+  "Spec dumps without a product owner in the loop",
+  "AI demos that never touch real product UX",
+  "Rewrites sold as “just a redesign”",
+] as const;
+
+const PRACTICE_NOW = [
+  {
+    kicker: "Building",
+    title: "Selected work that stays editable",
+    body: "Freight brands, owner CMS loops, and product surfaces where the public page and the edit path share one system.",
+  },
+  {
+    kicker: "Shipping",
+    title: "Tools people keep open",
+    body: "Editor pets, map-first ops UIs, and video walls — demos that survive real data instead of dying at the screenshot.",
+  },
+  {
+    kicker: "Exploring",
+    title: "AI inside the product loop",
+    body: "Assistants and workflows that live in the UX with clear failure paths — not a chatbot sticker on a marketing page.",
+  },
+] as const;
+
+const PRACTICE_META = [
+  ["Shape", "Solo full-stack · web & mobile"],
+  ["Pace", "Phased ships · async-friendly"],
+  ["Base", "Thailand · remote-ready"],
+] as const;
 
 /** HydraDB Data band (framer-10mxf4d) — purple accents + ShiftBOi center mark */
 function DataBandSection() {
@@ -620,9 +661,6 @@ export function SiteBody({
   const useCases = site.focus;
   const activeCase = useCases[activeUseCase] ?? useCases[0];
   const stats = site.stats;
-  const pricing = site.engagement;
-  const contact = site.contact;
-  const { openChat } = useSiteChat();
 
   useHydraScroll(rootRef);
 
@@ -970,132 +1008,85 @@ export function SiteBody({
       {/* Data / metrics band — HydraDB framer-10mxf4d */}
       <DataBandSection />
 
-      {/* Spacing — Data ↔ Architecture */}
+      {/* Spacing — Data ↔ Practice */}
       <div className="hydra-section-gap" aria-hidden />
 
-      {/* Architecture */}
-      <section id="architecture" className="hydra-section">
+      {/* Practice — single closing chapter before footer */}
+      <section id="practice" className="hydra-section practice-section">
         <div className="hydra-container py-12 md:py-16 lg:py-20">
-          <h2 className="hydra-h2-section text-center" data-hydra-reveal>
-            How I Work
-          </h2>
-          <div className="mt-10 border border-[var(--color-hydra-accent)]">
-            <div className="border-b border-[var(--color-hydra-accent)] p-5 md:p-8" data-hydra-reveal>
-              <p className="hydra-accent-label text-left">
-                <strong>From Brief To Shipped Product</strong>
-              </p>
-              <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-stretch">
-                <div className="flex flex-1 flex-col gap-3 lg:flex-row lg:items-center">
-                  {ARCH_FLOW.map((node, i) => (
-                    <div key={node.title} className="flex flex-1 items-center gap-3">
-                      <div className="hydra-node flex-1 border-[rgba(255,255,255,0.35)]">
-                        <p className="hydra-node-title text-white">{node.title}</p>
-                        {node.sub ? <p className="hydra-node-sub">{node.sub}</p> : null}
+          <header className="practice-hero" data-hydra-reveal>
+            <p className="hydra-eyebrow">{"// Practice //"}</p>
+            <h2 className="practice-title mt-3">How the work actually runs</h2>
+            <p className="hydra-body mt-4 max-w-2xl text-white/65">{PRACTICE_LEAD}</p>
+            <dl className="practice-meta" data-hydra-stagger>
+              {PRACTICE_META.map(([label, value]) => (
+                <div key={label} className="practice-meta-item" data-hydra-stagger-item>
+                  <dt>{label}</dt>
+                  <dd>{value}</dd>
+                </div>
+              ))}
+            </dl>
+          </header>
+
+          <div className="practice-shell" data-hydra-reveal>
+            <div className="practice-grid">
+              <div className="practice-panel practice-panel-rules">
+                <p className="practice-panel-label">How I work</p>
+                <ol className="practice-rules">
+                  {PRACTICE_RULES.map((item) => (
+                    <li key={item.title} className="practice-rule">
+                      <span className="practice-rule-num" aria-hidden>
+                        {item.kicker}
+                      </span>
+                      <div>
+                        <h3 className="practice-rule-title">{item.title}</h3>
+                        <p className="hydra-body-sm mt-2 text-white/60">{item.body}</p>
                       </div>
-                      {i < ARCH_FLOW.length - 1 ? <HydraArrow /> : null}
-                    </div>
+                    </li>
                   ))}
-                </div>
-                <div className="grid shrink-0 gap-2 lg:w-[220px]">
-                  {ARCH_PLUGINS.map((plugin) => (
-                    <div
-                      key={plugin.title}
-                      className="border border-dashed border-[rgba(255,255,255,0.35)] p-3"
-                    >
-                      <p className="hydra-accent-label-sm">{plugin.title}</p>
-                      <p className="hydra-body-sm mt-1">{plugin.sub}</p>
-                    </div>
+                </ol>
+              </div>
+
+              <div className="practice-panel practice-panel-fit">
+                <p className="practice-panel-label">Good fit</p>
+                <ul className="practice-fit">
+                  {PRACTICE_FIT.map((item) => (
+                    <li key={item.name} className="practice-fit-item">
+                      <p className="practice-fit-name">{item.name}</p>
+                      <p className="hydra-body-sm mt-2 text-white/60">{item.detail}</p>
+                    </li>
                   ))}
+                </ul>
+                <div className="practice-skip">
+                  <p className="practice-panel-label">Not a fit</p>
+                  <ul>
+                    {PRACTICE_SKIP.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </div>
 
-            <div className="p-5 md:p-8" data-hydra-reveal>
-              <p className="hydra-accent-label text-left">
-                <strong>The Delivery Core</strong>
-              </p>
-              <p className="hydra-body-sm mt-2 text-white/80">
-                One stack across frontend, backend, and mobile surfaces
-              </p>
-              <p className="hydra-body-sm mt-5 text-[var(--color-hydra-muted)]">
-                SHIFTBOI — full-stack ownership, product-first
-              </p>
-              <div className="mt-4 grid gap-3 md:grid-cols-3">
-                {ARCH_NODES.map((node) => (
-                  <div
-                    key={node.title}
-                    className="border border-[rgba(255,255,255,0.35)] bg-[#0a0a0a] p-4 md:p-5"
-                  >
-                    <p className="hydra-accent-label-sm text-center">{node.title}</p>
-                    <p className="hydra-body-sm mt-2 text-center">{node.sub}</p>
-                  </div>
+            <div className="practice-now">
+              <div className="practice-now-head">
+                <p className="practice-panel-label">In motion</p>
+                <p className="hydra-body-sm text-white/55">
+                  Live notes so the portfolio doesn&apos;t pretend everything is finished.
+                </p>
+              </div>
+              <ul className="practice-now-rail">
+                {PRACTICE_NOW.map((item) => (
+                  <li key={item.title} className="practice-now-row">
+                    <span className="practice-now-dot" aria-hidden />
+                    <span className="practice-now-kicker">{item.kicker}</span>
+                    <div>
+                      <p className="practice-now-title">{item.title}</p>
+                      <p className="hydra-body-sm mt-1 text-white/55">{item.body}</p>
+                    </div>
+                  </li>
                 ))}
-              </div>
-              <p className="mt-6 text-[12px] tracking-[0.04em] text-[rgb(153,153,153)]">
-                PHASES — WORK GROWS WITH THE PRODUCT
-              </p>
-              <div className="mt-3 grid grid-cols-3 gap-3">
-                {[
-                  ["Prototype", "validate the idea"],
-                  ["MVP", "ship the core loop"],
-                  ["Production", "harden & scale"],
-                ].map(([title, sub]) => (
-                  <div
-                    key={title}
-                    className="border border-[var(--color-hydra-accent)]/50 p-3 text-center"
-                  >
-                    <p className="text-[13px] text-[var(--color-hydra-accent)]">{title}</p>
-                    <p className="mt-1 text-[11px] text-[rgb(153,153,153)]">{sub}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="pricing" className="hydra-section">
-        <div className="hydra-container py-12 md:py-20">
-          <h3 className="hydra-h3-features" data-hydra-reveal-x>
-            Engagement
-          </h3>
-          <div className="mt-10 grid gap-px bg-[rgb(32,32,32)] md:grid-cols-3" data-hydra-stagger>
-            {pricing.map((tier) => (
-              <div
-                key={tier.name}
-                data-hydra-stagger-item
-                className={`hydra-pricing-card hydra-frame-corners-wrap relative ${tier.featured ? "featured" : ""}`}
-              >
-                {tier.featured ? <HydraFrameCorners /> : null}
-                <p className="hydra-h4-feature text-[20px]">{tier.name}</p>
-                <p className="hydra-stat-num mt-4 text-[var(--color-hydra-accent)]">{tier.price}</p>
-                <p className="hydra-body mt-4">{tier.detail}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="contact" className="hydra-section">
-        <div className="hydra-container py-12 md:py-20">
-          <div className="hydra-cell hydra-frame-corners-wrap p-8 md:p-12" data-hydra-reveal>
-            <HydraFrameCorners />
-            <h2 className="hydra-h2-section text-left text-[clamp(28px,4vw,48px)]">
-              {contact.title}
-            </h2>
-            <p className="hydra-body mt-4 max-w-xl">{contact.body}</p>
-            <div className="mt-8 flex flex-wrap gap-4">
-              <button type="button" className="hydra-cta" onClick={openChat}>
-                {contact.ctaLabel}
-              </button>
-              <a
-                href="https://github.com/ShiftBOi"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hydra-cta"
-              >
-                GitHub
-              </a>
+              </ul>
             </div>
           </div>
         </div>

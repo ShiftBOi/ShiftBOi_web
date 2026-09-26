@@ -71,8 +71,8 @@ const DEFAULT_SITE: SiteContent = {
   focus: [],
   engagement: [],
   contact: {
-    title: "Get In Touch",
-    body: "Have a product to ship — web, mobile, or AI-ready? Reach out and we'll scope it.",
+    title: "Reach out",
+    body: "Prefer chat or email from the footer when you want to connect.",
     ctaLabel: "Open chat",
     email: "rapeepongapic@gmail.com",
   },
