@@ -2389,6 +2389,64 @@ a.site-nav-link:focus-visible::after {
   padding: 28px 24px 24px;
 }
 
+.hydra-feature-cell.is-coming-soon {
+  color: inherit;
+  pointer-events: none;
+  user-select: none;
+}
+
+.hydra-coming-soon-kicker {
+  margin: 0 0 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.hydra-coming-soon-title {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.hydra-coming-soon-body {
+  color: rgba(255, 255, 255, 0.42);
+  max-width: 32ch;
+}
+
+.hydra-coming-soon-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  background:
+    linear-gradient(180deg, rgba(139, 92, 246, 0.06), transparent 55%),
+    #050505;
+}
+
+.hydra-coming-soon-mark {
+  display: grid;
+  place-items: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 1.35rem;
+  line-height: 1;
+}
+
+.hydra-coming-soon-label {
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+}
+
 a.hydra-feature-cell.is-project-link {
   position: relative;
   text-decoration: none;

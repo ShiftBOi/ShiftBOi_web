@@ -130,6 +130,7 @@ export function ProjectDetailEditor({
     const href =
       next === "selected" ? `${pathname}?view=selected` : pathname;
     router.replace(href, { scroll: false });
+    if (next === "selected") router.refresh();
   }
 
   useEffect(() => {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useCmsTheme } from "@/components/cms/theme-provider";
 import { useCmsChat } from "@/components/cms/chat-context";
@@ -15,6 +15,7 @@ const TITLES: Array<{ match: (path: string) => boolean; title: string; eyebrow: 
 
 export function CmsTopbar({ email }: { email: string }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { theme, toggleTheme } = useCmsTheme();
   const { open: chatOpen, toggleChat } = useCmsChat();
@@ -27,9 +28,19 @@ export function CmsTopbar({ email }: { email: string }) {
   };
 
   const isProjectDetail = /^\/cms\/projects\/[^/]+$/.test(pathname);
+  const isSelectedList =
+    pathname === "/cms/projects" && searchParams.get("view") === "selected";
   const display = isProjectDetail
-    ? { eyebrow: "Projects", title: "Edit project" }
-    : meta;
+    ? {
+        eyebrow: "Projects",
+        title:
+          searchParams.get("view") === "selected"
+            ? "Selected Projects"
+            : "Edit project",
+      }
+    : isSelectedList
+      ? { eyebrow: "Content", title: "Selected Projects" }
+      : meta;
 
   useEffect(() => {
     setOpen(false);

@@ -1,8 +1,13 @@
 "use client";
 
-import { FormEvent, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { FormEvent, useEffect, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { CmsProjectCard, type CmsProjectCardData } from "@/components/cms/project-card";
+import { SelectedProjectsBoard } from "@/components/cms/selected-projects-board";
+import type {
+  SelectedGridPeer,
+  SelectedPickerItem,
+} from "@/components/cms/project-selected-preview";
 import { slugify } from "@/lib/project-draft";
 
 type Stats = {
@@ -12,17 +17,39 @@ type Stats = {
   featured: number;
 };
 
+type ViewMode = "all" | "selected";
+
 export function ProjectsManager({
   projects,
+  featured,
+  pickerItems,
   stats,
+  initialView = "all",
 }: {
   projects: CmsProjectCardData[];
+  featured: SelectedGridPeer[];
+  pickerItems: SelectedPickerItem[];
   stats: Stats;
+  initialView?: ViewMode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const [view, setViewState] = useState<ViewMode>(initialView);
   const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setViewState(initialView);
+  }, [initialView]);
+
+  function setView(next: ViewMode) {
+    setViewState(next);
+    const href =
+      next === "selected" ? `${pathname}?view=selected` : pathname;
+    router.replace(href, { scroll: false });
+    if (next === "selected") router.refresh();
+  }
 
   function onCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -87,25 +114,54 @@ export function ProjectsManager({
         </div>
       </section>
 
-      <section className="cms-dash-panel">
+      <section className={`cms-dash-panel${view === "selected" ? " is-selected-board" : ""}`}>
         <div className="cms-dash-panel-head">
           <div>
-            <p className="cms-dash-kicker">Library</p>
-            <h2 className="cms-dash-heading">All projects</h2>
+            <p className="cms-dash-kicker">
+              {view === "selected" ? "Homepage" : "Library"}
+            </p>
+            <h2 className="cms-dash-heading">
+              {view === "selected" ? "Selected Projects" : "All projects"}
+            </h2>
           </div>
-          <button
-            type="button"
-            className="cms-dash-action is-primary"
-            onClick={() => {
-              setError(null);
-              setModalOpen(true);
-            }}
-          >
-            + Add project
-          </button>
+          <div className="cms-projects-head-actions">
+            <div className="cms-page-switch" role="group" aria-label="Projects view">
+              <button
+                type="button"
+                className={view === "all" ? "is-active" : ""}
+                onClick={() => setView("all")}
+              >
+                All projects
+              </button>
+              <button
+                type="button"
+                className={view === "selected" ? "is-active" : ""}
+                onClick={() => setView("selected")}
+              >
+                Selected Projects
+              </button>
+            </div>
+            {view === "all" ? (
+              <button
+                type="button"
+                className="cms-dash-action is-primary"
+                onClick={() => {
+                  setError(null);
+                  setModalOpen(true);
+                }}
+              >
+                + Add project
+              </button>
+            ) : null}
+          </div>
         </div>
 
-        {projects.length > 0 ? (
+        {view === "selected" ? (
+          <SelectedProjectsBoard
+            featured={featured}
+            pickerItems={pickerItems}
+          />
+        ) : projects.length > 0 ? (
           <ul className="cms-plist">
             {projects.map((p) => (
               <CmsProjectCard key={p.id} project={p} />

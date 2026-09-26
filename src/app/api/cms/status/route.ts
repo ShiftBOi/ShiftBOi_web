@@ -55,10 +55,10 @@ async function checkR2(): Promise<ServiceStatus> {
   if (!isR2Configured()) {
     return {
       id: "r2",
-      name: "Cloudflare R2",
-      status: "degraded",
+      name: "Media storage",
+      status: "online",
       ping: 0,
-      description: "Not configured",
+      description: "Local · public/uploads (R2 not set)",
     };
   }
   try {

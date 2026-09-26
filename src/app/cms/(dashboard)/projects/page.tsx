@@ -1,12 +1,18 @@
 import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/lib/session";
 import { ProjectsManager } from "@/components/cms/projects-manager";
+import { asMedia } from "@/lib/project-draft";
 
 export const metadata = { title: "Projects" };
 export const dynamic = "force-dynamic";
 
-export default async function CmsProjectsPage() {
+type Props = {
+  searchParams: Promise<{ view?: string }>;
+};
+
+export default async function CmsProjectsPage({ searchParams }: Props) {
   await requireCmsSession();
+  const { view } = await searchParams;
 
   const [projects, counts] = await Promise.all([
     prisma.project.findMany({
@@ -22,9 +28,17 @@ export default async function CmsProjectsPage() {
   ]);
 
   const stats = counts[0] ?? { total: 0, published: 0, featured: 0 };
+  const featured = projects
+    .filter((p) => p.featured)
+    .sort(
+      (a, b) =>
+        a.sortOrder - b.sortOrder ||
+        b.createdAt.getTime() - a.createdAt.getTime(),
+    );
 
   return (
     <ProjectsManager
+      initialView={view === "selected" ? "selected" : "all"}
       stats={{
         total: stats.total,
         published: stats.published,
@@ -43,6 +57,27 @@ export default async function CmsProjectsPage() {
         visibility: p.visibility,
         featured: p.featured,
         published: p.published,
+      }))}
+      featured={featured.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        summary: p.summary,
+        coverImage: p.coverImage,
+        introSrc: p.introSrc,
+        media: asMedia(p.media),
+        featured: p.featured,
+        published: p.published,
+        visibility: p.visibility,
+        sortOrder: p.sortOrder,
+      }))}
+      pickerItems={projects.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        featured: p.featured,
+        published: p.published,
+        visibility: p.visibility,
       }))}
     />
   );

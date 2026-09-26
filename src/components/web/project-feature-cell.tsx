@@ -54,3 +54,26 @@ export function ProjectFeatureCell({ href, title, body, children }: Props) {
     </Link>
   );
 }
+
+/** Fills an empty Selected Projects grid slot so odd rows stay balanced. */
+export function ComingSoonFeatureCell() {
+  return (
+    <div
+      className="hydra-feature-cell is-coming-soon"
+      data-hydra-stagger-item
+      aria-label="Coming soon"
+    >
+      <p className="hydra-coming-soon-kicker">Next up</p>
+      <h4 className="hydra-feature-title hydra-coming-soon-title">Coming soon</h4>
+      <p className="hydra-feature-body hydra-coming-soon-body">
+        Another selected project is on the way — this slot stays open for what ships next.
+      </p>
+      <div className="hydra-feature-visual">
+        <div className="hydra-coming-soon-panel" aria-hidden>
+          <span className="hydra-coming-soon-mark">+</span>
+          <span className="hydra-coming-soon-label">Soon</span>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,8 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useEffect, useMemo, useState, useCallback, useRef, type MouseEvent } from "react";
+import { useMemo, useState, useCallback, useRef, useEffect, type DragEvent, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   EditableRegion,
@@ -11,6 +10,12 @@ import {
   type ProjectDraft,
   type ProjectMedia,
 } from "@/components/cms/project-editor-primitives";
+import {
+  moveItemById,
+  moveItemToIndex,
+  persistFeaturedOrder,
+} from "@/components/cms/selected-grid-order";
+import { SelectedCardActionIcons } from "@/components/cms/selected-card-actions";
 
 export type SelectedGridPeer = {
   id: string;
@@ -97,6 +102,21 @@ function useFollowCursor() {
     setPos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
   }, []);
   return { rootRef, hot, setHot, pos, onMove };
+}
+
+function SelectedDragHandle() {
+  return (
+    <span className="cms-selected-drag" aria-hidden title="Drag to reorder">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+        <circle cx="5" cy="4" r="1.2" />
+        <circle cx="11" cy="4" r="1.2" />
+        <circle cx="5" cy="8" r="1.2" />
+        <circle cx="11" cy="8" r="1.2" />
+        <circle cx="5" cy="12" r="1.2" />
+        <circle cx="11" cy="12" r="1.2" />
+      </svg>
+    </span>
+  );
 }
 
 function CellMedia({
@@ -211,6 +231,10 @@ export function ProjectSelectedPreview({
   const [busyId, setBusyId] = useState<string | null>(null);
   const [pickingSlot, setPickingSlot] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [orderIds, setOrderIds] = useState<string[]>([]);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [overKey, setOverKey] = useState<string | null>(null);
+  const draggingIdRef = useRef<string | null>(null);
 
   const mergedPeers = useMemo(() => {
     const byId = new Map<string, SelectedGridPeer>();
@@ -255,18 +279,30 @@ export function ProjectSelectedPreview({
     return list;
   }, [peers, draft]);
 
-  const minRows = Math.max(1, Math.ceil(Math.max(mergedPeers.length, 1) / 2));
-  const [rows, setRows] = useState(minRows);
-
   useEffect(() => {
-    setRows((r) => Math.max(r, minRows));
-  }, [minRows]);
+    const nextIds = mergedPeers.map((p) => p.id);
+    setOrderIds((prev) => {
+      if (prev.length === 0) return nextIds;
+      const kept = prev.filter((id) => nextIds.includes(id));
+      const added = nextIds.filter((id) => !kept.includes(id));
+      return [...kept, ...added];
+    });
+  }, [mergedPeers]);
+
+  const orderedPeers = useMemo(() => {
+    const byId = new Map(mergedPeers.map((p) => [p.id, p]));
+    return orderIds
+      .map((id) => byId.get(id))
+      .filter((p): p is SelectedGridPeer => Boolean(p));
+  }, [orderIds, mergedPeers]);
+
+  const rows = Math.max(1, Math.ceil((orderedPeers.length + 1) / 2));
 
   const slots: Slot[] = useMemo(() => {
     const total = rows * 2;
     const out: Slot[] = [];
     for (let i = 0; i < total; i++) {
-      const peer = mergedPeers[i];
+      const peer = orderedPeers[i];
       if (peer) {
         out.push({
           kind: "project",
@@ -278,19 +314,16 @@ export function ProjectSelectedPreview({
       }
     }
     return out;
-  }, [rows, mergedPeers, draft.id]);
+  }, [rows, orderedPeers, draft.id]);
 
   const gridIds = useMemo(
-    () => new Set(mergedPeers.map((p) => p.id)),
-    [mergedPeers],
+    () => new Set(orderedPeers.map((p) => p.id)),
+    [orderedPeers],
   );
 
   const available = useMemo(
-    () =>
-      pickerItems.filter(
-        (p) => !gridIds.has(p.id) || (pickingSlot !== null && false),
-      ),
-    [pickerItems, gridIds, pickingSlot],
+    () => pickerItems.filter((p) => !gridIds.has(p.id)),
+    [pickerItems, gridIds],
   );
 
   async function patchProject(
@@ -320,16 +353,36 @@ export function ProjectSelectedPreview({
     }
   }
 
+  async function commitOrder(nextPeers: SelectedGridPeer[]) {
+    const ids = nextPeers.map((p) => p.id);
+    setOrderIds(ids);
+    setError(null);
+    try {
+      await persistFeaturedOrder(ids);
+      router.refresh();
+    } catch {
+      setError("Could not save order");
+    }
+  }
+
+  function onDropOnProject(targetId: string) {
+    const fromId = draggingIdRef.current;
+    if (!fromId || fromId === targetId) return;
+    void commitOrder(moveItemById(orderedPeers, fromId, targetId));
+  }
+
+  function onDropOnSlot(slotIndex: number) {
+    const fromId = draggingIdRef.current;
+    if (!fromId) return;
+    void commitOrder(moveItemToIndex(orderedPeers, fromId, slotIndex));
+  }
+
   async function addProjectToSlot(projectId: string, slotIndex: number) {
     setPickingSlot(null);
-    // Reindex: place chosen project at slotIndex among current featured order
-    const order = mergedPeers
-      .filter((p) => p.featured || p.id === draft.id)
+    const order = orderedPeers
       .map((p) => p.id)
       .filter((id) => id !== projectId);
-    // Ensure even indexing — insert at slotIndex
-    const next = [...order];
-    next.splice(slotIndex, 0, projectId);
+    order.splice(slotIndex, 0, projectId);
 
     const ok = await patchProject(projectId, {
       featured: true,
@@ -339,9 +392,8 @@ export function ProjectSelectedPreview({
     });
     if (!ok) return;
 
-    // Best-effort reindex remaining featured peers
     await Promise.all(
-      next.map((id, i) =>
+      order.map((id, i) =>
         id === projectId
           ? Promise.resolve()
           : fetch(`/api/cms/projects/${encodeURIComponent(id)}`, {
@@ -370,17 +422,10 @@ export function ProjectSelectedPreview({
         <div className="cms-selected-banner-text">
           <p className="cms-selected-banner-kicker">Homepage · Selected Projects</p>
           <p className="cms-selected-banner-copy">
-            Same 2-up grid as the site. Click text to edit this card, hover media to
-            swap image/clip, or add a row for two more slots.
+            Same 2-up grid as the site. Drag the ··· handle to reorder. Click text
+            to edit this card, or use an empty slot to add another project.
           </p>
         </div>
-        <button
-          type="button"
-          className="cms-btn cms-btn-ghost cms-selected-add-row"
-          onClick={() => setRows((r) => r + 1)}
-        >
-          + Add row
-        </button>
       </div>
 
       {error ? <p className="cms-selected-error">{error}</p> : null}
@@ -394,10 +439,27 @@ export function ProjectSelectedPreview({
                 const slotIndex = rowIndex * 2 + colIndex;
                 if (slot.kind === "empty") {
                   const isPicking = pickingSlot === slotIndex;
+                  const dropKey = `empty-${slotIndex}`;
+                  const isOver = overKey === dropKey && Boolean(draggingId);
                   return (
                     <div
                       key={slot.key}
-                      className={`cms-selected-cell is-empty${isPicking ? " is-picking" : ""}`}
+                      className={`cms-selected-cell is-empty${isPicking ? " is-picking" : ""}${isOver ? " is-drop-target" : ""}`}
+                      onDragOver={(e) => {
+                        if (!draggingIdRef.current) return;
+                        e.preventDefault();
+                        setOverKey(dropKey);
+                      }}
+                      onDragLeave={() => {
+                        setOverKey((k) => (k === dropKey ? null : k));
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        onDropOnSlot(slotIndex);
+                        draggingIdRef.current = null;
+                        setDraggingId(null);
+                        setOverKey(null);
+                      }}
                     >
                       {isPicking ? (
                         <div className="cms-selected-picker">
@@ -442,8 +504,14 @@ export function ProjectSelectedPreview({
                           <span className="cms-selected-empty-plus" aria-hidden>
                             +
                           </span>
-                          <strong>Add project</strong>
-                          <em>Fill this grid slot</em>
+                          <strong>
+                            {draggingId ? "Drop here" : "Add project"}
+                          </strong>
+                          <em>
+                            {draggingId
+                              ? "Move card to this slot"
+                              : "Fill this grid slot"}
+                          </em>
                         </button>
                       )}
                     </div>
@@ -451,13 +519,68 @@ export function ProjectSelectedPreview({
                 }
 
                 const { peer, isCurrent } = slot;
+                const isDragging = draggingId === peer.id;
+                const isOver =
+                  overKey === peer.id &&
+                  Boolean(draggingId) &&
+                  draggingId !== peer.id;
+
+                const dropProps = {
+                  onDragOver: (e: DragEvent) => {
+                    if (
+                      !draggingIdRef.current ||
+                      draggingIdRef.current === peer.id
+                    )
+                      return;
+                    e.preventDefault();
+                    setOverKey(peer.id);
+                  },
+                  onDragLeave: () => {
+                    setOverKey((k) => (k === peer.id ? null : k));
+                  },
+                  onDrop: (e: DragEvent) => {
+                    e.preventDefault();
+                    onDropOnProject(peer.id);
+                    draggingIdRef.current = null;
+                    setDraggingId(null);
+                    setOverKey(null);
+                  },
+                };
+
+                const dragHandle = (
+                  <span
+                    className="cms-selected-drag-btn"
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Drag to reorder"
+                    title="Drag to reorder"
+                    draggable
+                    onDragStart={(e) => {
+                      e.dataTransfer.setData("text/plain", peer.id);
+                      e.dataTransfer.effectAllowed = "move";
+                      draggingIdRef.current = peer.id;
+                      setDraggingId(peer.id);
+                    }}
+                    onDragEnd={() => {
+                      draggingIdRef.current = null;
+                      setDraggingId(null);
+                      setOverKey(null);
+                    }}
+                  >
+                    <SelectedDragHandle />
+                  </span>
+                );
 
                 if (isCurrent) {
                   return (
                     <article
                       key={peer.id}
-                      className={`cms-selected-cell is-active${peer.featured ? "" : " is-draft-slot"}`}
+                      className={`cms-selected-cell is-active${peer.featured ? "" : " is-draft-slot"}${isDragging ? " is-dragging" : ""}${isOver ? " is-drop-target" : ""}`}
+                      {...dropProps}
                     >
+                      <div className="cms-selected-peer-actions">
+                        {dragHandle}
+                      </div>
                       {!peer.featured ? (
                         <p className="cms-selected-slot-note">
                           Not featured yet — turn on <strong>Featured on home</strong> in
@@ -526,22 +649,18 @@ export function ProjectSelectedPreview({
                 }
 
                 return (
-                  <article key={peer.id} className="cms-selected-cell is-peer">
+                  <article
+                    key={peer.id}
+                    className={`cms-selected-cell is-peer${isDragging ? " is-dragging" : ""}${isOver ? " is-drop-target" : ""}`}
+                    {...dropProps}
+                  >
                     <div className="cms-selected-peer-actions">
-                      <Link
-                        href={`/cms/projects/${peer.id}`}
-                        className="cms-btn cms-btn-ghost"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        type="button"
-                        className="cms-btn cms-btn-ghost is-danger"
-                        disabled={busyId === peer.id}
-                        onClick={() => void removeFromGrid(peer.id)}
-                      >
-                        Remove
-                      </button>
+                      {dragHandle}
+                      <SelectedCardActionIcons
+                        editHref={`/cms/projects/${peer.id}?view=selected`}
+                        removeDisabled={busyId === peer.id}
+                        onRemove={() => void removeFromGrid(peer.id)}
+                      />
                     </div>
                     <h4 className="cms-selected-title">{peer.title}</h4>
                     <p className="cms-selected-body">{peer.summary}</p>
@@ -582,13 +701,6 @@ export function ProjectSelectedPreview({
           onClick={() => onPickImage("heroMedia")}
         >
           Video / clip
-        </button>
-        <button
-          type="button"
-          className="cms-btn cms-btn-ghost"
-          onClick={() => setRows((r) => r + 1)}
-        >
-          + Add row (2 slots)
         </button>
       </div>
     </div>

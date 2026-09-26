@@ -14,7 +14,7 @@ import {
 import { useHydraScroll } from "@/components/web/use-hydra-scroll";
 import { MatrixPortrait } from "@/components/web/matrix-portrait";
 import { useSiteChat } from "@/components/web/site-chat";
-import { ProjectFeatureCell } from "@/components/web/project-feature-cell";
+import { ProjectFeatureCell, ComingSoonFeatureCell } from "@/components/web/project-feature-cell";
 import { SiteFooter } from "@/components/web/site-footer";
 import type { SiteContent } from "@/lib/content";
 
@@ -843,6 +843,9 @@ export function SiteBody({
                             </ProjectFeatureCell>
                           );
                         })}
+                        {row.length === 1 ? (
+                          <ComingSoonFeatureCell key={`coming-soon-${rowIndex}`} />
+                        ) : null}
                       </div>
                     </div>
                   </div>

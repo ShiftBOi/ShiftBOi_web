@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAllowedAdminEmail } from "@/lib/constants";
 import { isR2Configured, uploadFileToR2 } from "@/lib/r2";
+import { uploadFileLocal } from "@/lib/local-upload";
 
 export const runtime = "nodejs";
 
@@ -16,16 +17,6 @@ async function requireAdmin(request: NextRequest) {
 export async function POST(request: NextRequest) {
   if (!(await requireAdmin(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!isR2Configured()) {
-    return NextResponse.json(
-      {
-        error:
-          "Cloudflare R2 is not configured (R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, R2_PUBLIC_URL)",
-      },
-      { status: 503 },
-    );
   }
 
   const form = await request.formData().catch(() => null);
@@ -55,13 +46,22 @@ export async function POST(request: NextRequest) {
       ? folderRaw.trim()
       : "cms";
 
+  const opts = {
+    folder,
+    filename: `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`,
+    contentType: file.type || "application/octet-stream",
+  };
+
   try {
-    const { url, key } = await uploadFileToR2(file, {
-      folder,
-      filename: `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`,
-      contentType: file.type || "application/octet-stream",
+    const result = isR2Configured()
+      ? await uploadFileToR2(file, opts)
+      : await uploadFileLocal(file, opts);
+    return NextResponse.json({
+      url: result.url,
+      pathname: result.key,
+      key: result.key,
+      storage: isR2Configured() ? "r2" : "local",
     });
-    return NextResponse.json({ url, pathname: key, key });
   } catch (error) {
     console.error("[cms/upload]", error);
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
