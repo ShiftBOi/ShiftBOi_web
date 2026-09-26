@@ -493,6 +493,7 @@ export function getPortfolioProject(slug: string) {
   return PORTFOLIO_PROJECTS.find((p) => p.slug === slug) ?? null;
 }
 
+/** @deprecated Prefer getPortfolioSlugsFromDb from @/lib/content for live data */
 export function getPortfolioSlugs() {
   return PORTFOLIO_PROJECTS.map((p) => p.slug);
 }

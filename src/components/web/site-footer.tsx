@@ -6,7 +6,7 @@ const FOOTER_COLS = [
     title: "Home",
     links: [
       ["Focus", "/#use-cases"],
-      ["Skills", "/#features"],
+      ["Skills", "/#architecture"],
       ["How I Work", "/#architecture"],
       ["Engagement", "/#pricing"],
       ["Work", "/#work"],
@@ -33,7 +33,7 @@ const FOOTER_COLS = [
     title: "Studio",
     links: [
       ["ShiftBOi", "/"],
-      ["Projects", "/#features"],
+      ["Projects", "/#work"],
       ["CMS", "/cms/login"],
     ],
   },

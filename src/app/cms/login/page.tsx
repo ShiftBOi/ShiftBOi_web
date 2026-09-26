@@ -9,10 +9,6 @@ export const metadata = {
 export default function CmsLoginPage() {
   return (
     <main className="cms-login-page">
-      <div className="cms-login-orb cms-login-orb-a" aria-hidden />
-      <div className="cms-login-orb cms-login-orb-b" aria-hidden />
-      <div className="cms-login-orb cms-login-orb-c" aria-hidden />
-
       <div className="cms-login-frame">
         <div className="cms-login-topbar">
           <Link href="/" className="cms-login-back">
@@ -20,7 +16,7 @@ export default function CmsLoginPage() {
           </Link>
         </div>
 
-        <div className="cms-login-glass">
+        <div className="cms-login-card">
           <Suspense fallback={<p className="cms-empty">Loading…</p>}>
             <CmsLoginForm />
           </Suspense>

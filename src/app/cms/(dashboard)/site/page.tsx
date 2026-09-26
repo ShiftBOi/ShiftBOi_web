@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
-export default function CmsSettingsPage() {
+export default function CmsSitePage() {
   redirect("/cms");
 }

@@ -12,20 +12,23 @@ import {
 import { ProjectServices } from "@/components/web/project-services";
 import { ProjectMoreList } from "@/components/web/project-more-list";
 import {
-  getPortfolioProject,
-  getPortfolioSlugs,
-  PORTFOLIO_PROJECTS,
-} from "@/lib/portfolio-projects";
+  getOtherProjects,
+  getPortfolioProjectBySlug,
+  getPortfolioSlugsFromDb,
+} from "@/lib/content";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export function generateStaticParams() {
-  return getPortfolioSlugs().map((slug) => ({ slug }));
+export const dynamic = "force-dynamic";
+
+export async function generateStaticParams() {
+  const slugs = await getPortfolioSlugsFromDb();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const project = getPortfolioProject(slug);
+  const project = await getPortfolioProjectBySlug(slug);
   if (!project) return { title: "Project" };
   return {
     title: project.title,
@@ -35,10 +38,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProjectPage({ params }: Props) {
   const { slug } = await params;
-  const project = getPortfolioProject(slug);
+  const project = await getPortfolioProjectBySlug(slug);
   if (!project) notFound();
 
-  const others = PORTFOLIO_PROJECTS.filter((p) => p.slug !== project.slug).slice(0, 3);
+  const others = await getOtherProjects(slug, 3);
   const revealColor =
     project.media?.colorSrc ??
     project.media?.poster ??
@@ -48,7 +51,7 @@ export default async function ProjectPage({ params }: Props) {
 
   const heroCopy = (
     <ProjectHeroCopy
-      crumbHref="/#features"
+      crumbHref="/#work"
       crumbLabel={project.title}
       title={project.title}
       titleIcon={project.titleIcon}

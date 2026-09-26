@@ -14,13 +14,62 @@ async function requireAdmin(request: NextRequest) {
 
 const patchSchema = z.object({
   title: z.string().min(1).max(200).optional(),
+  slug: z
+    .string()
+    .min(1)
+    .max(120)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .optional(),
   summary: z.string().min(1).max(500).optional(),
   description: z.string().min(1).optional(),
   year: z.string().max(4).nullable().optional(),
   published: z.boolean().optional(),
+  featured: z.boolean().optional(),
   techStack: z.array(z.string()).optional(),
   sortOrder: z.number().int().optional(),
   visibility: z.enum(["PUBLIC", "CONFIDENTIAL"]).optional(),
+  coverImage: z.string().nullable().optional(),
+  introSrc: z.string().nullable().optional(),
+  titleIcon: z.string().nullable().optional(),
+  role: z.string().nullable().optional(),
+  thesisLead: z.string().nullable().optional(),
+  thesisHighlight: z.string().nullable().optional(),
+  thesisRest: z.string().nullable().optional(),
+  thesisBody: z.string().nullable().optional(),
+  heroMetric: z.string().nullable().optional(),
+  heroMetricLabel: z.string().nullable().optional(),
+  heroTitle: z.string().nullable().optional(),
+  heroBody: z.string().nullable().optional(),
+  media: z
+    .object({
+      type: z.enum(["image", "video"]),
+      src: z.string().min(1),
+      poster: z.string().optional(),
+      colorSrc: z.string().optional(),
+      bwSrc: z.string().optional(),
+    })
+    .nullable()
+    .optional(),
+  highlights: z
+    .array(
+      z.object({
+        metric: z.string(),
+        label: z.string(),
+        title: z.string(),
+        body: z.string(),
+      }),
+    )
+    .optional(),
+  sections: z
+    .array(
+      z.object({
+        label: z.string(),
+        title: z.string(),
+        paragraphs: z.array(z.string()),
+        bullets: z.array(z.string()).optional(),
+      }),
+    )
+    .optional(),
 });
 
 type Params = { params: Promise<{ id: string }> };
@@ -44,7 +93,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       data: parsed.data,
     });
     return NextResponse.json({ project });
-  } catch {
+  } catch (error) {
+    const code =
+      error && typeof error === "object" && "code" in error
+        ? String((error as { code?: string }).code)
+        : "";
+    if (code === "P2002") {
+      return NextResponse.json({ error: "Slug already in use" }, { status: 409 });
+    }
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 }

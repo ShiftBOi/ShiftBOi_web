@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
-import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
@@ -25,6 +24,7 @@ const createSchema = z.object({
   description: z.string().min(1),
   year: z.string().max(4).nullable().optional(),
   published: z.boolean().optional(),
+  featured: z.boolean().optional(),
   techStack: z.array(z.string()).optional(),
   visibility: z.enum(["PUBLIC", "CONFIDENTIAL"]).optional(),
 });
@@ -86,40 +86,28 @@ export async function POST(request: NextRequest) {
   const id = randomUUID();
   const visibility = parsed.data.visibility ?? "PUBLIC";
   const published = parsed.data.published ?? false;
+  const featured = parsed.data.featured ?? false;
   const year = parsed.data.year || null;
   const techStack = parsed.data.techStack ?? [];
-  const techStackSql =
-    techStack.length === 0
-      ? Prisma.sql`ARRAY[]::text[]`
-      : Prisma.sql`ARRAY[${Prisma.join(techStack)}]::text[]`;
 
   try {
-    // Raw insert so a stale Prisma Client (pre-visibility) still works after schema push.
-    const created = await prisma.$queryRaw<ProjectRow[]>`
-      INSERT INTO project (
-        id, slug, title, summary, description, year, published,
-        "techStack", visibility, "sortOrder", "createdAt", "updatedAt"
-      )
-      VALUES (
-        ${id},
-        ${parsed.data.slug},
-        ${parsed.data.title},
-        ${parsed.data.summary},
-        ${parsed.data.description},
-        ${year},
-        ${published},
-        ${techStackSql},
-        ${visibility}::"ProjectVisibility",
-        0,
-        NOW(),
-        NOW()
-      )
-      RETURNING
-        id, slug, title, summary, description, published, year,
-        visibility::text AS visibility, "sortOrder", "createdAt", "updatedAt"
-    `;
+    const project = await prisma.project.create({
+      data: {
+        id,
+        slug: parsed.data.slug,
+        title: parsed.data.title,
+        summary: parsed.data.summary,
+        description: parsed.data.description,
+        year,
+        published,
+        featured,
+        techStack,
+        visibility,
+        sortOrder: 0,
+      },
+    });
 
-    return NextResponse.json({ project: created[0] }, { status: 201 });
+    return NextResponse.json({ project }, { status: 201 });
   } catch {
     return NextResponse.json(
       { error: "Could not create project. Slug may already exist." },

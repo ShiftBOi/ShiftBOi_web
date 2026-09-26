@@ -58,7 +58,6 @@ export function CmsThemeProvider({ children }: { children: ReactNode }) {
   return (
     <CmsThemeContext.Provider value={value}>
       <div className="cms-shell" data-cms-theme={theme}>
-        <div className="cms-atmosphere" aria-hidden />
         {children}
       </div>
     </CmsThemeContext.Provider>

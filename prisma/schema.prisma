@@ -103,18 +103,36 @@ model Project {
   summary     String
   description String             @db.Text
   coverImage  String?
+  introSrc    String?
+  titleIcon   String?
   techStack   String[]           @default([])
   links       Json?
   year        String?
+  role        String?
+  thesisLead  String?
+  thesisHighlight String?
+  thesisRest  String?
+  thesisBody  String?            @db.Text
+  heroMetric  String?
+  heroMetricLabel String?
+  heroTitle   String?
+  heroBody    String?            @db.Text
+  media       Json?
+  highlights  Json?
+  sections    Json?
+  download    Json?
   /// PUBLIC = Selected Projects (detail page, 2-col grid)
   /// CONFIDENTIAL = limited disclose (homepage full-row only, no deep page)
   visibility  ProjectVisibility  @default(PUBLIC)
+  /// Featured = appears in homepage Selected Projects grid
+  featured    Boolean            @default(false)
   published   Boolean            @default(false)
   sortOrder   Int                @default(0)
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
 
   @@index([published])
+  @@index([featured])
   @@index([visibility])
   @@index([sortOrder])
   @@map("project")

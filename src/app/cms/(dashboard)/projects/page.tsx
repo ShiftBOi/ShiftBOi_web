@@ -1,42 +1,48 @@
 import { prisma } from "@/lib/prisma";
-import { ProjectCreateForm, ProjectList, type ProjectRow } from "@/components/cms/projects";
+import { requireCmsSession } from "@/lib/session";
+import { ProjectsManager } from "@/components/cms/projects-manager";
 
-export const metadata = {
-  title: "Projects",
-};
+export const metadata = { title: "Projects" };
+export const dynamic = "force-dynamic";
 
 export default async function CmsProjectsPage() {
-  const projects = await prisma.$queryRaw<ProjectRow[]>`
-    SELECT
-      id,
-      slug,
-      title,
-      summary,
-      published,
-      year,
-      visibility::text AS visibility
-    FROM project
-    ORDER BY "sortOrder" ASC, "createdAt" DESC
-  `;
+  await requireCmsSession();
+
+  const [projects, counts] = await Promise.all([
+    prisma.project.findMany({
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    }),
+    prisma.$queryRaw<{ total: number; published: number; featured: number }[]>`
+      SELECT
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE published)::int AS published,
+        COUNT(*) FILTER (WHERE featured)::int AS featured
+      FROM project
+    `,
+  ]);
+
+  const stats = counts[0] ?? { total: 0, published: 0, featured: 0 };
 
   return (
-    <div>
-      <h1 className="cms-page-title">Projects</h1>
-      <p className="cms-page-lead">
-        Selected projects appear in the homepage 2-column grid and get a public
-        case-study page. Limited projects appear as one full-width box per row
-        under the purple divider.
-      </p>
-
-      <div className="cms-panel" style={{ marginBottom: "1rem" }}>
-        <h2 className="cms-panel-title">All projects</h2>
-        <p className="cms-panel-lead" style={{ marginBottom: "1rem" }}>
-          Aurora glass cards: cool = Selected, warm = Limited.
-        </p>
-        <ProjectList projects={projects} />
-      </div>
-
-      <ProjectCreateForm />
-    </div>
+    <ProjectsManager
+      stats={{
+        total: stats.total,
+        published: stats.published,
+        featured: stats.featured,
+      }}
+      projects={projects.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        summary: p.summary,
+        description: p.description,
+        year: p.year,
+        coverImage: p.coverImage,
+        introSrc: p.introSrc,
+        visibility: p.visibility,
+        featured: p.featured,
+        published: p.published,
+      }))}
+    />
   );
 }

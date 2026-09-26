@@ -14,23 +14,18 @@ import {
 import { useHydraScroll } from "@/components/web/use-hydra-scroll";
 import { MatrixPortrait } from "@/components/web/matrix-portrait";
 import { useSiteChat } from "@/components/web/site-chat";
-import { ProjectFeatureCell } from "@/components/web/project-feature-cell";
-import { PORTFOLIO_PROJECTS } from "@/lib/portfolio-projects";
 import { SiteFooter } from "@/components/web/site-footer";
+import type { SiteContent } from "@/lib/content";
 
 type Project = {
   id: string;
+  slug: string;
   title: string;
   summary: string;
   year: string | null;
+  introSrc?: string | null;
+  coverImage?: string | null;
 };
-
-const STATS = [
-  { value: "Web", label: "Next.js · React · TypeScript" },
-  { value: "App", label: "Mobile · Cross-platform UI" },
-  { value: "API", label: "Node · Postgres · Auth" },
-  { value: "AI", label: "LLM features · Agents" },
-];
 
 const DATA_BAND_STATS = [
   { label: "Focus", value: "Full-stack", side: "left", slot: "top" },
@@ -38,64 +33,6 @@ const DATA_BAND_STATS = [
   { label: "Delivery", value: "End-to-end", side: "right", slot: "top" },
   { label: "Studio", value: "ShiftBOi", side: "right", slot: "bottom" },
 ] as const;
-
-const USE_CASES = [
-  {
-    id: "01",
-    label: "WEB APPS",
-    teaser: "Production web products with clean UX and solid foundations.",
-    title: "Ship modern web apps — fast UI, reliable APIs, deploy-ready.",
-    points: [
-      "Next.js / React interfaces with intentional motion and accessibility.",
-      "Auth, data models, and admin flows that hold up in production.",
-      "Performance-minded frontends that stay maintainable as features grow.",
-    ],
-  },
-  {
-    id: "02",
-    label: "MOBILE",
-    teaser: "Mobile experiences that feel native and ship with the web stack.",
-    title: "Build mobile surfaces that share logic without fighting the platform.",
-    points: [
-      "Cross-platform UI patterns tuned for touch, offline, and speed.",
-      "Shared API contracts between web and mobile clients.",
-      "Release-ready builds with clear handoff for store or internal distro.",
-    ],
-  },
-  {
-    id: "03",
-    label: "FULL-STACK",
-    teaser: "One builder across UI, API, data, and deploy.",
-    title: "End-to-end ownership — fewer handoffs, tighter product loops.",
-    points: [
-      "Schema, auth, and business logic designed with the UI in mind.",
-      "CMS and owner tools when you need content control without visitor login.",
-      "From prototype to production without rewriting the stack mid-flight.",
-    ],
-  },
-  {
-    id: "04",
-    label: "AI FEATURES",
-    teaser: "Practical AI inside real products — not demos that die.",
-    title: "Add LLM and agent features that fit the product, not the hype.",
-    points: [
-      "Chat, assistive flows, and retrieval wired into your existing app.",
-      "Clear UX for loading, failure, and human handoff.",
-      "Prompt and tool boundaries that stay inspectable and safe.",
-    ],
-  },
-  {
-    id: "05",
-    label: "PRODUCT UI",
-    teaser: "Interfaces with presence — brand-first, not template-default.",
-    title: "Design systems and screens that make the product feel finished.",
-    points: [
-      "Typography, motion, and layout that reinforce the brand.",
-      "Component structure teams can extend without visual drift.",
-      "Detail work on empty states, forms, and edge cases that users actually hit.",
-    ],
-  },
-];
 
 const WITHOUT_ROWS = [
   "Pretty screens that break when real data and auth arrive",
@@ -109,33 +46,6 @@ const WITH_ROWS = [
   "A single full-stack partner across web and mobile surfaces",
   "AI features that ship inside the product loop — with clear handoff",
   "Architecture that grows from prototype to production without a reset",
-];
-
-const FEATURE_CELLS = [
-  {
-    slug: "vibesaur",
-    title: "Vibesaur Extension",
-    body: PORTFOLIO_PROJECTS.find((p) => p.slug === "vibesaur")!.summary,
-    visual: "accuracy" as const,
-  },
-  {
-    slug: "sknat",
-    title: "SKNAT",
-    body: PORTFOLIO_PROJECTS.find((p) => p.slug === "sknat")!.summary,
-    visual: "tier" as const,
-  },
-  {
-    slug: "tastesiam",
-    title: "Tastesiam",
-    body: PORTFOLIO_PROJECTS.find((p) => p.slug === "tastesiam")!.summary,
-    visual: "recall" as const,
-  },
-  {
-    slug: "seenpi",
-    title: "Seenpi",
-    body: PORTFOLIO_PROJECTS.find((p) => p.slug === "seenpi")!.summary,
-    visual: "latency" as const,
-  },
 ];
 
 const ARCH_FLOW = [
@@ -155,111 +65,6 @@ const ARCH_NODES = [
   { title: "Backend", sub: "APIs · auth · Postgres · Prisma" },
   { title: "Mobile", sub: "shared contracts · touch-first UI" },
 ];
-
-const PRICING = [
-  { name: "Sprint", price: "Project", detail: "Scoped builds — landing, MVP, feature slice, or rebuild.", featured: false },
-  { name: "Retainer", price: "Ongoing", detail: "Continuous product work with a dedicated full-stack partner.", featured: true },
-  { name: "Collab", price: "Partner", detail: "Join your team for a phase — architecture, UI, or AI features.", featured: false },
-];
-
-function AccuracyVisual() {
-  return (
-    <div className="hydra-accuracy-panel is-media" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.25">
-      <video
-        className="hydra-accuracy-video"
-        src="/images/projects/vibesaur/vibesaur-demo.mov"
-        poster="/images/projects/vibesaur/vibesaur_test.png"
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-        aria-label="Vibesaur Extension demo"
-      />
-    </div>
-  );
-}
-
-function TierVisual() {
-  return (
-    <div className="hydra-tier-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.3">
-      <p className="hydra-tier-label">UI → API → Data → Deploy</p>
-      <span className="hydra-tier-flow" aria-hidden />
-      <span className="hydra-tier-cap is-left" aria-hidden />
-      <span className="hydra-tier-cap is-right" aria-hidden />
-      <div className="hydra-tier-nodes">
-        <div className="hydra-tier-node">Web</div>
-        <div className="hydra-tier-node">API</div>
-        <div className="hydra-tier-node is-accent">Ship</div>
-      </div>
-    </div>
-  );
-}
-
-function RecallVisual() {
-  return (
-    <div className="hydra-recall-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.45">
-      <svg viewBox="0 0 400 250" fill="none" aria-hidden>
-        <g stroke="rgba(255,255,255,0.35)" strokeWidth="0.6" strokeDasharray="3 3">
-          <path d="M40 210 L200 40 L360 210" />
-          <path d="M80 210 L200 70 L320 210" />
-          <path d="M120 210 L200 110 L280 210" />
-          <path d="M40 210 L120 150 L200 210 L280 150 L360 210" />
-          <path d="M200 40 L200 210" />
-        </g>
-        {[
-          [200, 40],
-          [120, 100],
-          [280, 95],
-          [90, 160],
-          [200, 140],
-          [310, 155],
-          [60, 200],
-          [150, 195],
-          [250, 190],
-          [340, 200],
-        ].map(([x, y], i) => (
-          <rect
-            key={i}
-            x={x - 4}
-            y={y - 4}
-            width={i % 3 === 0 ? 10 : 7}
-            height={i % 3 === 0 ? 10 : 7}
-            fill={i % 2 === 0 ? "#8b5cf6" : "#ffffff"}
-          />
-        ))}
-      </svg>
-      <span className="hydra-recall-tag" style={{ left: "8%", top: "72%" }}>
-        Design
-      </span>
-      <span className="hydra-recall-tag" style={{ left: "42%", top: "18%" }}>
-        Build
-      </span>
-      <span className="hydra-recall-tag" style={{ right: "10%", top: "68%" }}>
-        Ship
-      </span>
-    </div>
-  );
-}
-
-function LatencyVisual() {
-  return (
-    <div data-hydra-reveal data-hydra-parallax data-parallax-speed="0.28">
-      <p className="hydra-latency-metric">Ship</p>
-      <div className="hydra-latency-bars">
-        <div className="hydra-latency-row">
-          <span className="hydra-latency-fill" style={{ width: "28%" }} />
-        </div>
-        <div className="hydra-latency-row">
-          <span className="hydra-latency-fill is-accent" style={{ width: "14%" }} />
-        </div>
-        <div className="hydra-latency-row" />
-        <div className="hydra-latency-row" />
-        <div className="hydra-latency-row" />
-      </div>
-    </div>
-  );
-}
 
 function HydraArrow() {
   return (
@@ -406,10 +211,20 @@ function DataBandSection() {
   );
 }
 
-export function SiteBody({ projects }: { projects: Project[] }) {
+export function SiteBody({
+  projects,
+  site,
+}: {
+  projects: Project[];
+  site: SiteContent;
+}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [activeUseCase, setActiveUseCase] = useState(0);
-  const activeCase = USE_CASES[activeUseCase];
+  const useCases = site.focus;
+  const activeCase = useCases[activeUseCase] ?? useCases[0];
+  const stats = site.stats;
+  const pricing = site.engagement;
+  const contact = site.contact;
   const { openChat } = useSiteChat();
 
   useHydraScroll(rootRef);
@@ -449,7 +264,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
       <section className="hydra-stats-band">
         <div className="hydra-stats-container">
           <div className="hydra-stats-row" data-hydra-stagger>
-            {STATS.map((stat, index) => (
+            {stats.map((stat, index) => (
               <article
                 key={stat.label}
                 className="hydra-stat-cell"
@@ -481,7 +296,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
           >
             <div className="grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
               <div className="border-b border-[rgba(255,255,255,0.16)] lg:border-b-0 lg:border-r">
-                {USE_CASES.map((item, index) => (
+                {useCases.map((item, index) => (
                   <button
                     key={item.id}
                     type="button"
@@ -500,11 +315,11 @@ export function SiteBody({ projects }: { projects: Project[] }) {
               <div className="min-h-[320px]">
                 <div className="border-b border-[rgba(255,255,255,0.16)] bg-[rgba(255,255,255,0.06)] p-6 md:p-8">
                   <h3 className="font-[family-name:var(--font-family-pixel)] text-[26px] capitalize leading-[1.12] text-white">
-                    {activeCase.title}
+                    {activeCase?.title}
                   </h3>
                 </div>
                 <div data-hydra-stagger>
-                  {activeCase.points.map((point) => (
+                  {(activeCase?.points ?? []).map((point) => (
                     <div
                       key={point}
                       data-hydra-stagger-item
@@ -569,53 +384,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         </div>
       </section>
 
-      {/* Features — 2×2 grid; top H-line full viewport */}
-      <section id="features" className="hydra-section">
-        <div className="hydra-container py-[72px] md:py-[100px] lg:pb-0 lg:pt-[120px]">
-          <div className="hydra-section-title-wrap" data-hydra-reveal data-hydra-drift data-drift-amount="28">
-            <h3 className="hydra-h3-features text-center text-white">
-              Selected Projects
-            </h3>
-          </div>
-        </div>
-
-        <div className="hydra-features-band mt-8 md:mt-10">
-          <div className="hydra-features-row-band" data-hydra-stagger>
-            <div className="hydra-features-grid">
-              {FEATURE_CELLS.slice(0, 2).map((cell) => (
-                <ProjectFeatureCell
-                  key={cell.slug}
-                  href={`/projects/${cell.slug}`}
-                  title={cell.title}
-                  body={cell.body}
-                >
-                  {cell.visual === "accuracy" ? <AccuracyVisual /> : null}
-                  {cell.visual === "tier" ? <TierVisual /> : null}
-                </ProjectFeatureCell>
-              ))}
-            </div>
-          </div>
-          <div className="hydra-features-row-rule" aria-hidden />
-          <div className="hydra-features-row-band hydra-features-row-band-bottom" data-hydra-stagger>
-            <div className="hydra-features-grid">
-              {FEATURE_CELLS.slice(2, 4).map((cell) => (
-                <ProjectFeatureCell
-                  key={cell.slug}
-                  href={`/projects/${cell.slug}`}
-                  title={cell.title}
-                  body={cell.body}
-                >
-                  {cell.visual === "recall" ? <RecallVisual /> : null}
-                  {cell.visual === "latency" ? <LatencyVisual /> : null}
-                </ProjectFeatureCell>
-              ))}
-            </div>
-          </div>
-          <div className="hydra-features-row-rule" aria-hidden />
-        </div>
-      </section>
-
-      {/* Purple double-line with equal gap above/below (features ↔ recall) */}
+      {/* Purple double-line with equal gap above/below */}
       <div className="hydra-double-rule-gap">
         <HydraTripleRule />
       </div>
@@ -851,7 +620,7 @@ export function SiteBody({ projects }: { projects: Project[] }) {
             Engagement
           </h3>
           <div className="mt-10 grid gap-px bg-[rgb(32,32,32)] md:grid-cols-3" data-hydra-stagger>
-            {PRICING.map((tier) => (
+            {pricing.map((tier) => (
               <div
                 key={tier.name}
                 data-hydra-stagger-item
@@ -871,13 +640,13 @@ export function SiteBody({ projects }: { projects: Project[] }) {
         <div className="hydra-container py-12 md:py-20">
           <div className="hydra-cell hydra-frame-corners-wrap p-8 md:p-12" data-hydra-reveal>
             <HydraFrameCorners />
-            <h2 className="hydra-h2-section text-left text-[clamp(28px,4vw,48px)]">Get In Touch</h2>
-            <p className="hydra-body mt-4 max-w-xl">
-              Have a product to ship — web, mobile, or AI-ready? Reach out and we&apos;ll scope it.
-            </p>
+            <h2 className="hydra-h2-section text-left text-[clamp(28px,4vw,48px)]">
+              {contact.title}
+            </h2>
+            <p className="hydra-body mt-4 max-w-xl">{contact.body}</p>
             <div className="mt-8 flex flex-wrap gap-4">
               <button type="button" className="hydra-cta" onClick={openChat}>
-                Talk to me
+                {contact.ctaLabel}
               </button>
               <a
                 href="https://github.com/ShiftBOi"

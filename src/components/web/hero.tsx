@@ -9,7 +9,7 @@ import { DinoDashHorizon, DinoDashStage } from "@/components/web/dino-dash";
 const nav = [
   { href: "#work", label: "Work" },
   { href: "#use-cases", label: "Focus" },
-  { href: "#features", label: "Skills" },
+  { href: "#architecture", label: "Skills" },
   { href: "#contact", label: "Contact" },
 ];
 
@@ -60,7 +60,13 @@ export function SiteHeader() {
   );
 }
 
-function PlayWithDinoButton({ onPlay }: { onPlay: () => void }) {
+function PlayWithDinoButton({
+  onPlay,
+  label = "Play with dino",
+}: {
+  onPlay: () => void;
+  label?: string;
+}) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLButtonElement>(null);
   const dustRef = useRef<HTMLSpanElement>(null);
@@ -211,18 +217,35 @@ function PlayWithDinoButton({ onPlay }: { onPlay: () => void }) {
         style={{ color: "#000000", backgroundColor: "#ffffff" }}
         className="relative z-[1] inline-flex min-h-11 cursor-pointer items-center justify-center px-5 text-[15px] font-medium outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
       >
-        Play with dino
+        {label}
       </button>
     </div>
   );
 }
 
-export function Hero() {
+export function Hero({
+  content,
+}: {
+  content?: {
+    eyebrow: string;
+    name: string;
+    paragraphs: string[];
+    ctaLabel: string;
+  };
+}) {
   const [dinoPhase, setDinoPhase] = useState<
     "demo" | "entering" | "playing" | "dead"
   >("demo");
   const [playSignal, setPlaySignal] = useState(0);
   const heroBusy = dinoPhase !== "demo";
+  const eyebrow =
+    content?.eyebrow ?? "Full-stack Web & Mobile Developer · ShiftBOi →";
+  const name = content?.name ?? "Rapeepong Apichanakulchai";
+  const paragraphs = content?.paragraphs ?? [
+    "I design and ship production web & mobile products — from polished interfaces to APIs, data, and deploy.",
+    "Building under ShiftBOi: fast iterations, clean systems, and AI-ready experiences.",
+  ];
+  const ctaLabel = content?.ctaLabel ?? "Play with dino";
 
   return (
     <section
@@ -247,7 +270,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45 }}
         >
-          Full-stack Web &amp; Mobile Developer · ShiftBOi →
+          {eyebrow}
         </motion.p>
 
         <motion.h1
@@ -256,7 +279,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.05 }}
         >
-          Rapeepong Apichanakulchai
+          {name}
         </motion.h1>
 
         <motion.div
@@ -265,14 +288,9 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.12 }}
         >
-          <p>
-            I design and ship production web &amp; mobile products — from polished
-            interfaces to APIs, data, and deploy.
-          </p>
-          <p>
-            Building under ShiftBOi: fast iterations, clean systems, and AI-ready
-            experiences.
-          </p>
+          {paragraphs.map((p) => (
+            <p key={p.slice(0, 24)}>{p}</p>
+          ))}
         </motion.div>
 
         <motion.div
@@ -281,7 +299,10 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.55, delay: 0.2 }}
         >
-          <PlayWithDinoButton onPlay={() => setPlaySignal((n) => n + 1)} />
+          <PlayWithDinoButton
+            label={ctaLabel}
+            onPlay={() => setPlaySignal((n) => n + 1)}
+          />
         </motion.div>
       </div>
 
