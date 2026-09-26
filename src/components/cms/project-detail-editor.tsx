@@ -2,8 +2,13 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ProjectLivePreview } from "@/components/cms/project-live-preview";
+import {
+  ProjectSelectedPreview,
+  type SelectedGridPeer,
+  type SelectedPickerItem,
+} from "@/components/cms/project-selected-preview";
 import {
   ProjectImagePicker,
   asMedia,
@@ -19,6 +24,11 @@ import {
 } from "@/components/cms/project-editor-primitives";
 import { usesRevealHero } from "@/lib/project-draft";
 
+type EditorPage = "detail" | "selected";
+
+function parseEditorPage(value: string | null | undefined): EditorPage {
+  return value === "selected" ? "selected" : "detail";
+}
 type MediaField =
   | "coverImage"
   | "introSrc"
@@ -85,8 +95,19 @@ function parseBandIndex(field: MediaField): number | null {
   return match ? Number(match[1]) : null;
 }
 
-export function ProjectDetailEditor({ project }: { project: ProjectDraft }) {
+export function ProjectDetailEditor({
+  project,
+  selectedPeers = [],
+  selectedPickerItems = [],
+  initialPage = "detail",
+}: {
+  project: ProjectDraft;
+  selectedPeers?: SelectedGridPeer[];
+  selectedPickerItems?: SelectedPickerItem[];
+  initialPage?: EditorPage;
+}) {
   const router = useRouter();
+  const pathname = usePathname();
   const initial = normalizeProject(project);
   const [draft, setDraft] = useState(initial);
   const [baseline, setBaseline] = useState(() => serialize(initial));
@@ -95,16 +116,31 @@ export function ProjectDetailEditor({ project }: { project: ProjectDraft }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toolsOpen, setToolsOpen] = useState(false);
+  const [page, setPageState] = useState<EditorPage>(() =>
+    parseEditorPage(initialPage),
+  );
   const toolsRef = useRef<HTMLDivElement>(null);
 
   const dirty = serialize(draft) !== baseline;
   const revealOn = usesRevealHero(draft.media);
+
+  function setPage(next: EditorPage) {
+    setEditing(null);
+    setPageState(next);
+    const href =
+      next === "selected" ? `${pathname}?view=selected` : pathname;
+    router.replace(href, { scroll: false });
+  }
 
   useEffect(() => {
     const next = normalizeProject(project);
     setDraft(next);
     setBaseline(serialize(next));
   }, [project]);
+
+  useEffect(() => {
+    setPageState(parseEditorPage(initialPage));
+  }, [initialPage]);
 
   useEffect(() => {
     if (!toolsOpen) return;
@@ -426,9 +462,25 @@ export function ProjectDetailEditor({ project }: { project: ProjectDraft }) {
           </div>
         </div>
         <div className="cms-project-subheader-actions">
+          <div className="cms-page-switch" role="group" aria-label="Editor page">
+            <button
+              type="button"
+              className={page === "detail" ? "is-active" : ""}
+              onClick={() => setPage("detail")}
+            >
+              Detail page
+            </button>
+            <button
+              type="button"
+              className={page === "selected" ? "is-active" : ""}
+              onClick={() => setPage("selected")}
+            >
+              Selected Projects
+            </button>
+          </div>
           {draft.published ? (
             <Link
-              href={`/projects/${draft.slug}`}
+              href={page === "selected" ? "/#work" : `/projects/${draft.slug}`}
               className="cms-btn cms-btn-ghost"
               target="_blank"
               rel="noopener"
@@ -453,24 +505,40 @@ export function ProjectDetailEditor({ project }: { project: ProjectDraft }) {
             if (editing) setEditing(null);
           }}
         >
-          <ProjectLivePreview
-            draft={draft}
-            editing={editing}
-            onEdit={setEditing}
-            onChange={patch}
-            onDone={() => setEditing(null)}
-            onPickImage={(field) => {
-              setEditing(field);
-              setImageField(field);
-            }}
-            onAddBand={addBand}
-            onRemoveBand={removeBand}
-            onReorderDetails={setDetails}
-            onChangeDetail={changeDetail}
-            onRemoveDetail={removeDetail}
-            onAddDetailSection={addDetailSection}
-            onAddDetailHighlight={addDetailHighlight}
-          />
+          {page === "detail" ? (
+            <ProjectLivePreview
+              draft={draft}
+              editing={editing}
+              onEdit={setEditing}
+              onChange={patch}
+              onDone={() => setEditing(null)}
+              onPickImage={(field) => {
+                setEditing(field);
+                setImageField(field);
+              }}
+              onAddBand={addBand}
+              onRemoveBand={removeBand}
+              onReorderDetails={setDetails}
+              onChangeDetail={changeDetail}
+              onRemoveDetail={removeDetail}
+              onAddDetailSection={addDetailSection}
+              onAddDetailHighlight={addDetailHighlight}
+            />
+          ) : (
+            <ProjectSelectedPreview
+              draft={draft}
+              peers={selectedPeers}
+              pickerItems={selectedPickerItems}
+              editing={editing}
+              onEdit={setEditing}
+              onChange={patch}
+              onDone={() => setEditing(null)}
+              onPickImage={(field) => {
+                setEditing(field);
+                setImageField(field);
+              }}
+            />
+          )}
         </div>
 
         <div className="cms-editor-tools" ref={toolsRef}>
@@ -511,28 +579,6 @@ export function ProjectDetailEditor({ project }: { project: ProjectDraft }) {
               aria-label="Project controls"
             >
           <div className="cms-rail-card">
-            <p className="cms-rail-label">Page layout</p>
-            <div className="cms-rail-segment cms-rail-segment-stack">
-              <button
-                type="button"
-                className={revealOn ? "is-active" : ""}
-                onClick={() => setHeroLayout("reveal")}
-              >
-                <strong>Behind text</strong>
-                <span>Full-bleed hero like Vibesaur</span>
-              </button>
-              <button
-                type="button"
-                className={!revealOn ? "is-active" : ""}
-                onClick={() => setHeroLayout("split")}
-              >
-                <strong>Text + boxes</strong>
-                <span>Intro copy, then media boxes</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="cms-rail-card">
             <p className="cms-rail-label">Status</p>
             <button
               type="button"
@@ -547,9 +593,12 @@ export function ProjectDetailEditor({ project }: { project: ProjectDraft }) {
               className={`cms-rail-btn${draft.featured ? " is-accent" : ""}`}
               onClick={() => patch("featured", !draft.featured)}
             >
-              <span>Featured</span>
+              <span>Featured on home</span>
               <i />
             </button>
+            <p className="cms-rail-hint">
+              Featured + Selected visibility = shows in homepage Selected Projects.
+            </p>
           </div>
 
           <div className="cms-rail-card">
@@ -570,9 +619,76 @@ export function ProjectDetailEditor({ project }: { project: ProjectDraft }) {
                 Limited
               </button>
             </div>
-            <p className="cms-rail-hint">
-              Selected = full project page. Limited = teaser only.
-            </p>
+          </div>
+
+          {page === "selected" ? (
+            <div className="cms-rail-card">
+              <p className="cms-rail-label">Selected card media</p>
+              <button
+                type="button"
+                className="cms-rail-btn"
+                onClick={() => {
+                  setEditing("heroMedia");
+                  setImageField("heroMedia");
+                }}
+              >
+                <span>
+                  {draft.media?.src || draft.media?.colorSrc
+                    ? draft.media?.type === "video"
+                      ? "Clip set"
+                      : "Image set"
+                    : "Add image / clip"}
+                </span>
+                <i />
+              </button>
+              <button
+                type="button"
+                className="cms-rail-btn"
+                onClick={() => {
+                  setEditing("coverImage");
+                  setImageField("coverImage");
+                }}
+              >
+                <span>{draft.coverImage ? "Cover set" : "Cover image"}</span>
+                <i />
+              </button>
+              <button
+                type="button"
+                className="cms-rail-btn"
+                onClick={() => {
+                  setEditing("introSrc");
+                  setImageField("introSrc");
+                }}
+              >
+                <span>{draft.introSrc ? "Poster set" : "Intro / poster"}</span>
+                <i />
+              </button>
+              <p className="cms-rail-hint">
+                Clip preferred for the cell visual; cover/poster used as fallback.
+              </p>
+            </div>
+          ) : (
+            <>
+          <div className="cms-rail-card">
+            <p className="cms-rail-label">Page layout</p>
+            <div className="cms-rail-segment cms-rail-segment-stack">
+              <button
+                type="button"
+                className={revealOn ? "is-active" : ""}
+                onClick={() => setHeroLayout("reveal")}
+              >
+                <strong>Behind text</strong>
+                <span>Full-bleed hero like Vibesaur</span>
+              </button>
+              <button
+                type="button"
+                className={!revealOn ? "is-active" : ""}
+                onClick={() => setHeroLayout("split")}
+              >
+                <strong>Text + boxes</strong>
+                <span>Intro copy, then media boxes</span>
+              </button>
+            </div>
           </div>
 
           {revealOn ? (
@@ -715,6 +831,8 @@ export function ProjectDetailEditor({ project }: { project: ProjectDraft }) {
               + Add text section
             </button>
           </div>
+            </>
+          )}
             </aside>
           ) : null}
         </div>

@@ -11,7 +11,10 @@ import {
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ id: string }> };
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ view?: string }>;
+};
 
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
@@ -22,11 +25,29 @@ export async function generateMetadata({ params }: Props) {
   return { title: project ? `Edit · ${project.title}` : "Project" };
 }
 
-export default async function CmsProjectDetailPage({ params }: Props) {
+export default async function CmsProjectDetailPage({ params, searchParams }: Props) {
   await requireCmsSession();
   const { id } = await params;
+  const { view } = await searchParams;
 
-  const project = await prisma.project.findUnique({ where: { id } });
+  const [project, featuredPeers, pickerItems] = await Promise.all([
+    prisma.project.findUnique({ where: { id } }),
+    prisma.project.findMany({
+      where: { featured: true },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    }),
+    prisma.project.findMany({
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        featured: true,
+        published: true,
+        visibility: true,
+      },
+      orderBy: [{ sortOrder: "asc" }, { title: "asc" }],
+    }),
+  ]);
   if (!project) notFound();
 
   const media = asMedia(project.media);
@@ -73,6 +94,21 @@ export default async function CmsProjectDetailPage({ params }: Props) {
         highlights: split.highlights,
         sections: split.sections,
       }}
+      selectedPeers={featuredPeers.map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        summary: p.summary,
+        coverImage: p.coverImage,
+        introSrc: p.introSrc,
+        media: asMedia(p.media),
+        featured: p.featured,
+        published: p.published,
+        visibility: p.visibility,
+        sortOrder: p.sortOrder,
+      }))}
+      selectedPickerItems={pickerItems}
+      initialPage={view === "selected" ? "selected" : "detail"}
     />
   );
 }

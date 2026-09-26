@@ -811,42 +811,44 @@ export function SiteBody({
           </div>
 
           <div className="hydra-features-band mt-8 md:mt-10">
-            <div className="hydra-features-row-band" data-hydra-stagger>
-              <div className="hydra-features-grid">
-                {projects.slice(0, 2).map((project, index) => (
-                  <ProjectFeatureCell
-                    key={project.id}
-                    href={`/projects/${project.slug}`}
-                    title={project.title}
-                    body={project.summary}
-                  >
-                    <ProjectCellVisual project={project} index={index} />
-                  </ProjectFeatureCell>
-                ))}
-              </div>
-            </div>
-            {projects.length > 2 ? (
-              <>
-                <div className="hydra-features-row-rule" aria-hidden />
-                <div
-                  className="hydra-features-row-band hydra-features-row-band-bottom"
-                  data-hydra-stagger
-                >
-                  <div className="hydra-features-grid">
-                    {projects.slice(2, 4).map((project, index) => (
-                      <ProjectFeatureCell
-                        key={project.id}
-                        href={`/projects/${project.slug}`}
-                        title={project.title}
-                        body={project.summary}
-                      >
-                        <ProjectCellVisual project={project} index={index + 2} />
-                      </ProjectFeatureCell>
-                    ))}
+            {Array.from(
+              { length: Math.ceil(projects.length / 2) },
+              (_, rowIndex) => {
+                const row = projects.slice(rowIndex * 2, rowIndex * 2 + 2);
+                return (
+                  <div key={`selected-row-${rowIndex}`}>
+                    {rowIndex > 0 ? (
+                      <div className="hydra-features-row-rule" aria-hidden />
+                    ) : null}
+                    <div
+                      className={`hydra-features-row-band${
+                        rowIndex > 0 ? " hydra-features-row-band-bottom" : ""
+                      }`}
+                      data-hydra-stagger
+                    >
+                      <div className="hydra-features-grid">
+                        {row.map((project, colIndex) => {
+                          const index = rowIndex * 2 + colIndex;
+                          return (
+                            <ProjectFeatureCell
+                              key={project.id}
+                              href={`/projects/${project.slug}`}
+                              title={project.title}
+                              body={project.summary}
+                            >
+                              <ProjectCellVisual
+                                project={project}
+                                index={index}
+                              />
+                            </ProjectFeatureCell>
+                          );
+                        })}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </>
-            ) : null}
+                );
+              },
+            )}
             <div className="hydra-features-row-rule" aria-hidden />
           </div>
         </section>

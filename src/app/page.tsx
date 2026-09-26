@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [projects, site] = await Promise.all([
-    getFeaturedProjects(4),
+    getFeaturedProjects(24),
     getSiteContent(),
   ]);
 
