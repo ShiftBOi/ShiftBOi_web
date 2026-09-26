@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import Image from "next/image";
 import { SiteHeader } from "@/components/web/hero";
 import { SiteFooter } from "@/components/web/site-footer";
 import { SiteShell } from "@/components/web/site-shell";
@@ -11,11 +10,13 @@ import {
 } from "@/components/web/project-hero-reveal";
 import { ProjectServices } from "@/components/web/project-services";
 import { ProjectMoreList } from "@/components/web/project-more-list";
+import { ProjectSplitBands } from "@/components/web/project-split-band";
 import {
   getOtherProjects,
   getPortfolioProjectBySlug,
   getPortfolioSlugsFromDb,
 } from "@/lib/content";
+import { usesRevealHero } from "@/lib/project-draft";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -42,12 +43,13 @@ export default async function ProjectPage({ params }: Props) {
   if (!project) notFound();
 
   const others = await getOtherProjects(slug, 3);
+  const useReveal = usesRevealHero(project.media ?? null);
   const revealColor =
     project.media?.colorSrc ??
     project.media?.poster ??
     (project.media?.type === "image" ? project.media.src : undefined);
   const revealBw = project.media?.bwSrc;
-  const useReveal = Boolean(revealColor && revealBw);
+  const bands = project.bands ?? [];
 
   const heroCopy = (
     <ProjectHeroCopy
@@ -81,55 +83,18 @@ export default async function ProjectPage({ params }: Props) {
               {heroCopy}
             </ProjectHeroReveal>
           ) : (
-            <>
-              <section className="project-intro">
-                <div className="project-page-shell">{heroCopy}</div>
-              </section>
-              <section className="project-band project-band-hero">
-                <div className="project-page-shell">
-                  <div className="project-split project-split-hero">
-                    <div className="project-media">
-                      {project.media?.type === "video" ? (
-                        <video
-                          src={project.media.src}
-                          poster={project.media.poster}
-                          autoPlay
-                          loop
-                          muted
-                          playsInline
-                          preload="metadata"
-                          aria-label={`${project.title} demo`}
-                        />
-                      ) : project.media?.type === "image" ? (
-                        <Image
-                          src={project.media.src}
-                          alt=""
-                          fill
-                          className="object-cover"
-                          sizes="(max-width:900px) 100vw, 55vw"
-                        />
-                      ) : (
-                        <div className="project-media-fallback" aria-hidden />
-                      )}
-                    </div>
-                    <div className="project-hero-copy">
-                      <h3 className="project-block-title">{project.heroTitle}</h3>
-                      <p className="project-block-body">{project.heroBody}</p>
-                      {project.download ? (
-                        <a
-                          href={project.download.href}
-                          className="project-download"
-                          rel="noopener"
-                        >
-                          {project.download.label}
-                        </a>
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </>
+            <section className="project-intro">
+              <div className="project-page-shell">{heroCopy}</div>
+            </section>
           )}
+
+          <ProjectSplitBands
+            bands={bands.map((b) => ({
+              title: b.title,
+              body: b.body,
+              media: b.media ?? null,
+            }))}
+          />
 
           <ProjectServices project={project} />
 

@@ -4,6 +4,7 @@ import type {
   PortfolioProject,
   ProjectSection,
 } from "@/lib/portfolio-projects";
+import { asMedia, resolveBands, resolveDetails } from "@/lib/project-draft";
 
 export type HeroContent = {
   eyebrow: string;
@@ -88,10 +89,21 @@ function asArray(value: Prisma.JsonValue | null | undefined): unknown[] {
 }
 
 export function mapProjectToPortfolio(row: Project): PortfolioProject {
-  const media = asObject(row.media);
+  const media = asMedia(row.media);
   const download = asObject(row.download);
   const highlights = asArray(row.highlights) as PortfolioProject["highlights"];
   const sections = asArray(row.sections) as ProjectSection[];
+  const bands = resolveBands({
+    bands: row.bands,
+    media,
+    heroTitle: row.heroTitle,
+    heroBody: row.heroBody,
+  });
+  const details = resolveDetails({
+    details: row.details,
+    highlights: row.highlights,
+    sections: row.sections,
+  });
 
   return {
     slug: row.slug,
@@ -109,13 +121,15 @@ export function mapProjectToPortfolio(row: Project): PortfolioProject {
     heroBody: row.heroBody ?? row.summary,
     media: media
       ? {
-          type: (media.type === "image" ? "image" : "video") as "video" | "image",
-          src: String(media.src ?? ""),
-          poster: media.poster ? String(media.poster) : undefined,
-          colorSrc: media.colorSrc ? String(media.colorSrc) : undefined,
-          bwSrc: media.bwSrc ? String(media.bwSrc) : undefined,
+          type: media.type,
+          src: media.src,
+          poster: media.poster,
+          colorSrc: media.colorSrc,
+          bwSrc: media.bwSrc,
         }
       : undefined,
+    bands,
+    details,
     introSrc: row.introSrc ?? row.coverImage ?? undefined,
     titleIcon: row.titleIcon ?? undefined,
     download: download

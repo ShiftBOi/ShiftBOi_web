@@ -1,20 +1,20 @@
 "use client";
 
 import type { PortfolioProject } from "@/lib/portfolio-projects";
+import {
+  detailToServiceItem,
+  resolveDetails,
+  type DetailBlock,
+} from "@/lib/project-draft";
 
 export function ProjectServices({ project }: { project: PortfolioProject }) {
-  const items = [
-    ...project.highlights.map((h) => ({
-      title: h.title,
-      body: h.body,
-      bullets: [`${h.metric} · ${h.label}`],
-    })),
-    ...project.sections.map((s) => ({
-      title: s.title,
-      body: s.paragraphs.join(" "),
-      bullets: s.bullets ?? [],
-    })),
-  ];
+  const details: DetailBlock[] =
+    project.details ??
+    resolveDetails({
+      highlights: project.highlights,
+      sections: project.sections,
+    });
+  const items = details.map(detailToServiceItem);
 
   return (
     <section className="project-services" aria-label="Project details">
@@ -47,7 +47,9 @@ export function ProjectServices({ project }: { project: PortfolioProject }) {
                 <div className="project-services-item-grid">
                   <h3>{item.title}</h3>
                   <div>
-                    <p>{item.body}</p>
+                    {item.paragraphs.map((para, i) => (
+                      <p key={`${item.title}-${i}`}>{para}</p>
+                    ))}
                     {item.bullets.length > 0 ? (
                       <ul>
                         {item.bullets.map((b) => (

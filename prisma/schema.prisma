@@ -118,8 +118,12 @@ model Project {
   heroTitle   String?
   heroBody    String?            @db.Text
   media       Json?
+  /// Split media+copy boxes under the hero — same pattern on every project page
+  bands       Json?
   highlights  Json?
   sections    Json?
+  /// Ordered detail blocks (highlight + text sections) — preserves drag order
+  details     Json?
   download    Json?
   /// PUBLIC = Selected Projects (detail page, 2-col grid)
   /// CONFIDENTIAL = limited disclose (homepage full-row only, no deep page)

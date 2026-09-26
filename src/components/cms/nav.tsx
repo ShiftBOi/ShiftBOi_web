@@ -65,11 +65,11 @@ function IconClose() {
   );
 }
 
-function IconCollapse(props: { expand?: boolean }) {
+function IconCollapse() {
   return (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path
-        d={props.expand ? "M10 6l6 6-6 6" : "M14 6l-6 6 6 6"}
+        d="M14 6l-6 6 6 6"
         stroke="currentColor"
         strokeWidth="1.6"
         strokeLinecap="round"
@@ -155,39 +155,37 @@ export function CmsNav() {
     return (
       <>
         <div className={`cms-sidebar-head${collapsedBar ? " is-collapsed" : ""}`}>
-          <Link href="/cms" className="cms-brand-mark" aria-label="ShiftBOi CMS" onClick={onNavigate}>
-            s
-          </Link>
-          {!collapsedBar ? (
-            <div className="cms-brand-copy">
-              <p className="cms-brand-title">ShiftBOi</p>
-              <p className="cms-brand-sub">CMS</p>
-            </div>
-          ) : null}
-          {!collapsedBar ? (
+          {collapsedBar ? (
             <button
               type="button"
-              className="cms-sidebar-icon-btn cms-sidebar-collapse"
-              onClick={() => setCollapsed(true)}
-              aria-label="Collapse sidebar"
-              title="Collapse"
+              className="cms-brand-mark"
+              onClick={() => setCollapsed(false)}
+              aria-label="Expand sidebar"
+              title="Expand"
             >
-              <IconCollapse />
+              s
             </button>
-          ) : null}
+          ) : (
+            <>
+              <Link href="/cms" className="cms-brand-mark" aria-label="ShiftBOi CMS" onClick={onNavigate}>
+                s
+              </Link>
+              <div className="cms-brand-copy">
+                <p className="cms-brand-title">ShiftBOi</p>
+                <p className="cms-brand-sub">CMS</p>
+              </div>
+              <button
+                type="button"
+                className="cms-sidebar-icon-btn cms-sidebar-collapse"
+                onClick={() => setCollapsed(true)}
+                aria-label="Collapse sidebar"
+                title="Collapse"
+              >
+                <IconCollapse />
+              </button>
+            </>
+          )}
         </div>
-
-        {collapsedBar ? (
-          <button
-            type="button"
-            className="cms-sidebar-icon-btn cms-sidebar-expand"
-            onClick={() => setCollapsed(false)}
-            aria-label="Expand sidebar"
-            title="Expand"
-          >
-            <IconCollapse expand />
-          </button>
-        ) : null}
 
         <nav className="cms-nav-links" aria-label="CMS">
           <NavList pathname={pathname} collapsed={collapsedBar} onNavigate={onNavigate} />

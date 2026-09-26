@@ -1,7 +1,9 @@
 import { requireCmsSession } from "@/lib/session";
 import { CmsNav } from "@/components/cms/nav";
 import { CmsTopbar } from "@/components/cms/topbar";
-import { CmsQuickChat } from "@/components/cms/quick-chat";
+import { CmsChatPanel } from "@/components/cms/quick-chat";
+import { CmsChatProvider } from "@/components/cms/chat-context";
+import { CmsChatAppShell } from "@/components/cms/chat-app-shell";
 
 export default async function CmsDashboardLayout({
   children,
@@ -11,13 +13,15 @@ export default async function CmsDashboardLayout({
   const session = await requireCmsSession();
 
   return (
-    <div className="cms-app">
-      <CmsNav />
-      <div className="cms-stage">
-        <CmsTopbar email={session.user.email} />
-        <div className="cms-main">{children}</div>
-      </div>
-      <CmsQuickChat />
-    </div>
+    <CmsChatProvider>
+      <CmsChatAppShell>
+        <CmsNav />
+        <div className="cms-stage">
+          <CmsTopbar email={session.user.email} />
+          <div className="cms-main">{children}</div>
+        </div>
+        <CmsChatPanel />
+      </CmsChatAppShell>
+    </CmsChatProvider>
   );
 }

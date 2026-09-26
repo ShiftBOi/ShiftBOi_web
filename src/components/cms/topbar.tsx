@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { useCmsTheme } from "@/components/cms/theme-provider";
+import { useCmsChat } from "@/components/cms/chat-context";
+import { BloubFace } from "@/components/cms/bloub-face";
 
 const TITLES: Array<{ match: (path: string) => boolean; title: string; eyebrow: string }> = [
   { match: (p) => p === "/cms" || p === "/cms/", title: "Dashboard", eyebrow: "Overview" },
@@ -15,6 +17,7 @@ export function CmsTopbar({ email }: { email: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const { theme, toggleTheme } = useCmsTheme();
+  const { open: chatOpen, toggleChat } = useCmsChat();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -56,6 +59,17 @@ export function CmsTopbar({ email }: { email: string }) {
       </div>
 
       <div className="cms-topbar-actions">
+        <button
+          type="button"
+          className={`cms-sidebar-icon-btn cms-bloub-btn${chatOpen ? " is-active" : ""}`}
+          onClick={toggleChat}
+          aria-label={chatOpen ? "Close assistant" : "Open assistant"}
+          aria-pressed={chatOpen}
+          title={chatOpen ? "Close assistant" : "Assistant"}
+        >
+          <BloubFace size={24} active={chatOpen} />
+        </button>
+
         <button
           type="button"
           className="cms-sidebar-icon-btn"

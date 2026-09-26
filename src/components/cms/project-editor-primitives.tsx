@@ -4,13 +4,27 @@ import { useEffect, useRef, useState } from "react";
 import type { EditableField } from "@/lib/project-draft";
 
 export type {
+  DetailBlock,
+  DetailHighlight,
+  DetailSection,
   EditableField,
   HighlightItem,
+  ProjectBand,
   ProjectDraft,
   ProjectMedia,
   SectionItem,
 } from "@/lib/project-draft";
-export { asHighlights, asMedia, asSections } from "@/lib/project-draft";
+export {
+  asHighlights,
+  asMedia,
+  asSections,
+  emptyBand,
+  emptyDetailHighlight,
+  emptyDetailSection,
+  resolveBands,
+  resolveDetails,
+  splitDetails,
+} from "@/lib/project-draft";
 
 type RegionProps = {
   field: Exclude<EditableField, null>;

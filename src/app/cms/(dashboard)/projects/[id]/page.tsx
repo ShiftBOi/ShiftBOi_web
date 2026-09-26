@@ -2,7 +2,12 @@ import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/lib/session";
 import { ProjectDetailEditor } from "@/components/cms/project-detail-editor";
-import { asHighlights, asMedia, asSections } from "@/lib/project-draft";
+import {
+  asMedia,
+  resolveBands,
+  resolveDetails,
+  splitDetails,
+} from "@/lib/project-draft";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +28,14 @@ export default async function CmsProjectDetailPage({ params }: Props) {
 
   const project = await prisma.project.findUnique({ where: { id } });
   if (!project) notFound();
+
+  const media = asMedia(project.media);
+  const details = resolveDetails({
+    details: project.details,
+    highlights: project.highlights,
+    sections: project.sections,
+  });
+  const split = splitDetails(details);
 
   return (
     <ProjectDetailEditor
@@ -45,13 +58,20 @@ export default async function CmsProjectDetailPage({ params }: Props) {
         heroMetricLabel: project.heroMetricLabel,
         heroTitle: project.heroTitle,
         heroBody: project.heroBody,
-        media: asMedia(project.media),
+        media,
+        bands: resolveBands({
+          bands: project.bands,
+          media,
+          heroTitle: project.heroTitle,
+          heroBody: project.heroBody,
+        }),
+        details,
         techStack: project.techStack,
         visibility: project.visibility,
         featured: project.featured,
         published: project.published,
-        highlights: asHighlights(project.highlights),
-        sections: asSections(project.sections),
+        highlights: split.highlights,
+        sections: split.sections,
       }}
     />
   );

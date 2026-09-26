@@ -5,6 +5,17 @@ export type ProjectSection = {
   bullets?: string[];
 };
 
+export type ProjectBand = {
+  id: string;
+  title: string;
+  body: string;
+  media?: {
+    type: "video" | "image";
+    src: string;
+    poster?: string;
+  } | null;
+};
+
 export type PortfolioProject = {
   slug: string;
   title: string;
@@ -26,6 +37,10 @@ export type PortfolioProject = {
     colorSrc?: string;
     bwSrc?: string;
   };
+  /** Split media+copy boxes under the hero */
+  bands?: ProjectBand[];
+  /** Ordered detail blocks (preserves CMS drag order) */
+  details?: import("@/lib/project-draft").DetailBlock[];
   /** Hover preview in “More projects” lists */
   introSrc?: string;
   titleIcon?: string;

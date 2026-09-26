@@ -8,6 +8,7 @@ import {
   usesGroq,
 } from "@/lib/cms-ai";
 import { isR2Configured, r2Client, R2_BUCKET } from "@/lib/r2";
+import { getTrafficSummary } from "@/lib/analytics";
 import { prisma } from "@/lib/prisma";
 
 export const runtime = "nodejs";
@@ -169,16 +170,74 @@ async function getTableCounts() {
   ];
 }
 
+async function getContentOverview() {
+  const [
+    total,
+    published,
+    drafts,
+    featured,
+    confidential,
+    recent,
+    missingCover,
+    missingIntro,
+  ] = await Promise.all([
+    prisma.project.count(),
+    prisma.project.count({ where: { published: true } }),
+    prisma.project.count({ where: { published: false } }),
+    prisma.project.count({ where: { featured: true } }),
+    prisma.project.count({ where: { visibility: "CONFIDENTIAL" } }),
+    prisma.project.findMany({
+      orderBy: { updatedAt: "desc" },
+      take: 6,
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        published: true,
+        featured: true,
+        visibility: true,
+        year: true,
+        updatedAt: true,
+        coverImage: true,
+      },
+    }),
+    prisma.project.count({
+      where: { OR: [{ coverImage: null }, { coverImage: "" }] },
+    }),
+    prisma.project.count({
+      where: { OR: [{ introSrc: null }, { introSrc: "" }] },
+    }),
+  ]);
+
+  return {
+    total,
+    published,
+    drafts,
+    featured,
+    confidential,
+    gaps: {
+      missingCover,
+      missingIntro,
+    },
+    recent: recent.map((p) => ({
+      ...p,
+      updatedAt: p.updatedAt.toISOString(),
+    })),
+  };
+}
+
 export async function GET(request: NextRequest) {
   if (!(await requireAdmin(request))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [database, r2, chatAi, tables] = await Promise.all([
+  const [database, r2, chatAi, tables, content, traffic] = await Promise.all([
     checkDatabase(),
     checkR2(),
     checkChatAi(),
     getTableCounts().catch(() => []),
+    getContentOverview().catch(() => null),
+    getTrafficSummary().catch(() => null),
   ]);
 
   const services = [database, r2, chatAi, checkGemini()];
@@ -197,6 +256,8 @@ export async function GET(request: NextRequest) {
     },
     services,
     tables,
+    content,
+    traffic,
     ai: getCmsAiProviderInfo(),
     checkedAt: new Date().toISOString(),
   });
