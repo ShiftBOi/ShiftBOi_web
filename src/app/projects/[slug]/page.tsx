@@ -16,7 +16,7 @@ import {
   getPortfolioProjectBySlug,
   getPortfolioSlugsFromDb,
 } from "@/lib/content";
-import { usesRevealHero } from "@/lib/project-draft";
+import { resolveRevealSources } from "@/lib/project-draft";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -43,12 +43,8 @@ export default async function ProjectPage({ params }: Props) {
   if (!project) notFound();
 
   const others = await getOtherProjects(slug, 3);
-  const useReveal = usesRevealHero(project.media ?? null);
-  const revealColor =
-    project.media?.colorSrc ??
-    project.media?.poster ??
-    (project.media?.type === "image" ? project.media.src : undefined);
-  const revealBw = project.media?.bwSrc;
+  const reveal = resolveRevealSources(project.media ?? null);
+  const useReveal = Boolean(reveal);
   const bands = project.bands ?? [];
 
   const heroCopy = (
@@ -73,11 +69,12 @@ export default async function ProjectPage({ params }: Props) {
         <main className={`project-page flex-1${useReveal ? " is-reveal" : " pt-12 md:pt-14"}`}>
           <div className="project-page-vgrid" aria-hidden />
 
-          {useReveal ? (
+          {reveal ? (
             <ProjectHeroReveal
-              colorSrc={revealColor!}
-              bwSrc={revealBw!}
-              poster={project.media?.poster}
+              colorSrc={reveal.colorSrc}
+              bwSrc={reveal.bwSrc}
+              poster={reveal.poster}
+              objectPosition={reveal.objectPosition}
               alt={`${project.title} visual`}
             >
               {heroCopy}

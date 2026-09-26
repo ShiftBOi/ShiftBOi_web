@@ -303,7 +303,8 @@ export function ProjectDetailEditor({
         src: draft.media?.src || src,
         poster: draft.media?.poster,
         colorSrc: draft.media?.colorSrc || src,
-        bwSrc: draft.media?.bwSrc || src,
+        bwSrc: draft.media?.bwSrc || draft.media?.colorSrc || src,
+        objectPosition: draft.media?.objectPosition,
       });
       return;
     }
@@ -345,13 +346,13 @@ export function ProjectDetailEditor({
         patch("media", null);
         return;
       }
-      // Reveal hero: always set color + bw pair
+      // Reveal hero: same file for both layers — grayscale filter handles B&W
       patch("media", {
         type: kind,
         src: url,
         poster: draft.media?.poster,
         colorSrc: url,
-        bwSrc: draft.media?.bwSrc || url,
+        bwSrc: url,
         objectPosition: objectPosition || draft.media?.objectPosition,
       });
       if (kind === "image") {

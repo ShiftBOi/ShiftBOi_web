@@ -20,6 +20,7 @@ type ProjectHeroRevealProps = {
   bwSrc: string;
   alt: string;
   poster?: string;
+  objectPosition?: string;
   children?: ReactNode;
 };
 
@@ -31,12 +32,14 @@ function isVideoSrc(src: string) {
  * Sticky B&W → color reveal.
  * Scroll while locked only drives the color wipe.
  * Content below is unreachable until revealProgress === 1.
+ * B&W is CSS grayscale on the back layer — same src works for CMS uploads.
  */
 export function ProjectHeroReveal({
   colorSrc,
   bwSrc,
   alt,
   poster,
+  objectPosition = "50% 50%",
   children,
 }: ProjectHeroRevealProps) {
   const containerRef = useRef<HTMLElement>(null);
@@ -46,6 +49,7 @@ export function ProjectHeroReveal({
   const progressRef = useRef(0);
   const colorIsVideo = isVideoSrc(colorSrc);
   const bwIsVideo = isVideoSrc(bwSrc);
+  const mediaPositionStyle = { objectPosition };
 
   useEffect(() => {
     const container = containerRef.current;
@@ -204,9 +208,18 @@ export function ProjectHeroReveal({
                 autoPlay
                 preload="auto"
                 aria-hidden
+                style={mediaPositionStyle}
               />
             ) : (
-              <Image src={bwSrc} alt="" fill priority className="object-cover" sizes="100vw" />
+              <Image
+                src={bwSrc}
+                alt=""
+                fill
+                priority
+                className="object-cover"
+                sizes="100vw"
+                style={mediaPositionStyle}
+              />
             )}
           </div>
 
@@ -226,9 +239,18 @@ export function ProjectHeroReveal({
                 autoPlay
                 preload="auto"
                 aria-label={alt}
+                style={mediaPositionStyle}
               />
             ) : (
-              <Image src={colorSrc} alt={alt} fill priority className="object-cover" sizes="100vw" />
+              <Image
+                src={colorSrc}
+                alt={alt}
+                fill
+                priority
+                className="object-cover"
+                sizes="100vw"
+                style={mediaPositionStyle}
+              />
             )}
           </div>
 

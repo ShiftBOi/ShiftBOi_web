@@ -117,11 +117,35 @@ export function asMedia(value: unknown): ProjectMedia | null {
 }
 
 export function usesRevealHero(media: ProjectMedia | null | undefined) {
-  const revealColor =
-    media?.colorSrc ||
-    media?.poster ||
-    (media?.type === "image" ? media.src : undefined);
-  return Boolean(revealColor && media?.bwSrc);
+  if (!media) return false;
+  // Opt-in via colorSrc/bwSrc (CMS hero upload always sets both → auto reveal)
+  if (media.colorSrc || media.bwSrc) {
+    const color =
+      media.colorSrc ||
+      media.src ||
+      media.poster ||
+      (media.type === "image" ? media.src : undefined);
+    return Boolean(color);
+  }
+  return false;
+}
+
+/** Resolve color + B&W sources for the scroll reveal (same file + CSS grayscale is fine). */
+export function resolveRevealSources(media: ProjectMedia | null | undefined) {
+  if (!usesRevealHero(media) || !media) return null;
+  const colorSrc =
+    media.colorSrc ||
+    media.src ||
+    media.poster ||
+    (media.type === "image" ? media.src : "") ||
+    "";
+  if (!colorSrc) return null;
+  return {
+    colorSrc,
+    bwSrc: media.bwSrc || colorSrc,
+    objectPosition: media.objectPosition || "50% 50%",
+    poster: media.poster,
+  };
 }
 
 export function asBands(value: unknown): ProjectBand[] {

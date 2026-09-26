@@ -3614,6 +3614,8 @@ a.hydra-feature-cell.is-project-link:focus-visible {
 
 .project-reveal-layer.is-bw {
   z-index: 1;
+  /* Auto B&W for any hero media — color layer wipes in on scroll */
+  filter: grayscale(1);
 }
 
 .project-reveal-layer.is-color {
@@ -3638,6 +3640,7 @@ a.hydra-feature-cell.is-project-link:focus-visible {
 }
 
 .project-reveal-media.is-bw-video {
+  /* Parent .is-bw already applies grayscale; keep for older markup */
   filter: grayscale(1);
 }
 
