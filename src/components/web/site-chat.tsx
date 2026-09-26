@@ -62,7 +62,7 @@ function messageText(message: { parts: Array<{ type: string; text?: string }> })
 }
 
 const WELCOME =
-  "Hi! I'm the ShiftBOi assistant. Ask me anything about the portfolio, focus areas, engagement, or getting in touch.";
+  "Hi! I'm the ShiftBOi assistant. Ask me anything about the portfolio, focus areas, or how to get in touch via the footer.";
 
 const CHAT_STORAGE_KEY = "shiftboi-site-chat-v1";
 
@@ -331,7 +331,16 @@ function SiteChatWidget() {
       if (e.key === "Escape") closeChat();
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    const prev = document.activeElement as HTMLElement | null;
+    const panel = document.querySelector<HTMLElement>(".site-chat-card.is-open");
+    const focusable = panel?.querySelector<HTMLElement>(
+      "button, [href], input, textarea, [tabindex]:not([tabindex='-1'])",
+    );
+    focusable?.focus();
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      prev?.focus?.();
+    };
   }, [open, closeChat]);
 
   useEffect(() => {
@@ -380,11 +389,6 @@ function SiteChatWidget() {
     void sendMessage({ text });
   };
 
-  const talkToHuman = () => {
-    closeChat();
-    document.getElementById("site-footer")?.scrollIntoView({ behavior: "smooth" });
-  };
-
   const clearChat = () => {
     setMessages([]);
     setBootError(null);
@@ -396,9 +400,10 @@ function SiteChatWidget() {
       <div
         className={`site-chat-card ${open ? "is-open" : ""}`}
         role="dialog"
-        aria-modal="true"
+        aria-modal={open}
         aria-label="ShiftBOi Assistant"
         aria-hidden={!open}
+        {...(!open ? { inert: true } : {})}
       >
         <header className="site-chat-card-header">
           <div className="site-chat-card-brand">
@@ -406,9 +411,6 @@ function SiteChatWidget() {
             <p className="site-chat-card-title">ShiftBOi Assistant</p>
           </div>
           <div className="site-chat-card-actions">
-            <button type="button" className="site-chat-human" onClick={talkToHuman}>
-              Talk to a human
-            </button>
             <button
               type="button"
               className="site-chat-card-x"

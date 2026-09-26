@@ -20,6 +20,7 @@ const mediaSchema = z
     poster: z.string().optional(),
     colorSrc: z.string().optional(),
     bwSrc: z.string().optional(),
+    objectPosition: z.string().optional(),
   })
   .nullable()
   .optional();
@@ -119,6 +120,67 @@ function asJson(value: unknown): Prisma.InputJsonValue | typeof Prisma.DbNull {
 }
 
 type Params = { params: Promise<{ id: string }> };
+
+export async function GET(request: NextRequest, { params }: Params) {
+  if (!(await requireAdmin(request))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { id: rawId } = await params;
+  const id = decodeURIComponent(rawId ?? "").trim();
+  const project = await prisma.project.findUnique({ where: { id } });
+  if (!project) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
+  const { asMedia, resolveBands, resolveDetails, splitDetails } = await import(
+    "@/lib/project-draft"
+  );
+  const media = asMedia(project.media);
+  const details = resolveDetails({
+    details: project.details,
+    highlights: project.highlights,
+    sections: project.sections,
+  });
+  const split = splitDetails(details);
+
+  return NextResponse.json({
+    project: {
+      id: project.id,
+      slug: project.slug,
+      title: project.title,
+      summary: project.summary,
+      description: project.description,
+      year: project.year,
+      role: project.role,
+      coverImage: project.coverImage,
+      introSrc: project.introSrc,
+      titleIcon: project.titleIcon,
+      thesisLead: project.thesisLead,
+      thesisHighlight: project.thesisHighlight,
+      thesisRest: project.thesisRest,
+      thesisBody: project.thesisBody,
+      heroMetric: project.heroMetric,
+      heroMetricLabel: project.heroMetricLabel,
+      heroTitle: project.heroTitle,
+      heroBody: project.heroBody,
+      media,
+      bands: resolveBands({
+        bands: project.bands,
+        media,
+        heroTitle: project.heroTitle,
+        heroBody: project.heroBody,
+      }),
+      details,
+      techStack: project.techStack,
+      visibility: project.visibility,
+      featured: project.featured,
+      published: project.published,
+      highlights: split.highlights,
+      sections: split.sections,
+    },
+  });
+}
 
 export async function PATCH(request: NextRequest, { params }: Params) {
   if (!(await requireAdmin(request))) {

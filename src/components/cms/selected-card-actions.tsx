@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 export function SelectedPencilIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -51,31 +49,43 @@ export function SelectedTrashIcon() {
 }
 
 export function SelectedCardActionIcons({
-  editHref,
+  onEdit,
   onRemove,
   removeDisabled,
+  editDisabled,
+  editLabel = "Edit project",
 }: {
-  editHref: string;
+  onEdit: () => void;
   onRemove: () => void;
   removeDisabled?: boolean;
+  editDisabled?: boolean;
+  editLabel?: string;
 }) {
   return (
     <div className="cms-selected-peer-actions-end">
-      <Link
-        href={editHref}
+      <button
+        type="button"
         className="cms-selected-icon-btn"
-        aria-label="Edit project"
-        title="Edit"
+        aria-label={editLabel}
+        title={editLabel}
+        disabled={editDisabled}
+        onClick={(e) => {
+          e.stopPropagation();
+          onEdit();
+        }}
       >
         <SelectedPencilIcon />
-      </Link>
+      </button>
       <button
         type="button"
         className="cms-selected-icon-btn is-danger"
         aria-label="Remove from Selected Projects"
         title="Remove"
         disabled={removeDisabled}
-        onClick={onRemove}
+        onClick={(e) => {
+          e.stopPropagation();
+          onRemove();
+        }}
       >
         <SelectedTrashIcon />
       </button>

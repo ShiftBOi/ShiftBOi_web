@@ -4,38 +4,35 @@ import { HydraFooterRule, ShiftBoiMark } from "@/components/web/hydra-primitives
 import { MatrixPortrait } from "@/components/web/matrix-portrait";
 import { useSiteChat } from "@/components/web/site-chat";
 
-const FOOTER_COLS = [
-  {
-    title: "Explore",
-    links: [
-      ["Work", "/#work"],
-      ["Focus", "/#use-cases"],
-      ["Stack", "/#stack"],
-      ["Practice", "/#practice"],
-    ],
-  },
-  {
-    title: "Selected",
-    links: [
-      ["Vibesaur", "/projects/vibesaur"],
-      ["SKNAT", "/projects/sknat"],
-      ["Worldgate", "/projects/worldgate"],
-      ["Tastesiam", "/projects/tastesiam"],
-      ["Seenpi", "/projects/seenpi"],
-    ],
-  },
-  {
-    title: "Connect",
-    links: [
-      ["Email", "mailto:rapeepongapic@gmail.com"],
-      ["GitHub", "https://github.com/ShiftBOi"],
-      ["X / Twitter", "https://x.com/ShiftBOi_dev"],
-    ],
-  },
+type FooterProject = {
+  slug: string;
+  title: string;
+};
+
+type Props = {
+  selectedProjects?: FooterProject[];
+  contactEmail?: string;
+};
+
+const EXPLORE_LINKS = [
+  ["Work", "/#work"],
+  ["Focus", "/#use-cases"],
+  ["Stack", "/#stack"],
+  ["Practice", "/#practice"],
 ] as const;
 
-export function SiteFooter() {
+const SOCIAL_LINKS = [
+  ["GitHub", "https://github.com/ShiftBOi"],
+  ["X / Twitter", "https://x.com/ShiftBOi_dev"],
+] as const;
+
+export function SiteFooter({
+  selectedProjects = [],
+  contactEmail = "rapeepongapic@gmail.com",
+}: Props) {
   const { openChat } = useSiteChat();
+  const selected = selectedProjects.slice(0, 6);
+  const mailto = `mailto:${contactEmail}`;
 
   return (
     <footer id="site-footer" className="site-footer">
@@ -60,26 +57,66 @@ export function SiteFooter() {
                 selected work, stack, and craft notes under one brand.
               </p>
               <div className="site-footer-nav">
-                {FOOTER_COLS.map((col) => (
-                  <div key={col.title} className="site-footer-col">
-                    <p className="site-footer-col-title">{col.title}</p>
-                    <ul>
-                      {col.links.map(([label, href]) => (
-                        <li key={label}>
+                <div className="site-footer-col">
+                  <p className="site-footer-col-title">Explore</p>
+                  <ul>
+                    {EXPLORE_LINKS.map(([label, href]) => (
+                      <li key={label}>
+                        <a href={href} className="site-footer-link">
+                          {label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="site-footer-col">
+                  <p className="site-footer-col-title">Selected</p>
+                  <ul>
+                    {selected.length > 0 ? (
+                      selected.map((project) => (
+                        <li key={project.slug}>
                           <a
-                            href={href}
+                            href={`/projects/${project.slug}`}
                             className="site-footer-link"
-                            {...(href.startsWith("http")
-                              ? { target: "_blank", rel: "noopener noreferrer" }
-                              : {})}
                           >
-                            {label}
+                            {project.title}
                           </a>
                         </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+                      ))
+                    ) : (
+                      <li>
+                        <a href="/#work" className="site-footer-link">
+                          View work
+                        </a>
+                      </li>
+                    )}
+                  </ul>
+                </div>
+
+                <div className="site-footer-col">
+                  <p className="site-footer-col-title">Connect</p>
+                  <ul>
+                    <li>
+                      <a href={mailto} className="site-footer-link">
+                        Email
+                      </a>
+                    </li>
+                    {SOCIAL_LINKS.map(([label, href]) => (
+                      <li key={label}>
+                        <a
+                          href={href}
+                          className="site-footer-link"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
                 <div className="site-footer-col">
                   <p className="site-footer-col-title">Chat</p>
                   <ul>

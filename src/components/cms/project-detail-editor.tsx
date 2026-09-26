@@ -119,7 +119,9 @@ export function ProjectDetailEditor({
   const [page, setPageState] = useState<EditorPage>(() =>
     parseEditorPage(initialPage),
   );
+  const [switchingId, setSwitchingId] = useState<string | null>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
+  const skipPropSyncRef = useRef(false);
 
   const dirty = serialize(draft) !== baseline;
   const revealOn = usesRevealHero(draft.media);
@@ -134,10 +136,49 @@ export function ProjectDetailEditor({
   }
 
   useEffect(() => {
+    if (skipPropSyncRef.current) {
+      skipPropSyncRef.current = false;
+      return;
+    }
     const next = normalizeProject(project);
     setDraft(next);
     setBaseline(serialize(next));
   }, [project]);
+
+  async function switchToProject(id: string) {
+    if (!id || id === draft.id) return;
+    if (dirty) {
+      const ok = window.confirm(
+        "You have unsaved changes on this project. Discard and switch?",
+      );
+      if (!ok) return;
+    }
+    setSwitchingId(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/cms/projects/${encodeURIComponent(id)}`);
+      const data = (await res.json().catch(() => null)) as {
+        project?: ProjectDraft;
+        error?: string;
+      } | null;
+      if (!res.ok || !data?.project) {
+        setError(data?.error || "Could not load project");
+        return;
+      }
+      const next = normalizeProject(data.project);
+      skipPropSyncRef.current = true;
+      setDraft(next);
+      setBaseline(serialize(next));
+      setEditing(null);
+      setImageField(null);
+      setPageState("selected");
+      router.replace(`/cms/projects/${id}?view=selected`, { scroll: false });
+    } catch {
+      setError("Network error while switching project");
+    } finally {
+      setSwitchingId(null);
+    }
+  }
 
   useEffect(() => {
     setPageState(parseEditorPage(initialPage));
@@ -294,9 +335,10 @@ export function ProjectDetailEditor({
     }
   }
 
-  function applyMedia(url: string, meta?: { kind: "image" | "video" }) {
+  function applyMedia(url: string, meta?: { kind: "image" | "video"; objectPosition?: string }) {
     if (!imageField) return;
     const kind = meta?.kind ?? "image";
+    const objectPosition = meta?.objectPosition;
 
     if (imageField === "heroMedia") {
       if (!url) {
@@ -310,6 +352,7 @@ export function ProjectDetailEditor({
         poster: draft.media?.poster,
         colorSrc: url,
         bwSrc: draft.media?.bwSrc || url,
+        objectPosition: objectPosition || draft.media?.objectPosition,
       });
       if (kind === "image") {
         patch("coverImage", url);
@@ -326,6 +369,7 @@ export function ProjectDetailEditor({
         poster: url || undefined,
         colorSrc: draft.media?.colorSrc,
         bwSrc: draft.media?.bwSrc,
+        objectPosition: draft.media?.objectPosition,
       });
       return;
     }
@@ -538,6 +582,8 @@ export function ProjectDetailEditor({
                 setEditing(field);
                 setImageField(field);
               }}
+              onSwitchProject={(id) => void switchToProject(id)}
+              switchingId={switchingId}
             />
           )}
         </div>
@@ -598,7 +644,7 @@ export function ProjectDetailEditor({
               <i />
             </button>
             <p className="cms-rail-hint">
-              Featured + Selected visibility = shows in homepage Selected Projects.
+              Featured + Published + Public = shows in homepage Selected Projects.
             </p>
           </div>
 
@@ -894,6 +940,7 @@ export function ProjectDetailEditor({
           }
           accept={pickerAccept}
           value={pickerValue}
+          objectPosition={draft.media?.objectPosition}
           onChange={applyMedia}
           onClose={() => {
             setImageField(null);

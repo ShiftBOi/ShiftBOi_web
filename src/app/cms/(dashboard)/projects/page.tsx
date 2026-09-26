@@ -28,8 +28,11 @@ export default async function CmsProjectsPage({ searchParams }: Props) {
   ]);
 
   const stats = counts[0] ?? { total: 0, published: 0, featured: 0 };
+  // Same criteria as public homepage Selected grid
   const featured = projects
-    .filter((p) => p.featured)
+    .filter(
+      (p) => p.featured && p.published && p.visibility === "PUBLIC",
+    )
     .sort(
       (a, b) =>
         a.sortOrder - b.sortOrder ||

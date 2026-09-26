@@ -49,6 +49,9 @@ type Props = {
   onChange: <K extends keyof ProjectDraft>(key: K, value: ProjectDraft[K]) => void;
   onDone: () => void;
   onPickImage: (field: "coverImage" | "introSrc" | "heroMedia" | "heroPoster") => void;
+  /** Switch active editor project without full page reload */
+  onSwitchProject?: (id: string) => void;
+  switchingId?: string | null;
 };
 
 function isVideoSrc(src: string) {
@@ -142,6 +145,7 @@ function CellMedia({
       ? mediaSrc
       : null;
   const show = video || image || mediaSrc;
+  const objectPosition = media?.objectPosition || "50% 50%";
   const { rootRef, hot, setHot, pos, onMove } = useFollowCursor();
 
   const body = (
@@ -151,6 +155,7 @@ function CellMedia({
           className="cms-selected-visual-asset"
           src={video}
           poster={poster || undefined}
+          style={{ objectPosition }}
           autoPlay
           loop
           muted
@@ -164,6 +169,7 @@ function CellMedia({
           alt=""
           fill
           className="cms-selected-visual-asset object-cover"
+          style={{ objectPosition }}
           sizes="(max-width: 900px) 100vw, 50vw"
           unoptimized={(image || mediaSrc || "").startsWith("http")}
         />
@@ -226,6 +232,8 @@ export function ProjectSelectedPreview({
   onChange,
   onDone,
   onPickImage,
+  onSwitchProject,
+  switchingId = null,
 }: Props) {
   const router = useRouter();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -651,14 +659,32 @@ export function ProjectSelectedPreview({
                 return (
                   <article
                     key={peer.id}
-                    className={`cms-selected-cell is-peer${isDragging ? " is-dragging" : ""}${isOver ? " is-drop-target" : ""}`}
+                    className={`cms-selected-cell is-peer${isDragging ? " is-dragging" : ""}${isOver ? " is-drop-target" : ""}${switchingId === peer.id ? " is-switching" : ""}`}
                     {...dropProps}
+                    onClick={(e) => {
+                      // Don't steal clicks from drag handle / action buttons
+                      if ((e.target as HTMLElement).closest("button, a, [draggable='true']")) {
+                        return;
+                      }
+                      if (onSwitchProject && peer.id !== draft.id) {
+                        onSwitchProject(peer.id);
+                      }
+                    }}
+                    style={
+                      onSwitchProject && peer.id !== draft.id
+                        ? { cursor: "pointer" }
+                        : undefined
+                    }
                   >
                     <div className="cms-selected-peer-actions">
                       {dragHandle}
                       <SelectedCardActionIcons
-                        editHref={`/cms/projects/${peer.id}?view=selected`}
-                        removeDisabled={busyId === peer.id}
+                        editLabel="Switch to this project"
+                        editDisabled={switchingId === peer.id}
+                        removeDisabled={busyId === peer.id || switchingId === peer.id}
+                        onEdit={() => {
+                          if (onSwitchProject) onSwitchProject(peer.id);
+                        }}
                         onRemove={() => void removeFromGrid(peer.id)}
                       />
                     </div>

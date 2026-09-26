@@ -33,7 +33,7 @@ export default async function CmsProjectDetailPage({ params, searchParams }: Pro
   const [project, featuredPeers, pickerItems] = await Promise.all([
     prisma.project.findUnique({ where: { id } }),
     prisma.project.findMany({
-      where: { featured: true },
+      where: { featured: true, published: true, visibility: "PUBLIC" },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     }),
     prisma.project.findMany({

@@ -39,6 +39,8 @@ export type ProjectMedia = {
   poster?: string;
   colorSrc?: string;
   bwSrc?: string;
+  /** CSS object-position / background-position, e.g. "35% 50%" */
+  objectPosition?: string;
 };
 
 /** Shared split media+copy box — identical pattern site-wide */
@@ -110,6 +112,7 @@ export function asMedia(value: unknown): ProjectMedia | null {
     poster: row.poster ? String(row.poster) : undefined,
     colorSrc: row.colorSrc ? String(row.colorSrc) : undefined,
     bwSrc: row.bwSrc ? String(row.bwSrc) : undefined,
+    objectPosition: row.objectPosition ? String(row.objectPosition) : undefined,
   };
 }
 

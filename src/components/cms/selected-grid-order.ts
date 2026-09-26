@@ -27,13 +27,21 @@ export function moveItemToIndex<T extends { id: string }>(
 }
 
 export async function persistFeaturedOrder(ids: string[]) {
-  await Promise.all(
-    ids.map((id, index) =>
-      fetch(`/api/cms/projects/${encodeURIComponent(id)}`, {
+  const results = await Promise.all(
+    ids.map(async (id, index) => {
+      const res = await fetch(`/api/cms/projects/${encodeURIComponent(id)}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sortOrder: index }),
-      }),
-    ),
+      });
+      if (!res.ok) {
+        const body = (await res.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(body?.error || `Failed to save order for ${id}`);
+      }
+      return true;
+    }),
   );
+  return results;
 }

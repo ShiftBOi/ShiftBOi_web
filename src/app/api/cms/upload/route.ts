@@ -53,6 +53,18 @@ export async function POST(request: NextRequest) {
   };
 
   try {
+    if (!isR2Configured()) {
+      const onVercel = Boolean(process.env.VERCEL);
+      if (onVercel || process.env.NODE_ENV === "production") {
+        return NextResponse.json(
+          {
+            error:
+              "Cloudflare R2 is not configured. Set R2_* env vars before uploading in production.",
+          },
+          { status: 503 },
+        );
+      }
+    }
     const result = isR2Configured()
       ? await uploadFileToR2(file, opts)
       : await uploadFileLocal(file, opts);

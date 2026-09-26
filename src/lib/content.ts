@@ -126,6 +126,7 @@ export function mapProjectToPortfolio(row: Project): PortfolioProject {
           poster: media.poster,
           colorSrc: media.colorSrc,
           bwSrc: media.bwSrc,
+          objectPosition: media.objectPosition,
         }
       : undefined,
     bands,
@@ -195,6 +196,17 @@ export async function getFeaturedProjects(take = 24) {
     where: { published: true, featured: true, visibility: "PUBLIC" },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     take,
+  });
+}
+
+export async function getPublishedProjectBySlug(slug: string) {
+  return prisma.project.findFirst({
+    where: { slug, published: true },
+    select: {
+      slug: true,
+      title: true,
+      summary: true,
+    },
   });
 }
 

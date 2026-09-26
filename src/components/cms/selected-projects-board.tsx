@@ -112,6 +112,7 @@ function CellMedia({
       ? mediaSrc
       : null;
   const show = video || image || mediaSrc;
+  const objectPosition = media?.objectPosition || "50% 50%";
   const { rootRef, hot, setHot, pos, onMove } = useFollowCursor();
 
   return (
@@ -133,6 +134,7 @@ function CellMedia({
           className="cms-selected-visual-asset"
           src={video}
           poster={poster || undefined}
+          style={{ objectPosition }}
           autoPlay
           loop
           muted
@@ -146,6 +148,7 @@ function CellMedia({
           alt=""
           fill
           className="cms-selected-visual-asset object-cover"
+          style={{ objectPosition }}
           sizes="(max-width: 900px) 100vw, 50vw"
           unoptimized={(image || mediaSrc || "").startsWith("http")}
         />
@@ -197,14 +200,32 @@ export function SelectedProjectsBoard({
   const draggingIdRef = useRef<string | null>(null);
 
   const featuredKey = featured.map((f) => `${f.id}:${f.sortOrder}`).join("|");
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
 
   useEffect(() => {
-    router.refresh();
-  }, [router]);
-
-  useEffect(() => {
-    setItems(featured);
-    setDirty({});
+    const currentDirty = dirtyRef.current;
+    const hasDirty = Object.values(currentDirty).some(Boolean);
+    if (!hasDirty) {
+      setItems(featured);
+      setDirty({});
+      return;
+    }
+    // Keep dirty local edits; refresh only clean cards from server
+    setItems((prev) => {
+      const byId = new Map(featured.map((f) => [f.id, f]));
+      const merged = prev.map((item) =>
+        currentDirty[item.id] ? item : byId.get(item.id) ?? item,
+      );
+      const prevIds = new Set(prev.map((p) => p.id));
+      for (const f of featured) {
+        if (!prevIds.has(f.id)) merged.push(f);
+      }
+      const featuredIds = new Set(featured.map((f) => f.id));
+      return merged
+        .filter((p) => featuredIds.has(p.id) || currentDirty[p.id])
+        .sort((a, b) => a.sortOrder - b.sortOrder);
+    });
   }, [featuredKey, featured]);
 
   const rows = Math.max(1, Math.ceil((items.length + 1) / 2));
@@ -305,16 +326,12 @@ export function SelectedProjectsBoard({
     ];
     order.splice(slotIndex, 0, projectId);
 
-    await Promise.all(
-      order.map((id, i) =>
-        fetch(`/api/cms/projects/${encodeURIComponent(id)}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sortOrder: i, featured: true }),
-        }).catch(() => null),
-      ),
-    );
-    router.refresh();
+    try {
+      await persistFeaturedOrder(order);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save order");
+    }
   }
 
   async function removeFromGrid(id: string) {
@@ -330,15 +347,16 @@ export function SelectedProjectsBoard({
   }
 
   async function commitOrder(next: SelectedGridPeer[]) {
+    const previous = items;
     const withOrder = next.map((p, i) => ({ ...p, sortOrder: i }));
     setItems(withOrder);
     setError(null);
     try {
       await persistFeaturedOrder(withOrder.map((p) => p.id));
       router.refresh();
-    } catch {
-      setError("Could not save order");
-      setItems(featured);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not save order");
+      setItems(previous);
     }
   }
 
@@ -356,14 +374,26 @@ export function SelectedProjectsBoard({
     void commitOrder(next);
   }
 
-  function applyMedia(url: string, meta?: { kind?: "image" | "video" }) {
+  function applyMedia(url: string, meta?: { kind?: "image" | "video"; objectPosition?: string }) {
     if (!mediaTarget) return;
     const { id, field } = mediaTarget;
     const item = items.find((p) => p.id === id);
     if (!item) return;
+    const objectPosition = meta?.objectPosition;
 
     if (field === "coverImage") {
-      patchLocal(id, { coverImage: url || null });
+      patchLocal(id, {
+        coverImage: url || null,
+        media: item.media
+          ? { ...item.media, objectPosition: objectPosition || item.media.objectPosition }
+          : url
+            ? {
+                type: "image" as const,
+                src: url,
+                objectPosition,
+              }
+            : null,
+      });
     } else if (field === "introSrc") {
       patchLocal(id, { introSrc: url || null });
     } else {
@@ -378,6 +408,7 @@ export function SelectedProjectsBoard({
           src: url,
           poster: item.media?.poster || item.coverImage || item.introSrc || undefined,
           colorSrc: kind === "video" ? url : item.media?.colorSrc,
+          objectPosition: objectPosition || item.media?.objectPosition,
         };
         patchLocal(id, {
           media: next,
@@ -571,8 +602,21 @@ export function SelectedProjectsBoard({
                         <SelectedDragHandle />
                       </span>
                       <SelectedCardActionIcons
-                        editHref={`/cms/projects/${item.id}?view=selected`}
+                        editLabel="Edit this card"
                         removeDisabled={busyId === item.id}
+                        onEdit={() => {
+                          setEditing(`${item.id}:title`);
+                          requestAnimationFrame(() => {
+                            document
+                              .querySelector<HTMLElement>(
+                                `[data-field="${item.id}:title"]`,
+                              )
+                              ?.scrollIntoView({
+                                behavior: "smooth",
+                                block: "nearest",
+                              });
+                          });
+                        }}
                         onRemove={() => void removeFromGrid(item.id)}
                       />
                     </div>
@@ -697,6 +741,7 @@ export function SelectedProjectsBoard({
           }
           accept={mediaTarget.field === "heroMedia" ? "media" : "image"}
           value={pickerValue}
+          objectPosition={pickerItem?.media?.objectPosition}
           onChange={applyMedia}
           onClose={() => setMediaTarget(null)}
         />

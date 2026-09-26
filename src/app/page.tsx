@@ -5,15 +5,17 @@ import { SmoothScroll } from "@/components/web/smooth-scroll";
 import { SiteShell } from "@/components/web/site-shell";
 import {
   getFeaturedProjects,
+  getPublishedProjectBySlug,
   getSiteContent,
 } from "@/lib/content";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [projects, site] = await Promise.all([
+  const [projects, site, artillery] = await Promise.all([
     getFeaturedProjects(24),
     getSiteContent(),
+    getPublishedProjectBySlug("artillery-fdc"),
   ]);
 
   return (
@@ -26,7 +28,7 @@ export default async function HomePage() {
             <IconVelocityMarquee />
           </div>
 
-          <SiteBody projects={projects} site={site} />
+          <SiteBody projects={projects} site={site} spotlight={artillery} />
         </main>
       </SiteShell>
     </SmoothScroll>

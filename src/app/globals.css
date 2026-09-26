@@ -1101,16 +1101,6 @@ a.site-nav-link:focus-visible::after {
   border-right: 1px solid rgba(255, 255, 255, 0.35);
 }
 
-.site-footer-row-inner-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  min-height: 48px;
-  padding-block: 10px;
-  padding-inline: clamp(16px, 3vw, 40px);
-  box-sizing: border-box;
-}
 
 .site-footer-row-inner-body {
   display: grid;
@@ -1139,14 +1129,6 @@ a.site-nav-link:focus-visible::after {
   color: rgba(255, 255, 255, 0.62);
 }
 
-.site-footer-locale {
-  margin: 0;
-  flex-shrink: 0;
-  font-family: var(--font-family-primary);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.45);
-}
 
 .site-footer-brand {
   display: flex;
@@ -1181,32 +1163,8 @@ a.site-nav-link:focus-visible::after {
   color: rgba(255, 255, 255, 0.85);
 }
 
-.site-footer-socials {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  align-self: center;
-  justify-content: flex-end;
-  gap: 14px 20px;
-  margin-block: 0;
-}
 
-.site-footer-social {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: rgba(255, 255, 255, 0.85);
-  font-family: var(--font-family-pixel);
-  font-size: 11px;
-  text-decoration: none;
-  letter-spacing: -0.01em;
-  transition: color 160ms ease;
-}
 
-.site-footer-social:hover,
-.site-footer-social:focus-visible {
-  color: var(--color-hydra-accent);
-}
 
 .site-footer-nav {
   display: grid;
@@ -1275,62 +1233,10 @@ a.site-nav-link:focus-visible::after {
   box-sizing: border-box;
 }
 
-.site-footer-media-socials {
-  position: relative;
-  z-index: 5;
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  width: 100%;
-  height: 48px;
-  min-height: 48px;
-  padding: 0 12px;
-  box-sizing: border-box;
-  background: #000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-  overflow: visible;
-}
 
-.site-footer-media-rule {
-  flex: 1 1 0;
-  height: 1px;
-  min-width: 10px;
-  background: rgba(255, 255, 255, 0.35);
-  align-self: center;
-}
 
-.site-footer-media-socials-inner {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  justify-content: center;
-  gap: 14px;
-  flex: 0 0 auto;
-  padding: 0 8px;
-  background: #000;
-  overflow: visible;
-}
 
-.site-footer-media-socials .site-footer-social {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: auto;
-  min-height: 16px;
-  padding: 2px 0;
-  line-height: 1.2;
-  white-space: nowrap;
-  pointer-events: auto;
-  overflow: visible;
-}
 
-.site-footer-media-socials .site-footer-social svg {
-  flex-shrink: 0;
-  display: block;
-  overflow: visible;
-}
 
 .site-footer-media-stage {
   position: relative;
@@ -1361,34 +1267,9 @@ a.site-nav-link:focus-visible::after {
   margin: 0;
 }
 
-.site-footer-copy {
-  position: relative;
-  z-index: 5;
-  margin: 0;
-  flex-shrink: 0;
-  height: 36px;
-  min-height: 36px;
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  box-sizing: border-box;
-  font-family: var(--font-family-pixel);
-  font-size: 11px;
-  line-height: 1.2;
-  color: rgba(255, 255, 255, 0.55);
-  background: #000;
-  border-top: 1px solid rgba(255, 255, 255, 0.35);
-}
 
 @media (max-width: 1100px) {
-  .site-footer-row-inner-top {
-    flex-direction: column;
-    align-items: flex-start;
-  }
 
-  .site-footer-socials {
-    justify-content: flex-start;
-  }
 
   .site-footer-row-inner-body {
     grid-template-columns: 1fr;
@@ -3234,22 +3115,7 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   flex-shrink: 0;
 }
 
-.site-chat-human {
-  padding: 5px 10px;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  border-radius: 8px;
-  background: transparent;
-  color: #fff;
-  font-size: 12px;
-  line-height: 1.2;
-  cursor: pointer;
-  white-space: nowrap;
-}
 
-.site-chat-human:hover {
-  border-color: #fff;
-  background: rgba(255, 255, 255, 0.06);
-}
 
 .site-chat-card-x {
   width: 28px;
@@ -3440,9 +3306,6 @@ a.hydra-feature-cell.is-project-link:focus-visible {
     bottom: 14px;
   }
 
-  .site-chat-human {
-    display: none;
-  }
 
   .site-chat-card {
     height: min(480px, calc(100dvh - 90px));
