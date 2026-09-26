@@ -83,18 +83,27 @@ function relativeTime(iso: string) {
 function SparkBars({
   values,
 }: {
-  values: Array<{ pageViews: number }>;
+  values: Array<{ day: string; pageViews: number }>;
 }) {
   const max = Math.max(1, ...values.map((v) => v.pageViews));
   return (
     <div className="cms-dash-spark" aria-hidden>
-      {values.map((v, i) => (
-        <span
-          key={i}
-          className="cms-dash-spark-bar"
-          style={{ height: `${Math.max(8, (v.pageViews / max) * 100)}%` }}
-        />
-      ))}
+      {values.map((v) => {
+        const weekday = new Date(`${v.day}T12:00:00Z`).toLocaleDateString(
+          undefined,
+          { weekday: "narrow", timeZone: "UTC" },
+        );
+        return (
+          <span key={v.day} className="cms-dash-spark-col">
+            <span
+              className="cms-dash-spark-bar"
+              style={{ height: `${Math.max(10, (v.pageViews / max) * 100)}%` }}
+              title={`${v.day}: ${v.pageViews}`}
+            />
+            <span className="cms-dash-spark-label">{weekday}</span>
+          </span>
+        );
+      })}
     </div>
   );
 }
@@ -127,28 +136,28 @@ export function CmsDashboard() {
   const content = status?.content;
   const traffic = status?.traffic;
   const weekViews = traffic?.last7.reduce((a, d) => a + d.pageViews, 0) ?? 0;
+  const weekVisitors =
+    traffic?.last7.reduce((a, d) => a + d.visitors, 0) ?? 0;
+  const peakDay =
+    traffic && traffic.last7.length > 0
+      ? traffic.last7.reduce((best, d) =>
+          d.pageViews > best.pageViews ? d : best,
+        )
+      : undefined;
+  const avgDayViews = traffic ? Math.round(weekViews / 7) : 0;
+  const viewsPerVisitor =
+    weekVisitors > 0 ? (weekViews / weekVisitors).toFixed(1) : "—";
+  const peakLabel = peakDay?.day
+    ? new Date(`${peakDay.day}T12:00:00Z`).toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        timeZone: "UTC",
+      })
+    : "—";
 
   return (
     <div className="cms-dash">
-      <section className="cms-dash-metrics" aria-label="Content snapshot">
-        {[
-          { label: "Published", value: content?.published, href: "/cms/projects" },
-          { label: "Drafts", value: content?.drafts, href: "/cms/projects" },
-          { label: "Featured", value: content?.featured, href: "/cms/projects" },
-          { label: "Confidential", value: content?.confidential, href: "/cms/projects" },
-        ].map((m) => (
-          <Link key={m.label} href={m.href} className="cms-dash-metric">
-            <p className="cms-dash-metric-label">{m.label}</p>
-            <p className="cms-dash-metric-value">
-              {loading && !content ? "—" : (m.value ?? 0)}
-            </p>
-            <p className="cms-dash-metric-meta">
-              {content ? `${content.total} total` : "Loading…"}
-            </p>
-          </Link>
-        ))}
-      </section>
-
       <div className="cms-dash-grid">
         <section className="cms-dash-panel">
           <div className="cms-dash-panel-head">
@@ -233,6 +242,8 @@ export function CmsDashboard() {
             ) : null}
           </div>
 
+          {traffic?.last7 ? <SparkBars values={traffic.last7} /> : null}
+
           <div className="cms-dash-traffic">
             <div className="cms-dash-traffic-stat">
               <p className="cms-dash-metric-label">Today</p>
@@ -248,15 +259,60 @@ export function CmsDashboard() {
               <p className="cms-dash-metric-value cms-dash-metric-value-sm">
                 {loading && !traffic ? "—" : weekViews}
               </p>
-              <p className="cms-dash-metric-meta">page views</p>
+              <p className="cms-dash-metric-meta">{weekVisitors} visitors</p>
             </div>
-            {traffic?.last7 ? <SparkBars values={traffic.last7} /> : null}
+            <div className="cms-dash-traffic-stat">
+              <p className="cms-dash-metric-label">All-time</p>
+              <p className="cms-dash-metric-value cms-dash-metric-value-sm">
+                {traffic?.totalViews ?? (loading ? "—" : 0)}
+              </p>
+              <p className="cms-dash-metric-meta">
+                {traffic?.totalVisitors ?? 0} visitors
+              </p>
+            </div>
           </div>
 
-          <p className="cms-dash-traffic-foot">
-            All-time · {traffic?.totalViews ?? 0} views · {traffic?.totalVisitors ?? 0}{" "}
-            visitors
-          </p>
+          <ul className="cms-dash-traffic-days">
+            {(traffic?.last7 ?? []).map((d) => {
+              const label = new Date(`${d.day}T12:00:00Z`).toLocaleDateString(
+                undefined,
+                { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" },
+              );
+              const isPeak = peakDay && d.day === peakDay.day && peakDay.pageViews > 0;
+              return (
+                <li key={d.day} className={isPeak ? "is-peak" : undefined}>
+                  <span className="cms-dash-traffic-day-name">{label}</span>
+                  <span className="cms-dash-traffic-day-meta">
+                    {d.visitors} visitors
+                  </span>
+                  <strong>{d.pageViews}</strong>
+                </li>
+              );
+            })}
+            {!traffic && loading ? (
+              <li className="cms-dash-empty">Loading traffic…</li>
+            ) : null}
+          </ul>
+
+          <div className="cms-dash-traffic-insights">
+            <div>
+              <p className="cms-dash-metric-label">Peak day</p>
+              <p className="cms-dash-traffic-insight-value">
+                {peakLabel}
+                {peakDay && peakDay.pageViews > 0 ? (
+                  <span> · {peakDay.pageViews} views</span>
+                ) : null}
+              </p>
+            </div>
+            <div>
+              <p className="cms-dash-metric-label">Avg / day</p>
+              <p className="cms-dash-traffic-insight-value">{avgDayViews} views</p>
+            </div>
+            <div>
+              <p className="cms-dash-metric-label">Views / visitor</p>
+              <p className="cms-dash-traffic-insight-value">{viewsPerVisitor}</p>
+            </div>
+          </div>
         </section>
       </div>
 
@@ -286,52 +342,50 @@ export function CmsDashboard() {
 
         {error ? <p className="cms-dash-error">{error}</p> : null}
 
-        <div className="cms-status-list">
+        <ul className="cms-sys-list">
           {(status?.services ?? []).map((service) => {
             const isDb = service.id === "database";
             const open = isDb && dbOpen;
-            const body = (
+            const row = (
               <>
-                <div className="cms-status-left">
-                  <StatusDot status={service.status} />
-                  <div>
-                    <p className="cms-status-name">
-                      {service.name}
-                      {isDb ? (
-                        <span className="cms-status-hint">
-                          {open ? "Hide" : "View tables"}
-                        </span>
-                      ) : null}
-                    </p>
-                    <p className="cms-status-desc">{service.description}</p>
-                  </div>
-                </div>
-                <div className="cms-status-right">
+                <StatusDot status={service.status} />
+                <span className="cms-sys-main">
+                  <span className="cms-sys-name">
+                    {service.name}
+                    {isDb ? (
+                      <span className="cms-sys-hint">{open ? "Hide" : "Tables"}</span>
+                    ) : null}
+                  </span>
+                  <span className="cms-sys-desc">{service.description}</span>
+                </span>
+                <span className="cms-sys-meta">
                   {service.ping > 0 ? (
-                    <span className="cms-status-ping-ms">{service.ping}ms</span>
-                  ) : null}
-                  <span className={`cms-status-label is-${service.status}`}>
+                    <span className="cms-sys-ping">{service.ping}ms</span>
+                  ) : (
+                    <span className="cms-sys-ping is-empty">—</span>
+                  )}
+                  <span className={`cms-sys-state is-${service.status}`}>
                     {service.status}
                   </span>
-                </div>
+                </span>
               </>
             );
             return (
-              <div
+              <li
                 key={service.id}
-                className={`cms-status-block${open ? " is-expanded" : ""}`}
+                className={`cms-sys-item${open ? " is-expanded" : ""}`}
               >
                 {isDb ? (
                   <button
                     type="button"
-                    className={`cms-status-card is-clickable${open ? " is-open" : ""}`}
+                    className={`cms-sys-row is-clickable${open ? " is-open" : ""}`}
                     onClick={() => setDbOpen((v) => !v)}
                     aria-expanded={open}
                   >
-                    {body}
+                    {row}
                   </button>
                 ) : (
-                  <div className="cms-status-card">{body}</div>
+                  <div className="cms-sys-row">{row}</div>
                 )}
 
                 {isDb && open ? (
@@ -348,14 +402,14 @@ export function CmsDashboard() {
                     </ul>
                   </div>
                 ) : null}
-              </div>
+              </li>
             );
           })}
 
           {!status && loading ? (
-            <p className="cms-dash-loading">Checking services…</p>
+            <li className="cms-dash-loading">Checking services…</li>
           ) : null}
-        </div>
+        </ul>
 
         {status?.ai ? (
           <div className="cms-ai-chip">

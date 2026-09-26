@@ -4,7 +4,7 @@ import { SiteBody } from "@/components/web/site-body";
 import { SmoothScroll } from "@/components/web/smooth-scroll";
 import { SiteShell } from "@/components/web/site-shell";
 import {
-  getPublishedProjects,
+  getFeaturedProjects,
   getSiteContent,
 } from "@/lib/content";
 
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const [projects, site] = await Promise.all([
-    getPublishedProjects(12),
+    getFeaturedProjects(4),
     getSiteContent(),
   ]);
 

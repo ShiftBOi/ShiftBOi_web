@@ -2,8 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 export type CmsProjectCardData = {
   id: string;
@@ -23,41 +21,44 @@ export function CmsProjectCard({ project }: { project: CmsProjectCardData }) {
   const image = project.coverImage || project.introSrc;
 
   return (
-    <article className="cms-pcard">
-      <Link href={`/cms/projects/${project.id}`} className="cms-pcard-hit">
-        <div className="cms-pcard-media">
+    <li className="cms-plist-item">
+      <Link href={`/cms/projects/${project.id}`} className="cms-plist-row">
+        <span className="cms-plist-thumb" aria-hidden>
           {image ? (
             <Image
               src={image}
               alt=""
               fill
-              className="object-cover"
-              sizes="(max-width:900px) 100vw, 320px"
+              className="cms-plist-thumb-img"
+              sizes="(max-width: 900px) 160px, 220px"
+              quality={92}
               unoptimized={image.startsWith("http")}
             />
-          ) : (
-            <div className="cms-pcard-fallback" aria-hidden />
-          )}
-        </div>
-        <div className="cms-pcard-body">
-          <div className="cms-pcard-badges">
-            {project.published ? (
-              <span className="cms-badge is-on">Published</span>
-            ) : (
-              <span className="cms-badge">Draft</span>
-            )}
-            {project.featured ? <span className="cms-badge is-accent">Featured</span> : null}
-            <span className="cms-badge">
-              {project.visibility === "PUBLIC" ? "Selected" : "Limited"}
+          ) : null}
+        </span>
+
+        <span className="cms-plist-copy">
+          <span className="cms-plist-title-row">
+            <span className="cms-plist-title">{project.title}</span>
+            <span className="cms-plist-flags">
+              <span className={`cms-dash-flag is-${project.published ? "live" : "draft"}`}>
+                {project.published ? "Live" : "Draft"}
+              </span>
+              {project.featured ? <span className="cms-dash-flag">Featured</span> : null}
+              {project.visibility === "CONFIDENTIAL" ? (
+                <span className="cms-dash-flag is-soft">Private</span>
+              ) : (
+                <span className="cms-dash-flag is-soft">Selected</span>
+              )}
             </span>
-          </div>
-          <h3 className="cms-pcard-title">{project.title}</h3>
-          <p className="cms-pcard-summary">{project.summary}</p>
-          <p className="cms-pcard-meta">
+          </span>
+          <span className="cms-plist-summary">{project.summary}</span>
+          <span className="cms-plist-meta">
             {project.year ?? "—"} · /{project.slug}
-          </p>
-        </div>
-        <span className="cms-pcard-open" aria-hidden>
+          </span>
+        </span>
+
+        <span className="cms-plist-chevron" aria-hidden>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
             <path
               d="M9 6l6 6-6 6"
@@ -69,6 +70,6 @@ export function CmsProjectCard({ project }: { project: CmsProjectCardData }) {
           </svg>
         </span>
       </Link>
-    </article>
+    </li>
   );
 }

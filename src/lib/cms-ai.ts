@@ -1,6 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { google } from "@ai-sdk/google";
-import { groq } from "@ai-sdk/groq";
+import { createGroq } from "@ai-sdk/groq";
 import { cosineSimilarity, embed, embedMany, tool, type LanguageModel } from "ai";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -8,6 +8,12 @@ import { slugify } from "@/lib/project-draft";
 
 export function usesGroq() {
   return Boolean(process.env.GROQ_API_KEY?.trim());
+}
+
+export function usesSiteGroq() {
+  return Boolean(
+    process.env.GROQ_SITE_API_KEY?.trim() || process.env.GROQ_API_KEY?.trim(),
+  );
 }
 
 /** CMS chat always has a provider path: Groq when keyed, else local Ollama. */
@@ -46,10 +52,27 @@ function getOllamaChatModel() {
   return ollama.chatModel(process.env.OLLAMA_MODEL ?? "llama3.2");
 }
 
-/** Prefer Groq when keyed; fall back to local Ollama like the public site chat. */
+/** Prefer Groq when keyed; fall back to local Ollama (CMS chat). */
 export function getCmsChatModel(): LanguageModel {
-  if (usesGroq()) {
-    return groq(process.env.GROQ_CMS_MODEL || "openai/gpt-oss-120b");
+  const apiKey = process.env.GROQ_API_KEY?.trim();
+  if (apiKey) {
+    const groq = createGroq({ apiKey });
+    return groq(process.env.GROQ_CMS_MODEL?.trim() || "openai/gpt-oss-120b");
+  }
+  return getOllamaChatModel();
+}
+
+/** Public site chat — separate Groq key/model when set, else CMS Groq, else Ollama. */
+export function getSiteChatModel(): LanguageModel {
+  const apiKey =
+    process.env.GROQ_SITE_API_KEY?.trim() || process.env.GROQ_API_KEY?.trim();
+  if (apiKey) {
+    const groq = createGroq({ apiKey });
+    const model =
+      process.env.GROQ_SITE_MODEL?.trim() ||
+      process.env.GROQ_CMS_MODEL?.trim() ||
+      "openai/gpt-oss-120b";
+    return groq(model);
   }
   return getOllamaChatModel();
 }

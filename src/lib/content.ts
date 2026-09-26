@@ -189,9 +189,10 @@ export async function getPublishedProjects(take = 12) {
   });
 }
 
+/** Homepage Selected Projects grid (featured + public detail pages). */
 export async function getFeaturedProjects(take = 4) {
   return prisma.project.findMany({
-    where: { published: true, featured: true },
+    where: { published: true, featured: true, visibility: "PUBLIC" },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     take,
   });

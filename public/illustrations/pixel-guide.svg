@@ -1,0 +1,110 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 400" fill="none">
+  <title>Byte — the ShiftBOi pixel guide</title>
+  <desc>An editable pixel robot materialising above a violet portal. Named groups separate the portal, character, platform and particles.</desc>
+  <style>
+    /* EDIT PALETTE HERE. Every piece uses these shared colours. */
+    svg { --violet:#8b5cf6; --light:#c4b5fd; --white:#f5f0ff; --deep:#4c2584; --ink:#140c25; }
+    .float { animation:float 3.6s ease-in-out infinite; }
+    .portal { transform-origin:240px 176px; animation:portal 2.8s ease-in-out infinite; }
+    .eye { transform-box:fill-box; transform-origin:center; animation:blink 4.8s step-end infinite; }
+    .wave { transform-origin:299px 213px; animation:wave 3.6s ease-in-out infinite; }
+    .particle { animation:particle 3.2s ease-in-out infinite; }
+    .p2 { animation-delay:-1.2s; } .p3 { animation-delay:-2.3s; }
+    .shadow { transform-origin:240px 312px; animation:shadow 3.6s ease-in-out infinite; }
+    .arrival { animation:arrival .8s cubic-bezier(.16,1,.3,1) both; }
+    @keyframes float { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-12px); } }
+    @keyframes portal { 0%,100% { opacity:.55; } 50% { opacity:1; } }
+    @keyframes blink { 0%,43%,47%,100% { transform:scaleY(1); } 44%,46% { transform:scaleY(.15); } }
+    @keyframes wave { 0%,25%,65%,100% { transform:rotate(0deg); } 35%,55% { transform:rotate(-12deg); } 45% { transform:rotate(5deg); } }
+    @keyframes particle { 0%,100% { transform:translateY(4px); opacity:.4; } 50% { transform:translateY(-10px); opacity:1; } }
+    @keyframes shadow { 0%,100% { transform:scaleX(1); opacity:.5; } 50% { transform:scaleX(.75); opacity:.25; } }
+    @keyframes arrival { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+    @media (prefers-reduced-motion:reduce) { .float,.portal,.eye,.wave,.particle,.shadow,.arrival { animation:none; } }
+  </style>
+  <defs>
+    <radialGradient id="portal-halo"><stop stop-color="#7c3aed" stop-opacity=".2"/><stop offset="1" stop-color="#7c3aed" stop-opacity="0"/></radialGradient>
+    <linearGradient id="beam" x1="240" y1="178" x2="240" y2="322" gradientUnits="userSpaceOnUse"><stop stop-color="#8b5cf6" stop-opacity="0"/><stop offset="1" stop-color="#8b5cf6" stop-opacity=".13"/></linearGradient>
+    <pattern id="dots" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="2" height="2" fill="#8b5cf6" opacity=".18"/></pattern>
+  </defs>
+  <ellipse cx="240" cy="203" rx="215" ry="185" fill="url(#portal-halo)"/>
+  <!-- PORTAL: stepped rings, intentionally built on an 8px grid. -->
+  <g id="portal" class="portal">
+    <path d="M184 48H296V64H328V96H344V240H328V272H296V288H184V272H152V240H136V96H152V64H184Z" stroke="#8b5cf6" stroke-opacity=".18" stroke-width="2"/>
+    <path d="M184 64H296V80H312V96H328V240H312V256H296V272H184V256H168V240H152V96H168V80H184Z" fill="url(#dots)" stroke="#8b5cf6" stroke-opacity=".26" stroke-width="2"/>
+    <path d="M152 144V96H168V80H184V64H232M280 272H296V256H312V240H328V208" stroke="var(--violet)" stroke-width="4"/>
+    <rect x="148" y="144" width="8" height="8" fill="var(--light)"/>
+    <rect x="324" y="196" width="8" height="8" fill="var(--light)"/>
+    <path d="M228 48H252M240 36V60" stroke="#8b5cf6" stroke-opacity=".55" stroke-width="2"/>
+  </g>
+  <!-- PLATFORM: separate top, front-left and front-right faces. -->
+  <g id="platform">
+    <path d="M112 312L240 264L368 312V324L240 372L112 324Z" fill="#100a1d"/>
+    <path d="M112 312L240 360V372L112 324Z" fill="#25143e"/>
+    <path d="M240 360L368 312V324L240 372Z" fill="#1b1030"/>
+    <path d="M112 312L240 264L368 312L240 360Z" fill="#190e2a" stroke="#6940a0"/>
+    <path d="M140 312L240 275L340 312L240 349Z" stroke="#8b5cf6" stroke-opacity=".4"/>
+    <path d="M180 288L308 336M140 303L268 351M212 276L340 324M300 288L172 336M340 303L212 351M268 276L140 324" stroke="#8b5cf6" stroke-opacity=".1"/>
+    <path d="M112 312L168 333M312 333L368 312" stroke="var(--light)" stroke-width="2"/>
+    <path d="M216 367H224V372H216ZM232 373H240V378H232ZM248 367H256V372H248Z" fill="var(--violet)" opacity=".7"/>
+    <path class="shadow" d="M184 311L240 291L296 311L240 332Z" fill="var(--violet)"/>
+  </g>
+  <path d="M199 220H281L312 313L240 340L168 313Z" fill="url(#beam)"/>
+  <!-- BYTE: edit the named groups to customise the character. -->
+  <g id="character-arrival" class="arrival">
+    <g id="character" class="float" shape-rendering="crispEdges">
+      <g id="antenna">
+        <path d="M236 107V89H242V107" fill="var(--deep)"/>
+        <path d="M232 81H246V95H232Z" fill="var(--violet)"/>
+        <path d="M232 81H240V87H232Z" fill="var(--white)"/>
+      </g>
+      <g id="legs">
+        <path d="M211 254H231V278H205V266H211ZM251 254H271V266H277V278H251Z" fill="var(--deep)"/>
+        <path d="M211 254H225V270H205V266H211ZM251 254H265V266H271V270H251Z" fill="var(--light)"/>
+        <path d="M205 274H231V282H205ZM251 274H277V282H251Z" fill="var(--ink)"/>
+      </g>
+      <g id="body">
+        <path d="M211 193H271V205H283V247H271V259H211V247H199V205H211Z" fill="var(--deep)"/>
+        <path d="M211 193H259V205H271V247H259V253H211V241H205V205H211Z" fill="var(--violet)"/>
+        <path d="M211 193H259V201H211ZM205 205H213V231H205Z" fill="var(--light)"/>
+        <path d="M225 209H253V237H225Z" fill="var(--ink)"/>
+        <path d="M229 213H237V221H229ZM241 213H249V221H241ZM229 225H237V233H229Z" fill="var(--white)"/>
+        <path d="M241 225H249V233H241Z" fill="var(--violet)"/>
+        <path d="M219 245H253V249H219Z" fill="var(--deep)"/>
+      </g>
+      <g id="left-arm">
+        <path d="M187 203H199V221H187V239H175V221H181V209H187Z" fill="var(--deep)"/>
+        <path d="M181 215H193V235H181Z" fill="var(--light)"/>
+        <path d="M175 233H193V245H187V251H175Z" fill="var(--white)"/>
+      </g>
+      <g id="waving-arm" class="wave">
+        <path d="M281 203H293V209H305V185H317V215H311V227H293V221H281Z" fill="var(--deep)"/>
+        <path d="M287 203H293V209H305V199H311V215H293V215H287Z" fill="var(--light)"/>
+        <path d="M303 173H315V179H321V197H303V191H297V179H303Z" fill="var(--white)"/>
+        <path d="M315 179H321V197H309V191H315Z" fill="var(--light)"/>
+      </g>
+      <g id="head">
+        <path d="M199 105H277V111H289V123H295V171H289V183H277V195H199V183H187V171H181V123H187V111H199Z" fill="var(--deep)"/>
+        <path d="M193 111H271V117H283V129H289V165H283V177H271V183H199V177H187V123H193Z" fill="var(--light)"/>
+        <path d="M199 105H271V111H277V123H283V159H277V171H193V165H187V123H193V111H199Z" fill="var(--white)"/>
+        <path d="M199 123H271V129H277V159H271V165H199V159H193V129H199Z" fill="var(--ink)"/>
+        <path d="M199 123H271V129H199Z" fill="#2d174a"/>
+        <g id="eyes" class="eye" fill="var(--light)">
+          <path d="M207 135H219V147H207ZM251 135H263V147H251Z"/>
+          <path d="M207 135H213V141H207ZM251 135H257V141H251Z" fill="var(--white)"/>
+        </g>
+        <path d="M229 147V153H241V147" stroke="var(--violet)" stroke-width="4"/>
+        <path d="M179 131H185V155H179ZM287 131H293V155H287Z" fill="var(--violet)"/>
+        <path d="M201 111H223V117H201Z" fill="#fff"/>
+      </g>
+    </g>
+  </g>
+  <!-- PARTICLES: a few cubes and pixel stars, not a full particle field. -->
+  <g id="particles">
+    <g class="particle"><path d="M108 192L120 186L132 192V206L120 212L108 206Z" fill="var(--deep)"/><path d="M108 192L120 198L132 192L120 186Z" fill="var(--light)"/><path d="M120 198L132 192V206L120 212Z" fill="var(--violet)"/></g>
+    <g class="particle p2"><path d="M348 116L360 110L372 116V130L360 136L348 130Z" fill="var(--deep)"/><path d="M348 116L360 122L372 116L360 110Z" fill="var(--white)"/><path d="M360 122L372 116V130L360 136Z" fill="var(--violet)"/></g>
+    <g class="particle p3"><rect x="338" y="263" width="8" height="8" fill="var(--violet)"/><rect x="146" y="78" width="6" height="6" fill="var(--light)"/><rect x="103" y="254" width="4" height="4" fill="var(--light)"/></g>
+    <path class="particle p2" d="M120 117H126V123H132V129H126V135H120V129H114V123H120Z" fill="var(--light)"/>
+    <path class="particle p3" d="M353 211H357V217H363V221H357V227H353V221H347V217H353Z" fill="var(--light)"/>
+    <path d="M179 39H183V43H179ZM321 58H325V62H321ZM377 249H381V253H377Z" fill="#8b5cf6" opacity=".45"/>
+  </g>
+</svg>

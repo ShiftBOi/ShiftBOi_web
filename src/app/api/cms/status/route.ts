@@ -188,7 +188,7 @@ async function getContentOverview() {
     prisma.project.count({ where: { visibility: "CONFIDENTIAL" } }),
     prisma.project.findMany({
       orderBy: { updatedAt: "desc" },
-      take: 6,
+      take: 5,
       select: {
         id: true,
         slug: true,

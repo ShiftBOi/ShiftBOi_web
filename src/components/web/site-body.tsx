@@ -14,8 +14,15 @@ import {
 import { useHydraScroll } from "@/components/web/use-hydra-scroll";
 import { MatrixPortrait } from "@/components/web/matrix-portrait";
 import { useSiteChat } from "@/components/web/site-chat";
+import { ProjectFeatureCell } from "@/components/web/project-feature-cell";
 import { SiteFooter } from "@/components/web/site-footer";
 import type { SiteContent } from "@/lib/content";
+
+type ProjectMedia = {
+  type?: string;
+  src?: string;
+  poster?: string;
+} | null;
 
 type Project = {
   id: string;
@@ -25,13 +32,403 @@ type Project = {
   year: string | null;
   introSrc?: string | null;
   coverImage?: string | null;
+  media?: ProjectMedia;
 };
+
+const FALLBACK_VISUALS = ["accuracy", "tier", "recall", "latency"] as const;
+
+function isVideoSrc(src: string) {
+  return /\.(mov|mp4|webm|m4v)(\?|#|$)/i.test(src);
+}
+
+function AccuracyVisual({
+  src,
+  poster,
+  label,
+}: {
+  src?: string | null;
+  poster?: string | null;
+  label?: string;
+}) {
+  const video = src && isVideoSrc(src) ? src : null;
+  const image = !video ? src || poster || null : null;
+
+  if (video) {
+    return (
+      <div
+        className="hydra-accuracy-panel is-media"
+        data-hydra-reveal
+        data-hydra-parallax
+        data-parallax-speed="0.25"
+      >
+        <video
+          className="hydra-accuracy-video"
+          src={video}
+          poster={poster || undefined}
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+          aria-label={label || "Project demo"}
+        />
+      </div>
+    );
+  }
+
+  if (image) {
+    return (
+      <div
+        className="hydra-accuracy-panel is-media"
+        data-hydra-reveal
+        data-hydra-parallax
+        data-parallax-speed="0.25"
+        style={{
+          backgroundImage: `url(${image})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+        role="img"
+        aria-label={label || "Project preview"}
+      />
+    );
+  }
+
+  return (
+    <div className="hydra-accuracy-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.25">
+      <p className="hydra-accuracy-value">99%</p>
+      <p className="hydra-accuracy-label">Ship quality</p>
+    </div>
+  );
+}
+
+function TierVisual() {
+  return (
+    <div className="hydra-tier-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.3">
+      <p className="hydra-tier-label">UI → API → Data → Deploy</p>
+      <span className="hydra-tier-flow" aria-hidden />
+      <span className="hydra-tier-cap is-left" aria-hidden />
+      <span className="hydra-tier-cap is-right" aria-hidden />
+      <div className="hydra-tier-nodes">
+        <div className="hydra-tier-node">Web</div>
+        <div className="hydra-tier-node">API</div>
+        <div className="hydra-tier-node is-accent">Ship</div>
+      </div>
+    </div>
+  );
+}
+
+function RecallVisual() {
+  return (
+    <div className="hydra-recall-panel" data-hydra-reveal data-hydra-parallax data-parallax-speed="0.45">
+      <svg viewBox="0 0 400 250" fill="none" aria-hidden>
+        <g stroke="rgba(255,255,255,0.35)" strokeWidth="0.6" strokeDasharray="3 3">
+          <path d="M40 210 L200 40 L360 210" />
+          <path d="M80 210 L200 70 L320 210" />
+          <path d="M120 210 L200 110 L280 210" />
+          <path d="M40 210 L120 150 L200 210 L280 150 L360 210" />
+          <path d="M200 40 L200 210" />
+        </g>
+        {[
+          [200, 40],
+          [120, 100],
+          [280, 95],
+          [90, 160],
+          [200, 140],
+          [310, 155],
+          [60, 200],
+          [150, 195],
+          [250, 190],
+          [340, 200],
+        ].map(([x, y], i) => (
+          <rect
+            key={i}
+            x={x - 4}
+            y={y - 4}
+            width={i % 3 === 0 ? 10 : 7}
+            height={i % 3 === 0 ? 10 : 7}
+            fill={i % 2 === 0 ? "#8b5cf6" : "#ffffff"}
+          />
+        ))}
+      </svg>
+      <span className="hydra-recall-tag" style={{ left: "8%", top: "72%" }}>
+        Design
+      </span>
+      <span className="hydra-recall-tag" style={{ left: "42%", top: "18%" }}>
+        Build
+      </span>
+      <span className="hydra-recall-tag" style={{ right: "10%", top: "68%" }}>
+        Ship
+      </span>
+    </div>
+  );
+}
+
+function LatencyVisual() {
+  return (
+    <div data-hydra-reveal data-hydra-parallax data-parallax-speed="0.28">
+      <p className="hydra-latency-metric">Ship</p>
+      <div className="hydra-latency-bars">
+        <div className="hydra-latency-row">
+          <span className="hydra-latency-fill" style={{ width: "28%" }} />
+        </div>
+        <div className="hydra-latency-row">
+          <span className="hydra-latency-fill is-accent" style={{ width: "14%" }} />
+        </div>
+        <div className="hydra-latency-row" />
+        <div className="hydra-latency-row" />
+        <div className="hydra-latency-row" />
+      </div>
+    </div>
+  );
+}
+
+function ProjectCellVisual({ project, index }: { project: Project; index: number }) {
+  const media = project.media;
+  const mediaSrc = media?.src || null;
+  const poster = media?.poster || project.coverImage || project.introSrc || null;
+  const image = project.coverImage || project.introSrc || null;
+  const kind = FALLBACK_VISUALS[index % FALLBACK_VISUALS.length];
+
+  if (mediaSrc && (media?.type === "video" || isVideoSrc(mediaSrc))) {
+    return <AccuracyVisual src={mediaSrc} poster={poster} label={project.title} />;
+  }
+  if (image || mediaSrc) {
+    return <AccuracyVisual src={image || mediaSrc} poster={poster} label={project.title} />;
+  }
+  if (kind === "tier") return <TierVisual />;
+  if (kind === "recall") return <RecallVisual />;
+  if (kind === "latency") return <LatencyVisual />;
+  return <AccuracyVisual label={project.title} />;
+}
 
 const DATA_BAND_STATS = [
   { label: "Focus", value: "Full-stack", side: "left", slot: "top" },
   { label: "Surfaces", value: "Web + Mobile", side: "left", slot: "bottom" },
   { label: "Delivery", value: "End-to-end", side: "right", slot: "top" },
   { label: "Studio", value: "ShiftBOi", side: "right", slot: "bottom" },
+] as const;
+
+const TECH_STACK = [
+  {
+    category: "Languages",
+    items: [
+      {
+        label: "JavaScript",
+        src: "https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E",
+      },
+      {
+        label: "TypeScript",
+        src: "https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white",
+      },
+      {
+        label: "Python",
+        src: "https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54",
+      },
+      {
+        label: "Java",
+        src: "https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white",
+      },
+      {
+        label: "Kotlin",
+        src: "https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white",
+      },
+      {
+        label: "Swift",
+        src: "https://img.shields.io/badge/swift-F54A2A?style=for-the-badge&logo=swift&logoColor=white",
+      },
+    ],
+  },
+  {
+    category: "Frontend",
+    items: [
+      {
+        label: "HTML5",
+        src: "https://img.shields.io/badge/html5-%23E34F26.svg?style=for-the-badge&logo=html5&logoColor=white",
+      },
+      {
+        label: "CSS3",
+        src: "https://img.shields.io/badge/css3-%231572B6.svg?style=for-the-badge&logo=css3&logoColor=white",
+      },
+      {
+        label: "React",
+        src: "https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB",
+      },
+      {
+        label: "Next.js",
+        src: "https://img.shields.io/badge/Next.js-black?style=for-the-badge&logo=next.js&logoColor=white",
+      },
+      {
+        label: "Vite",
+        src: "https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white",
+      },
+      {
+        label: "TailwindCSS",
+        src: "https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white",
+      },
+      {
+        label: "Electron",
+        src: "https://img.shields.io/badge/Electron-191970?style=for-the-badge&logo=Electron&logoColor=white",
+      },
+      {
+        label: "Three.js",
+        src: "https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=threedotjs&logoColor=white",
+      },
+      {
+        label: "GSAP",
+        src: "https://img.shields.io/badge/GSAP-%2388CE02.svg?style=for-the-badge&logo=greensock&logoColor=white",
+      },
+      {
+        label: "Framer Motion",
+        src: "https://img.shields.io/badge/Framer%20Motion-0055FF?style=for-the-badge&logo=framer&logoColor=white",
+      },
+    ],
+  },
+  {
+    category: "Backend & Data",
+    items: [
+      {
+        label: "Node.js",
+        src: "https://img.shields.io/badge/node.js-6DA55F?style=for-the-badge&logo=node.js&logoColor=white",
+      },
+      {
+        label: "Express.js",
+        src: "https://img.shields.io/badge/express.js-%23404d59.svg?style=for-the-badge&logo=express&logoColor=%2361DAFB",
+      },
+      {
+        label: "Elysia",
+        src: "https://img.shields.io/badge/Elysia-81C784?style=for-the-badge&logoColor=white",
+      },
+      {
+        label: "Bun",
+        src: "https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white",
+      },
+      {
+        label: "Socket.io",
+        src: "https://img.shields.io/badge/Socket.io-black?style=for-the-badge&logo=socket.io&badgeColor=010101",
+      },
+      {
+        label: "Prisma",
+        src: "https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white",
+      },
+      {
+        label: "PostgreSQL",
+        src: "https://img.shields.io/badge/postgresql-%23316192.svg?style=for-the-badge&logo=postgresql&logoColor=white",
+      },
+      {
+        label: "MySQL",
+        src: "https://img.shields.io/badge/mysql-4479A1.svg?style=for-the-badge&logo=mysql&logoColor=white",
+      },
+      {
+        label: "MongoDB",
+        src: "https://img.shields.io/badge/MongoDB-%234ea94b.svg?style=for-the-badge&logo=mongodb&logoColor=white",
+      },
+      {
+        label: "Redis",
+        src: "https://img.shields.io/badge/redis-%23DD0031.svg?style=for-the-badge&logo=redis&logoColor=white",
+      },
+    ],
+  },
+  {
+    category: "AI",
+    items: [
+      {
+        label: "Groq",
+        src: "https://img.shields.io/badge/Groq-F55036?style=for-the-badge&logo=groq&logoColor=white",
+      },
+      {
+        label: "OpenAI",
+        src: "https://img.shields.io/badge/OpenAI-412991?style=for-the-badge&logo=openai&logoColor=white",
+      },
+      {
+        label: "Vercel AI SDK",
+        src: "https://img.shields.io/badge/Vercel%20AI%20SDK-000000?style=for-the-badge&logo=vercel&logoColor=white",
+      },
+      {
+        label: "Ollama",
+        src: "https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=ollama&logoColor=white",
+      },
+      {
+        label: "Gemini",
+        src: "https://img.shields.io/badge/Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white",
+      },
+    ],
+  },
+  {
+    category: "Mobile",
+    items: [
+      {
+        label: "Android",
+        src: "https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white",
+      },
+      {
+        label: "Kotlin",
+        src: "https://img.shields.io/badge/kotlin-%237F52FF.svg?style=for-the-badge&logo=kotlin&logoColor=white",
+      },
+      {
+        label: "Jetpack Compose",
+        src: "https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white",
+      },
+      {
+        label: "Swift",
+        src: "https://img.shields.io/badge/swift-F54A2A?style=for-the-badge&logo=swift&logoColor=white",
+      },
+      {
+        label: "Java",
+        src: "https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=openjdk&logoColor=white",
+      },
+    ],
+  },
+  {
+    category: "IDE - Extensions",
+    items: [
+      {
+        label: "Visual Studio Code",
+        src: "https://img.shields.io/badge/Visual%20Studio%20Code-0078d7.svg?style=for-the-badge&logo=visual-studio-code&logoColor=white",
+      },
+      {
+        label: "VS Code Extension API",
+        src: "https://img.shields.io/badge/VS%20Code%20Extension%20API-007ACC?style=for-the-badge&logo=visualstudiocode&logoColor=white",
+      },
+      {
+        label: "Cursor",
+        src: "https://img.shields.io/badge/Cursor-000000?style=for-the-badge&logo=cursor&logoColor=white",
+      },
+      {
+        label: "Open VSX",
+        src: "https://img.shields.io/badge/Open%20VSX-A60EE5?style=for-the-badge&logo=eclipseide&logoColor=white",
+      },
+    ],
+  },
+  {
+    category: "DevOps - Tools",
+    items: [
+      {
+        label: "Docker",
+        src: "https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white",
+      },
+      {
+        label: "Yarn",
+        src: "https://img.shields.io/badge/Yarn-2C8EBB?style=for-the-badge&logo=yarn&logoColor=white",
+      },
+      {
+        label: "Bun",
+        src: "https://img.shields.io/badge/Bun-%23000000.svg?style=for-the-badge&logo=bun&logoColor=white",
+      },
+      {
+        label: "Git",
+        src: "https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white",
+      },
+      {
+        label: "Cloudflare R2",
+        src: "https://img.shields.io/badge/Cloudflare%20R2-F38020?style=for-the-badge&logo=cloudflare&logoColor=white",
+      },
+      {
+        label: "Vercel",
+        src: "https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white",
+      },
+    ],
+  },
 ] as const;
 
 const WITHOUT_ROWS = [
@@ -338,27 +735,40 @@ export function SiteBody({
         </div>
       </section>
 
-      {/* Similarity — white band: purple H-lines + corner squares (no vertical grid) */}
+      {/* Tech stack + compare table — white band */}
       <HydraTripleRule />
-      <section className="hydra-similarity-section">
+      <section className="hydra-similarity-section" id="stack" aria-labelledby="tech-stack-heading">
         <HydraBandCornerSquares />
         <div className="hydra-similarity-outer" data-hydra-reveal>
-          <div className="hydra-similarity-inner">
-            <div className="hydra-similarity-copy">
-              <h2 className="hydra-similarity-title">
-                Pretty Isn&apos;t Always Production.
+          <div className="hydra-similarity-inner hydra-tech-layout">
+            <div className="hydra-tech-inner">
+              <h2 id="tech-stack-heading" className="hydra-similarity-title">
+                Tech Stack
               </h2>
-              <div className="hydra-similarity-body-wrap">
-                <p className="hydra-similarity-body">
-                  Polished mockups and bolted-on APIs often look close — and still fail in real use.
-                </p>
-                <p className="hydra-similarity-body">
-                  I connect design, frontend, backend, and deploy into one build path — so the
-                  product ships as a system, not a collage of unfinished pieces.
-                </p>
+              <div className="hydra-tech-groups" data-hydra-stagger>
+                {TECH_STACK.map((group) => (
+                  <div key={group.category} className="hydra-tech-group" data-hydra-stagger-item>
+                    <h3 className="hydra-tech-category">{group.category}</h3>
+                    <div className="hydra-tech-badges">
+                      {group.items.map((item) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          key={item.label}
+                          className="hydra-tech-badge"
+                          src={item.src}
+                          alt={item.label}
+                          height={26}
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
-            <div className="hydra-similarity-cols">
+
+            <div className="hydra-similarity-cols hydra-tech-compare">
               <div className="hydra-similarity-col hydra-similarity-col-without">
                 <div className="hydra-similarity-col-head hydra-similarity-col-head-dark">
                   <h3>Without Full-stack</h3>
@@ -383,6 +793,64 @@ export function SiteBody({
           </div>
         </div>
       </section>
+
+      {/* Features — 2×2 Selected Projects grid */}
+      {projects.length > 0 ? (
+        <section id="work" className="hydra-section">
+          <div className="hydra-container py-[72px] md:py-[100px] lg:pb-0 lg:pt-[120px]">
+            <div
+              className="hydra-section-title-wrap"
+              data-hydra-reveal
+              data-hydra-drift
+              data-drift-amount="28"
+            >
+              <h3 className="hydra-h3-features text-center text-white">
+                Selected Projects
+              </h3>
+            </div>
+          </div>
+
+          <div className="hydra-features-band mt-8 md:mt-10">
+            <div className="hydra-features-row-band" data-hydra-stagger>
+              <div className="hydra-features-grid">
+                {projects.slice(0, 2).map((project, index) => (
+                  <ProjectFeatureCell
+                    key={project.id}
+                    href={`/projects/${project.slug}`}
+                    title={project.title}
+                    body={project.summary}
+                  >
+                    <ProjectCellVisual project={project} index={index} />
+                  </ProjectFeatureCell>
+                ))}
+              </div>
+            </div>
+            {projects.length > 2 ? (
+              <>
+                <div className="hydra-features-row-rule" aria-hidden />
+                <div
+                  className="hydra-features-row-band hydra-features-row-band-bottom"
+                  data-hydra-stagger
+                >
+                  <div className="hydra-features-grid">
+                    {projects.slice(2, 4).map((project, index) => (
+                      <ProjectFeatureCell
+                        key={project.id}
+                        href={`/projects/${project.slug}`}
+                        title={project.title}
+                        body={project.summary}
+                      >
+                        <ProjectCellVisual project={project} index={index + 2} />
+                      </ProjectFeatureCell>
+                    ))}
+                  </div>
+                </div>
+              </>
+            ) : null}
+            <div className="hydra-features-row-rule" aria-hidden />
+          </div>
+        </section>
+      ) : null}
 
       {/* Purple double-line with equal gap above/below */}
       <div className="hydra-double-rule-gap">
@@ -580,39 +1048,6 @@ export function SiteBody({
           </div>
         </div>
       </section>
-
-      {projects.length > 0 ? (
-        <section id="work" className="hydra-section">
-          <div className="hydra-container py-12 md:py-20">
-            <p className="hydra-eyebrow" data-hydra-reveal-x>
-              {"// Work //"}
-            </p>
-            <h2 className="hydra-h2-section mt-4 text-left" data-hydra-reveal-x>
-              Published Projects
-            </h2>
-            <ul className="mt-10 space-y-px bg-[rgb(32,32,32)]" data-hydra-stagger>
-              {projects.map((project) => (
-                <li
-                  key={project.id}
-                  data-hydra-stagger-item
-                  className="hydra-stat-cell grid gap-4 bg-black p-6 md:grid-cols-[1fr_auto] md:items-baseline md:p-8"
-                >
-                  <div>
-                    <h3 className="hydra-h4-feature text-[20px]">{project.title}</h3>
-                    <p className="hydra-body mt-3 max-w-2xl">{project.summary}</p>
-                  </div>
-                  {project.year ? (
-                    <span className="hydra-pixel-label text-[var(--color-hydra-muted)]">
-                      {project.year}
-                    </span>
-                  ) : null}
-                  <HydraStatCorners />
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      ) : null}
 
       <section id="pricing" className="hydra-section">
         <div className="hydra-container py-12 md:py-20">

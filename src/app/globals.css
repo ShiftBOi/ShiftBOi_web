@@ -1888,6 +1888,79 @@ a.site-nav-link:focus-visible::after {
   color: #000000;
 }
 
+.hydra-tech-inner {
+  flex: 1 1 52%;
+  min-width: 0;
+  max-width: none;
+  margin-inline: 0;
+  padding-right: clamp(1rem, 2.5vw, 2rem);
+}
+
+.hydra-tech-layout {
+  align-items: stretch;
+  gap: clamp(1rem, 2vw, 1.75rem);
+}
+
+.hydra-tech-compare {
+  flex: 0 1 46%;
+  max-width: 34rem;
+  align-self: stretch;
+}
+
+.hydra-tech-compare .hydra-similarity-col-head {
+  padding: 12px 8px;
+}
+
+.hydra-tech-compare .hydra-similarity-col-head h3 {
+  font-size: clamp(15px, 1.5vw, 18px);
+}
+
+.hydra-tech-compare .hydra-similarity-col-cell {
+  padding: 14px 10px;
+}
+
+.hydra-tech-compare .hydra-similarity-col-cell p {
+  font-size: 13px;
+  line-height: 125%;
+  max-width: 18rem;
+}
+
+.hydra-tech-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 1.35rem;
+}
+
+.hydra-tech-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.hydra-tech-category {
+  margin: 0;
+  font-family: var(--font-family-pixel);
+  font-size: clamp(14px, 1.2vw, 16px);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #111;
+}
+
+.hydra-tech-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.35rem;
+}
+
+.hydra-tech-badge {
+  display: block;
+  height: 24px;
+  width: auto;
+  border-radius: 0.25rem;
+}
+
 .hydra-similarity-body-wrap {
   margin-top: 16px;
   max-width: 67%;
@@ -1983,6 +2056,17 @@ a.site-nav-link:focus-visible::after {
 
   .hydra-similarity-inner {
     flex-direction: column;
+  }
+
+  .hydra-tech-inner {
+    flex: none;
+    max-width: 100%;
+    padding-right: 0;
+  }
+
+  .hydra-tech-compare {
+    flex: none;
+    max-width: 100%;
   }
 
   .hydra-similarity-copy {
@@ -4026,4 +4110,11 @@ a.hydra-feature-cell.is-project-link:focus-visible {
   .project-more-list .project-docs-row-date {
     grid-column: 1 / -1;
   }
+}
+
+/* Initial pixel intro; artwork and animation live in site-loading-overlay.module.css. */
+html.hydra-booting,
+html.hydra-booting body {
+  overflow: hidden;
+  overscroll-behavior: none;
 }

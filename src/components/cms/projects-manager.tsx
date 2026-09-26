@@ -8,6 +8,7 @@ import { slugify } from "@/lib/project-draft";
 type Stats = {
   total: number;
   published: number;
+  drafts: number;
   featured: number;
 };
 
@@ -63,43 +64,57 @@ export function ProjectsManager({
 
   return (
     <div className="cms-projects-page">
-      <div className="cms-stat-strip">
-        <div className="cms-stat-cell">
-          <p className="cms-stat-label">Projects</p>
-          <p className="cms-stat-value">{stats.total}</p>
+      <section className="cms-dash-metrics" aria-label="Project snapshot">
+        <div className="cms-dash-metric">
+          <p className="cms-dash-metric-label">Projects</p>
+          <p className="cms-dash-metric-value">{stats.total}</p>
+          <p className="cms-dash-metric-meta">in library</p>
         </div>
-        <div className="cms-stat-cell">
-          <p className="cms-stat-label">Published</p>
-          <p className="cms-stat-value">{stats.published}</p>
+        <div className="cms-dash-metric">
+          <p className="cms-dash-metric-label">Published</p>
+          <p className="cms-dash-metric-value">{stats.published}</p>
+          <p className="cms-dash-metric-meta">live on site</p>
         </div>
-        <div className="cms-stat-cell">
-          <p className="cms-stat-label">Featured</p>
-          <p className="cms-stat-value">{stats.featured}</p>
+        <div className="cms-dash-metric">
+          <p className="cms-dash-metric-label">Drafts</p>
+          <p className="cms-dash-metric-value">{stats.drafts}</p>
+          <p className="cms-dash-metric-meta">not published</p>
         </div>
-      </div>
+        <div className="cms-dash-metric">
+          <p className="cms-dash-metric-label">Featured</p>
+          <p className="cms-dash-metric-value">{stats.featured}</p>
+          <p className="cms-dash-metric-meta">homepage</p>
+        </div>
+      </section>
 
-      <div className="cms-section-head">
-        <h2>All projects</h2>
-        <button
-          type="button"
-          className="cms-btn cms-btn-primary cms-add-project-btn"
-          onClick={() => {
-            setError(null);
-            setModalOpen(true);
-          }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-          Add project
-        </button>
-      </div>
+      <section className="cms-dash-panel">
+        <div className="cms-dash-panel-head">
+          <div>
+            <p className="cms-dash-kicker">Library</p>
+            <h2 className="cms-dash-heading">All projects</h2>
+          </div>
+          <button
+            type="button"
+            className="cms-dash-action is-primary"
+            onClick={() => {
+              setError(null);
+              setModalOpen(true);
+            }}
+          >
+            + Add project
+          </button>
+        </div>
 
-      <div className="cms-pcard-grid">
-        {projects.map((p) => (
-          <CmsProjectCard key={p.id} project={p} />
-        ))}
-      </div>
+        {projects.length > 0 ? (
+          <ul className="cms-plist">
+            {projects.map((p) => (
+              <CmsProjectCard key={p.id} project={p} />
+            ))}
+          </ul>
+        ) : (
+          <p className="cms-dash-empty">No projects yet — add one to get started.</p>
+        )}
+      </section>
 
       {modalOpen ? (
         <div className="cms-modal-backdrop" onClick={() => !pending && setModalOpen(false)}>

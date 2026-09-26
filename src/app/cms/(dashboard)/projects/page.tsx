@@ -28,6 +28,7 @@ export default async function CmsProjectsPage() {
       stats={{
         total: stats.total,
         published: stats.published,
+        drafts: Math.max(0, stats.total - stats.published),
         featured: stats.featured,
       }}
       projects={projects.map((p) => ({
