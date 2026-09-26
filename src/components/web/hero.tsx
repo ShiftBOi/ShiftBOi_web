@@ -82,7 +82,7 @@ function PlayWithDinoButton({
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const frame = { inset: 0 };
     const PURPLE = "#7c3aed";
-    const INSET_MAX = 14;
+    const INSET_MAX = 3;
 
     const paintFrame = () => {
       root.style.boxShadow = `inset 0 0 0 ${frame.inset}px ${PURPLE}`;

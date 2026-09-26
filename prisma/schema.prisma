@@ -171,3 +171,15 @@ model SiteVisitorDay {
   @@index([day])
   @@map("site_visitor_day")
 }
+
+/// Dino minigame — one best score per browser/device
+model DinoScore {
+  id        String   @id @default(cuid())
+  deviceId  String   @unique
+  bestScore Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([bestScore(sort: Desc)])
+  @@map("dino_score")
+}

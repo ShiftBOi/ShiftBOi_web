@@ -38,6 +38,94 @@ const GRID = 24 * PARTICLE_DIV;
 const PIX_FONT = "Pix32, ui-monospace, monospace";
 const SCALE_CACTUS = 7;
 /** Hurt frame that is fully white — freeze here after player death anim */
+const DINO_DEVICE_KEY = "shiftboi-dino-device";
+const DINO_BEST_KEY = "shiftboi-dino-best";
+const DINO_BOARD_TAKE = 8;
+
+function getDinoDeviceId(): string {
+  if (typeof window === "undefined") return "";
+  try {
+    let id = localStorage.getItem(DINO_DEVICE_KEY);
+    if (!id || !/^[0-9a-f-]{36}$/i.test(id)) {
+      id = crypto.randomUUID();
+      localStorage.setItem(DINO_DEVICE_KEY, id);
+    }
+    return id;
+  } catch {
+    return crypto.randomUUID();
+  }
+}
+
+function readLocalBest(): number {
+  if (typeof window === "undefined") return 0;
+  try {
+    const n = Number(localStorage.getItem(DINO_BEST_KEY) || 0);
+    return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeLocalBest(score: number) {
+  try {
+    localStorage.setItem(DINO_BEST_KEY, String(Math.floor(score)));
+  } catch {
+    /* ignore */
+  }
+}
+
+async function fetchDinoBoard(): Promise<number[]> {
+  try {
+    const res = await fetch("/api/dino/scores", { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { scores?: number[] };
+    return Array.isArray(data.scores)
+      ? data.scores.filter((n) => Number.isFinite(n)).slice(0, DINO_BOARD_TAKE)
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Submit only when score beats this device's best; returns online board. */
+async function submitDinoBest(score: number): Promise<{
+  scores: number[];
+  bestScore: number;
+  updated: boolean;
+}> {
+  const deviceId = getDinoDeviceId();
+  const localBest = readLocalBest();
+  if (!deviceId || score <= localBest) {
+    return { scores: await fetchDinoBoard(), bestScore: localBest, updated: false };
+  }
+
+  try {
+    const res = await fetch("/api/dino/scores", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deviceId, score: Math.floor(score) }),
+    });
+    if (!res.ok) {
+      return { scores: await fetchDinoBoard(), bestScore: localBest, updated: false };
+    }
+    const data = (await res.json()) as {
+      scores?: number[];
+      bestScore?: number;
+      updated?: boolean;
+    };
+    const bestScore =
+      typeof data.bestScore === "number" ? data.bestScore : Math.max(localBest, score);
+    writeLocalBest(bestScore);
+    return {
+      scores: Array.isArray(data.scores) ? data.scores.slice(0, DINO_BOARD_TAKE) : [],
+      bestScore,
+      updated: Boolean(data.updated),
+    };
+  } catch {
+    return { scores: await fetchDinoBoard(), bestScore: localBest, updated: false };
+  }
+}
+
 const WHITE_HURT_FRAME = 2;
 
 const GEN_CHARS = Array.from("01<>{}[]/\\|#*+=.:;░▒▓█@%xoXO*!^~$");
@@ -126,10 +214,19 @@ const JUMP_POWER: Record<ObstacleKind, number> = {
   cactus3: 0.95,
 };
 
-/** Player jump constants — keep spawn math in sync with usePlayerDinoLoop */
-const PLAY_JUMP_V = 3.35;
-const PLAY_GRAVITY = 6.2;
-const PLAY_CLEAR_Y = 0.28;
+/** Player jump constants — keep spawn math in sync with usePlayerDinoLoop.
+ * Snappy Chrome-like arc: fast up + fast down. Spawn gaps always ≥ safeMinGap. */
+const PLAY_JUMP_V = 3.55;
+const PLAY_GRAVITY = 11.2;
+/** Feet/legs clip cactus below this lift — raised so leg hits register */
+const PLAY_CLEAR_Y = 0.3;
+
+/** Horizontal shrink of obstacle collision vs visual width (keep modest) */
+const OBSTACLE_HIT_INSET: Record<ObstacleKind, number> = {
+  cactus1: 0.008,
+  cactus2: 0.016,
+  cactus3: 0.006,
+};
 
 /** How far the dino travels while still above the clear height */
 function clearTravel(speed: number) {
@@ -137,63 +234,61 @@ function clearTravel(speed: number) {
   const b = -PLAY_JUMP_V;
   const c = PLAY_CLEAR_Y;
   const disc = b * b - 4 * a * c;
-  if (disc <= 0) return speed * 0.5;
+  if (disc <= 0) return speed * 0.45;
   const s = Math.sqrt(disc);
   const t1 = (-b - s) / (2 * a);
   const t2 = (-b + s) / (2 * a);
-  return speed * Math.max(0.2, t2 - t1);
+  return speed * Math.max(0.18, t2 - t1);
 }
 
 /**
  * Empty space from previous obstacle's RIGHT edge to next LEFT edge.
- * Always large enough to land and jump again.
+ * Always passable: land + jump again with margin (never frame-perfect only).
  */
 function safeMinGap(speed: number) {
-  return clearTravel(speed) * 0.92 + 0.08;
+  return clearTravel(speed) * 0.88 + 0.06;
 }
 
 /**
- * Irregular gap — still always ≥ safeMinGap so every challenge is passable.
+ * Irregular gap — can feel tight, but always ≥ safeMinGap.
  */
 function rollObstacleGap(speed: number, tightStreak: number) {
   const base = safeMinGap(speed);
 
   if (tightStreak >= 2) {
-    return { gap: base + 0.28 + Math.random() * 0.42, tight: false };
+    return { gap: base + 0.14 + Math.random() * 0.24, tight: false };
   }
 
   const roll = Math.random();
-  if (roll < 0.22) {
-    // Tight but still clearable
-    return { gap: base + Math.random() * 0.06, tight: true };
+  if (roll < 0.34) {
+    return { gap: base + Math.random() * 0.04, tight: true };
   }
-  if (roll < 0.45) {
-    return { gap: base + 0.08 + Math.random() * 0.14, tight: true };
+  if (roll < 0.58) {
+    return { gap: base + 0.05 + Math.random() * 0.09, tight: true };
   }
-  if (roll < 0.68) {
-    return { gap: base + 0.18 + Math.random() * 0.26, tight: false };
+  if (roll < 0.8) {
+    return { gap: base + 0.12 + Math.random() * 0.16, tight: false };
   }
-  if (roll < 0.86) {
-    return { gap: base + 0.4 + Math.random() * 0.35, tight: false };
+  if (roll < 0.93) {
+    return { gap: base + 0.26 + Math.random() * 0.2, tight: false };
   }
-  return { gap: base + 0.7 + Math.random() * 0.55, tight: false };
+  return { gap: base + 0.42 + Math.random() * 0.3, tight: false };
 }
 
-/** Max pack width (left of first → right of last) clearable in one jump */
+/** Max pack width clearable in one jump — keep under clearTravel with margin */
 function maxPackSpan(speed: number) {
-  return clearTravel(speed) * 0.62;
+  return clearTravel(speed) * 0.7;
 }
 
-/** Intra-pack step — snug, but pack total stays under maxPackSpan */
+/** Intra-pack step — snug but still one-jump clearable via maxPackSpan */
 function rollPackStep(kind: ObstacleKind) {
-  return OBSTACLE_LANE_W[kind] + 0.012 + Math.random() * 0.02;
+  return OBSTACLE_LANE_W[kind] + 0.006 + Math.random() * 0.012;
 }
 
 function rollSpawnBurst(speed: number): 1 | 2 | 3 {
   const roll = Math.random();
-  // Triples only when speed gives enough clear room
-  if (roll < 0.74) return 1;
-  if (roll < 0.94 || maxPackSpan(speed) < 0.16) return 2;
+  if (roll < 0.55) return 1;
+  if (roll < 0.88 || maxPackSpan(speed) < 0.15) return 2;
   return 3;
 }
 
@@ -713,8 +808,8 @@ function usePlayerDinoLoop(
   const poseRef = useRef<Pose>("run");
   const frameRef = useRef(0);
   const obstaclesRef = useRef<Obstacle[]>([]);
-  const speedRef = useRef(0.28);
-  const nextSpawnRef = useRef(1.4);
+  const speedRef = useRef(0.34);
+  const nextSpawnRef = useRef(0.9);
   const idRef = useRef(1);
   const animAccRef = useRef(0);
   const runningTimeRef = useRef(0);
@@ -727,13 +822,13 @@ function usePlayerDinoLoop(
   const lastObstacleKeyRef = useRef("");
   const recentKindsRef = useRef<ObstacleKind[]>([]);
   const tightStreakRef = useRef(0);
-  const pendingGapRef = useRef(0.55);
+  const pendingGapRef = useRef(0.42);
 
   const JUMP_V = PLAY_JUMP_V;
   const GRAVITY = PLAY_GRAVITY;
   const CLEAR_Y = PLAY_CLEAR_Y;
   const DINO_X = 0.12;
-  const DINO_W = 0.065;
+  const DINO_W = 0.048;
   const AIR_FRAME = 1;
 
   const requestJump = useCallback(() => {
@@ -754,7 +849,7 @@ function usePlayerDinoLoop(
       lastObstacleKeyRef.current = "";
       recentKindsRef.current = [];
       tightStreakRef.current = 0;
-      pendingGapRef.current = 0.55;
+      pendingGapRef.current = 0.42;
       setObstacleSnapshot([]);
       velYRef.current = 0;
       yRef.current = 0;
@@ -779,9 +874,9 @@ function usePlayerDinoLoop(
     recentKindsRef.current.push(seedA);
     const seedB = pickObstacleKind(recentKindsRef.current);
     recentKindsRef.current.push(seedB);
-    const seedSpeed = 0.28;
-    const seedGap = safeMinGap(seedSpeed) + Math.random() * 0.22;
-    const seedX0 = 0.5 + Math.random() * 0.1;
+    const seedSpeed = 0.34;
+    const seedGap = safeMinGap(seedSpeed) + Math.random() * 0.1;
+    const seedX0 = 0.58 + Math.random() * 0.08;
     obstaclesRef.current = [
       spawnObstacle(idRef.current++, false, seedX0, seedA),
       spawnObstacle(
@@ -796,7 +891,7 @@ function usePlayerDinoLoop(
     const firstGap = rollObstacleGap(seedSpeed, 0);
     pendingGapRef.current = Math.max(firstGap.gap, safeMinGap(seedSpeed));
     tightStreakRef.current = firstGap.tight ? 1 : 0;
-    nextSpawnRef.current = 0.4 + Math.random() * 0.5;
+    nextSpawnRef.current = 0.25 + Math.random() * 0.35;
     runningTimeRef.current = 0;
     jumpQueuedRef.current = false;
     velYRef.current = 0;
@@ -875,8 +970,11 @@ function usePlayerDinoLoop(
       }
 
       runningTimeRef.current += dt;
-      speedRef.current = Math.min(0.52, speedRef.current + dt * 0.004);
-      scoreRef.current += dt * speedRef.current * 120;
+      // Chrome-like: ramps hard early, keeps climbing for a long time
+      const accel =
+        speedRef.current < 0.48 ? 0.011 : speedRef.current < 0.62 ? 0.007 : 0.0035;
+      speedRef.current = Math.min(0.78, speedRef.current + dt * accel);
+      scoreRef.current += dt * speedRef.current * 140;
       onScore?.(Math.floor(scoreRef.current));
 
       if (jumpQueuedRef.current) {
@@ -925,10 +1023,10 @@ function usePlayerDinoLoop(
         const needGap = Math.max(pendingGapRef.current, safeMinGap(speed));
         const onScreen = moved.filter((o) => o.x > 0.12 && o.x < 1.08).length;
 
-        if (lastRight < 1.08 - needGap && onScreen < 4) {
+        if (lastRight < 1.08 - needGap && onScreen < 5) {
           const burst = rollSpawnBurst(speed);
           const packCap = maxPackSpan(speed);
-          let cursor = Math.max(1.06, lastRight + needGap);
+          let cursor = Math.max(1.05, lastRight + needGap);
           let packLeft = cursor;
 
           for (let i = 0; i < burst; i++) {
@@ -963,17 +1061,20 @@ function usePlayerDinoLoop(
             ? tightStreakRef.current + 1
             : 0;
           nextSpawnRef.current =
-            0.14 +
-            Math.random() * 0.5 +
-            (next.tight ? 0 : Math.random() * 0.3);
+            0.06 +
+            Math.random() * 0.22 +
+            (next.tight ? 0 : Math.random() * 0.12);
         } else {
-          nextSpawnRef.current = 0.05 + Math.random() * 0.08;
+          nextSpawnRef.current = 0.03 + Math.random() * 0.05;
         }
       }
 
       for (const o of moved) {
-        const overlap =
-          o.x < DINO_X + DINO_W && o.x + o.width > DINO_X - 0.01;
+        const inset = OBSTACLE_HIT_INSET[o.kind] ?? 0.008;
+        const hitL = o.x + inset;
+        const hitR = o.x + o.width - inset;
+        const overlap = hitL < DINO_X + DINO_W && hitR > DINO_X + 0.008;
+        // Feet / lower body still collide while lift is below CLEAR_Y
         if (overlap && !o.hit && yRef.current < CLEAR_Y) {
           triggerHurt(o);
           break;
@@ -1078,6 +1179,8 @@ export function DinoDashStage({
   const [score, setScore] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
   const [sessionId, setSessionId] = useState(0);
+  const [board, setBoard] = useState<number[]>([]);
+  const [myBest, setMyBest] = useState(0);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -1100,9 +1203,25 @@ export function DinoDashStage({
     const sync = () => setReduced(mq.matches);
     sync();
     setReady(true);
+    setMyBest(readLocalBest());
+    getDinoDeviceId();
+    void fetchDinoBoard().then(setBoard);
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
+
+  useEffect(() => {
+    if (phase !== "dead" || finalScore <= 0) return;
+    let cancelled = false;
+    void submitDinoBest(finalScore).then((result) => {
+      if (cancelled) return;
+      setBoard(result.scores);
+      setMyBest(result.bestScore);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [phase, finalScore]);
 
   const onJumpLift = useCallback(
     (lift01: number) => {
@@ -1354,6 +1473,35 @@ export function DinoDashStage({
                   : "space jump · esc exit"}
               </span>
             </div>
+          )}
+
+          {(phase === "playing" || phase === "dead") && (
+            <aside className="dino-board" aria-label="High scores">
+              <p className="dino-board-title">scores</p>
+              {myBest > 0 ? (
+                <p className="dino-board-mine">best {myBest}</p>
+              ) : null}
+              {board.length > 0 ? (
+                <ol className="dino-board-list">
+                  {board.map((s, i) => {
+                    const current =
+                      phase === "dead" &&
+                      s === finalScore &&
+                      i === board.indexOf(finalScore);
+                    return (
+                      <li key={`${s}-${i}`} className={current ? "is-current" : undefined}>
+                        <span className="dino-board-rank">
+                          {String(i + 1).padStart(2, "0")}
+                        </span>
+                        <span className="dino-board-score">{s}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              ) : (
+                <p className="dino-board-empty">no scores yet</p>
+              )}
+            </aside>
           )}
 
           <div ref={obstacleLayerRef} className="dino-obstacle-layer">

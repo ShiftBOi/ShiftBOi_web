@@ -549,6 +549,77 @@ a.site-nav-link:focus-visible::after {
   letter-spacing: 0.04em;
 }
 
+.dino-board {
+  pointer-events: none;
+  position: absolute;
+  top: -8px;
+  right: 0;
+  z-index: 3;
+  min-width: 7.5rem;
+  padding: 0.55rem 0.7rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.72);
+  font-family: var(--font-family-pixel);
+}
+
+.dino-board-title {
+  margin: 0 0 0.4rem;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.dino-board-mine {
+  margin: 0 0 0.45rem;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: rgba(167, 139, 250, 0.85);
+  font-variant-numeric: tabular-nums;
+}
+
+.dino-board-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.22rem;
+}
+
+.dino-board-list li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.dino-board-list li.is-current {
+  color: #fff;
+}
+
+.dino-board-list li.is-current .dino-board-score {
+  color: var(--color-hydra-accent);
+}
+
+.dino-board-rank {
+  color: rgba(255, 255, 255, 0.35);
+  font-variant-numeric: tabular-nums;
+}
+
+.dino-board-score {
+  font-variant-numeric: tabular-nums;
+}
+
+.dino-board-empty {
+  margin: 0;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.35);
+}
+
 .dino-dead-panel {
   pointer-events: auto;
   position: absolute;
