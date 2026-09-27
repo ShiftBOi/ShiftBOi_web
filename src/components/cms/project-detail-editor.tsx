@@ -9,6 +9,7 @@ import {
   type SelectedGridPeer,
   type SelectedPickerItem,
 } from "@/components/cms/project-selected-preview";
+import { ProjectSecretPreview } from "@/components/cms/project-secret-preview";
 import {
   ProjectImagePicker,
   asMedia,
@@ -521,23 +522,43 @@ export function ProjectDetailEditor({
               className={page === "selected" ? "is-active" : ""}
               onClick={() => setPage("selected")}
             >
-              Selected Projects
+              {draft.visibility === "CONFIDENTIAL" ? "Secret row" : "Selected Projects"}
             </button>
           </div>
           {draft.published ? (
             <Link
-              href={page === "selected" ? "/#work" : `/projects/${draft.slug}`}
+              href={
+                draft.visibility === "CONFIDENTIAL"
+                  ? `/#secret-${draft.slug}`
+                  : page === "selected"
+                    ? "/#work"
+                    : `/projects/${draft.slug}`
+              }
               className="cms-btn cms-btn-ghost"
               target="_blank"
               rel="noopener"
             >
               View live
             </Link>
-          ) : (
-            <span className="cms-btn cms-btn-ghost is-disabled" aria-disabled>
-              Draft
-            </span>
-          )}
+          ) : null}
+          <button
+            type="button"
+            className={`cms-btn${draft.published ? " cms-btn-ghost is-published" : " cms-btn-primary"}`}
+            onClick={() => patch("published", !draft.published)}
+            title={
+              draft.published
+                ? "Unpublish — hide from the live site"
+                : "Publish — make this project live"
+            }
+          >
+            {draft.published ? "Unpublish" : "Publish"}
+          </button>
+          <span
+            className={`cms-publish-pill${draft.published ? " is-live" : " is-draft"}`}
+            aria-live="polite"
+          >
+            {draft.published ? "Live" : "Draft"}
+          </span>
           <button type="button" className="cms-btn cms-btn-ghost is-danger" onClick={() => void remove()}>
             Delete
           </button>
@@ -569,6 +590,14 @@ export function ProjectDetailEditor({
               onRemoveDetail={removeDetail}
               onAddDetailSection={addDetailSection}
               onAddDetailHighlight={addDetailHighlight}
+            />
+          ) : draft.visibility === "CONFIDENTIAL" ? (
+            <ProjectSecretPreview
+              draft={draft}
+              editing={editing}
+              onEdit={setEditing}
+              onChange={patch}
+              onDone={() => setEditing(null)}
             />
           ) : (
             <ProjectSelectedPreview
@@ -645,7 +674,9 @@ export function ProjectDetailEditor({
               <i />
             </button>
             <p className="cms-rail-hint">
-              Featured + Published + Public = shows in homepage Selected Projects.
+              {draft.visibility === "CONFIDENTIAL"
+                ? "Secret = solo homepage row only (not in Selected grid). Featured stays off."
+                : "Featured + Published + Selected = shows in homepage Selected Projects."}
             </p>
           </div>
 
@@ -662,9 +693,15 @@ export function ProjectDetailEditor({
               <button
                 type="button"
                 className={draft.visibility === "CONFIDENTIAL" ? "is-active" : ""}
-                onClick={() => patch("visibility", "CONFIDENTIAL")}
+                onClick={() =>
+                  setDraft((d) => ({
+                    ...d,
+                    visibility: "CONFIDENTIAL",
+                    featured: false,
+                  }))
+                }
               >
-                Limited
+                Secret
               </button>
             </div>
           </div>

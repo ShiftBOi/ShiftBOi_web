@@ -346,6 +346,120 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     stack: ["React", "Vite", "Elysia", "Prisma", "MySQL", "Bun", "i18next"],
   },
   {
+    slug: "worldgate",
+    title: "Worldgate",
+    summary:
+      "Marketing site + invite-only CMS for a Thailand freight forwarder — public brand pages powered by a content API the team can edit.",
+    thesisLead: "A freight brand should stay",
+    thesisHighlight: "editable",
+    thesisRest: "not frozen in code.",
+    thesisBody:
+      "Worldgate pairs a precise public marketing site with an invite-only CMS and content API — so the team can update the homepage without turning every line of copy into an engineering ticket.",
+    year: "2025",
+    role: "Full-stack · marketing site + CMS",
+    heroMetric: "2",
+    heroMetricLabel: "SURFACES · WEB + CMS",
+    heroTitle: "Logistics brand site with a real content pipeline",
+    heroBody:
+      "Public pages that feel operational and premium — backed by a CMS so services, stories, and media can change as the business moves.",
+    media: {
+      type: "image",
+      src: "/images/projects/worldgate/hero.webp",
+      poster: "/images/projects/worldgate/intro.jpg",
+    },
+    introSrc: "/images/projects/worldgate/intro.jpg",
+    titleIcon: "/images/projects/worldgate/icon.png",
+    bands: [
+      {
+        id: "wg-b1",
+        title: "Public site",
+        body: "Hero, about, services, and proof sections composed as a logistics-forward brand page — editable through the CMS instead of buried in components.",
+        media: {
+          type: "image",
+          src: "/images/projects/worldgate/band-public.webp",
+        },
+      },
+      {
+        id: "wg-b2",
+        title: "Operator CMS",
+        body: "Invite-only console for homepage sections, services, media, and settings — so the team can ship content updates without a full redeploy ritual.",
+        media: {
+          type: "image",
+          src: "/images/projects/worldgate/band-cms.webp",
+        },
+      },
+    ],
+    highlights: [
+      {
+        metric: "2",
+        label: "SURFACES",
+        title: "Marketing site + operator CMS",
+        body: "A public brand experience for freight trust, paired with an invite-only CMS so the team can update homepage content without a deploy.",
+      },
+      {
+        metric: "API",
+        label: "SEPARATE BACKEND",
+        title: "Content API for live homepage",
+        body: "Homepage sections load from a CMS API — so marketing can iterate copy, media, and services while the front stays fast and typed.",
+      },
+      {
+        metric: "UI",
+        label: "OPS LANGUAGE",
+        title: "Precision without looking cold",
+        body: "Hairline rules, mono labels, navy + single accent — a logistics visual system that still feels modern on web and in the console.",
+      },
+    ],
+    sections: [
+      {
+        label: "The product",
+        title: "A freight brand that can actually be edited",
+        paragraphs: [
+          "Worldgate is a Thailand-based freight and logistics company site — public marketing on one side, and a content CMS on the other so the team can keep the homepage honest as services and stories change.",
+          "The build split the surfaces intentionally: a Next.js marketing front with a strong operational design language, and a Bun API + CMS for authentication, homepage sections, media, and services.",
+        ],
+      },
+      {
+        label: "Problem",
+        title: "Logistics sites go stale the moment marketing needs a change",
+        paragraphs: [
+          "Freight companies sell trust. When the homepage is hard-coded, every copy tweak becomes an engineering ticket — and the brand starts lagging behind real operations.",
+          "Worldgate needed a public face that feels precise and premium, plus an operator path to update content without leaking credentials into a shared Google Doc forever.",
+        ],
+      },
+      {
+        label: "What I built",
+        title: "End-to-end product surfaces",
+        paragraphs: [
+          "I worked across the marketing experience and the CMS/API loop — from hero and section composition to invite-only access, content modules, and media handling.",
+          "The interesting craft was keeping the public site’s visual system (tight grid, hairlines, navy, restrained accent) consistent while the CMS stayed fast to operate.",
+        ],
+        bullets: [
+          "Public marketing site with sectioned homepage composition",
+          "Invite-only CMS for homepage, services, media, and settings",
+          "Separate Bun API for content, auth, and media workflows",
+          "Design system tokens shared across light/dark operational chrome",
+        ],
+      },
+      {
+        label: "Boundaries",
+        title: "What’s public vs what stays private",
+        paragraphs: [
+          "This case study talks about product shape and engineering craft — not shipment ledgers, customer contracts, warehouse inventories, or internal credentials.",
+          "Live ops data, private API keys, and staff accounts belong in the company’s systems. The portfolio shows the interface work: brand, CMS, and how content reaches the site.",
+        ],
+      },
+      {
+        label: "Why it belongs here",
+        title: "Brand systems with an operator path",
+        paragraphs: [
+          "Worldgate shows I can ship a serious B2B brand surface and the tooling that keeps it alive — not just a static landing page that looks good in a screenshot.",
+          "It’s the kind of build clients recognize: clear domain, intentional UI language, and a content pipeline that doesn’t collapse the week after launch.",
+        ],
+      },
+    ],
+    stack: ["Next.js", "React", "TypeScript", "Bun", "Elysia", "Prisma", "MySQL", "Tailwind"],
+  },
+  {
     slug: "seenpi",
     title: "Seenpi",
     summary:

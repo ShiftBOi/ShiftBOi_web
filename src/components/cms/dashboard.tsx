@@ -80,30 +80,80 @@ function relativeTime(iso: string) {
   return new Date(iso).toLocaleDateString();
 }
 
-function SparkBars({
+function ContributeLine({
   values,
 }: {
-  values: Array<{ day: string; pageViews: number }>;
+  values: Array<{ day: string; pageViews: number; visitors: number }>;
 }) {
   const max = Math.max(1, ...values.map((v) => v.pageViews));
+  const w = 280;
+  const h = 72;
+  const padX = 8;
+  const padY = 10;
+  const innerW = w - padX * 2;
+  const innerH = h - padY * 2;
+  const n = Math.max(1, values.length - 1);
+
+  const points = values.map((v, i) => {
+    const x = padX + (i / n) * innerW;
+    const y = padY + innerH - (v.pageViews / max) * innerH;
+    return { x, y, ...v };
+  });
+
+  const line = points
+    .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+    .join(" ");
+  const area =
+    points.length > 0
+      ? `${line} L ${points[points.length - 1]!.x.toFixed(1)} ${(padY + innerH).toFixed(1)} L ${points[0]!.x.toFixed(1)} ${(padY + innerH).toFixed(1)} Z`
+      : "";
+
   return (
-    <div className="cms-dash-spark" aria-hidden>
-      {values.map((v) => {
-        const weekday = new Date(`${v.day}T12:00:00Z`).toLocaleDateString(
-          undefined,
-          { weekday: "narrow", timeZone: "UTC" },
-        );
-        return (
-          <span key={v.day} className="cms-dash-spark-col">
-            <span
-              className="cms-dash-spark-bar"
-              style={{ height: `${Math.max(10, (v.pageViews / max) * 100)}%` }}
-              title={`${v.day}: ${v.pageViews}`}
-            />
-            <span className="cms-dash-spark-label">{weekday}</span>
-          </span>
-        );
-      })}
+    <div className="cms-dash-contribute" aria-hidden>
+      <svg viewBox={`0 0 ${w} ${h}`} className="cms-dash-contribute-svg" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="cmsTrafficFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--cms-accent)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--cms-accent)" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+        {[0.25, 0.5, 0.75].map((t) => (
+          <line
+            key={t}
+            x1={padX}
+            x2={w - padX}
+            y1={padY + innerH * t}
+            y2={padY + innerH * t}
+            className="cms-dash-contribute-grid"
+          />
+        ))}
+        {area ? <path d={area} fill="url(#cmsTrafficFill)" /> : null}
+        <path d={line} className="cms-dash-contribute-line" fill="none" />
+        {points.map((p) => (
+          <circle
+            key={p.day}
+            cx={p.x}
+            cy={p.y}
+            r={p.pageViews > 0 ? 3.2 : 2.2}
+            className={`cms-dash-contribute-dot${p.pageViews > 0 ? " is-active" : ""}`}
+          >
+            <title>{`${p.day}: ${p.pageViews} views · ${p.visitors} visitors`}</title>
+          </circle>
+        ))}
+      </svg>
+      <div className="cms-dash-contribute-labels">
+        {values.map((v) => {
+          const weekday = new Date(`${v.day}T12:00:00Z`).toLocaleDateString(undefined, {
+            weekday: "narrow",
+            timeZone: "UTC",
+          });
+          return (
+            <span key={v.day} className="cms-dash-spark-label">
+              {weekday}
+            </span>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -198,7 +248,7 @@ export function CmsDashboard() {
                       {p.published ? "Live" : "Draft"}
                     </span>
                     {p.visibility === "CONFIDENTIAL" ? (
-                      <span className="cms-dash-flag is-soft">Private</span>
+                      <span className="cms-dash-flag is-soft">Secret</span>
                     ) : null}
                   </span>
                 </Link>
@@ -242,7 +292,7 @@ export function CmsDashboard() {
             ) : null}
           </div>
 
-          {traffic?.last7 ? <SparkBars values={traffic.last7} /> : null}
+          {traffic?.last7 ? <ContributeLine values={traffic.last7} /> : null}
 
           <div className="cms-dash-traffic">
             <div className="cms-dash-traffic-stat">

@@ -670,11 +670,17 @@ function DataBandSection() {
 export function SiteBody({
   projects,
   site,
-  spotlight = null,
+  secrets = [],
 }: {
   projects: Project[];
   site: SiteContent;
-  spotlight?: { slug: string; title: string; summary: string | null } | null;
+  secrets?: Array<{
+    slug: string;
+    title: string;
+    summary: string | null;
+    techStack?: string[];
+    heroBody?: string | null;
+  }>;
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const [activeUseCase, setActiveUseCase] = useState(0);
@@ -915,111 +921,113 @@ export function SiteBody({
         </section>
       ) : null}
 
-      {spotlight ? (
-        <>
-          {/* Purple double-line with equal gap above/below */}
-          <div className="hydra-double-rule-gap">
-            <HydraTripleRule />
-          </div>
+      {/* Section divider — always present between Selected and next chapter */}
+      <div className="hydra-double-rule-gap">
+        <HydraTripleRule />
+      </div>
 
-          {/* Spotlight project band — only when published */}
-          <section className="hydra-recall-band">
-            <div className="hydra-container">
-              <div className="grid border-x border-[#353535] lg:grid-cols-2">
-                <div
-                  className="border-b border-[#353535] p-8 md:p-10 lg:border-b-0 lg:border-r lg:p-12"
-                  data-hydra-reveal-x
-                >
-                  <Link
-                    href={`/projects/${spotlight.slug}`}
-                    className="block no-underline"
-                  >
-                    <h2 className="hydra-h2-dark text-left text-white transition-colors hover:text-[var(--color-hydra-accent)]">
-                      {spotlight.title}
-                    </h2>
-                  </Link>
-                  {spotlight.summary ? (
-                    <p className="mt-6 max-w-md text-[15px] leading-[1.45] tracking-[-0.01em] text-[rgb(153,153,153)]">
-                      {spotlight.summary}
-                    </p>
-                  ) : null}
-                  <ul className="mt-8 space-y-5">
-                    {[
-                      "Map-first mission workspace with terrain-aware context",
-                      "Structured firing-data workflows instead of spreadsheet hopping",
-                      "Cross-platform web + desktop packaging for demos and field use",
-                    ].map((line) => (
-                      <li
-                        key={line}
-                        className="border-l-2 border-[var(--color-hydra-accent)] pl-4 text-[14px] leading-[1.4] tracking-[-0.01em] text-[rgb(153,153,153)]"
-                      >
-                        {line}
-                      </li>
-                    ))}
-                  </ul>
-                  <Link
-                    href={`/projects/${spotlight.slug}`}
-                    className="mt-8 inline-flex items-center gap-2 text-[13px] text-white/70 transition-colors hover:text-[var(--color-hydra-accent)]"
-                  >
-                    Read more
-                    <span aria-hidden>→</span>
-                  </Link>
-                </div>
-                <div
-                  className="relative min-h-[280px] overflow-hidden p-6 md:min-h-[340px] md:p-8"
-                  data-hydra-reveal
-                  data-hydra-parallax
-                  data-parallax-speed="0.4"
-                >
-                  <p className="hydra-accent-label-sm mb-4">
-                    Clarity vs Project Complexity
-                  </p>
-                  <svg viewBox="0 0 420 220" className="h-auto w-full" aria-hidden>
-                    <g stroke="#353535" strokeWidth="1">
-                      {[0, 1, 2, 3, 4].map((i) => (
-                        <line key={i} x1="40" y1={20 + i * 40} x2="400" y2={20 + i * 40} />
-                      ))}
-                    </g>
-                    <path
-                      d="M40 40 C120 42, 200 55, 280 95 C340 130, 380 165, 400 190"
-                      fill="none"
-                      stroke="#ffffff"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M40 48 C120 55, 200 85, 280 140 C340 175, 380 195, 400 205"
-                      fill="none"
-                      stroke="#f9c425"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M40 30 C140 32, 220 38, 300 55 C360 72, 390 88, 400 98"
-                      fill="none"
-                      stroke="var(--color-hydra-accent)"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                  <div className="mt-4 flex flex-wrap gap-4 text-[11px] text-[rgb(153,153,153)]">
-                    <span className="inline-flex items-center gap-2">
-                      <i className="inline-block size-2.5 bg-[var(--color-hydra-accent)]" />{" "}
-                      ShiftBOi
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <i className="inline-block size-2.5 bg-white" /> Split teams
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <i className="inline-block size-2.5 bg-[#f9c425]" /> Spec-only
-                      handoff
-                    </span>
+      {secrets.length > 0
+        ? secrets.map((secret) => {
+            const bullets =
+              secret.techStack && secret.techStack.length > 0
+                ? secret.techStack.slice(0, 3)
+                : [
+                    "Focused teaser — full detail stays off the public grid",
+                    "Shipped as a single full-width row on the homepage",
+                    "Switch to Selected in CMS when you want a detail page",
+                  ];
+            return (
+              <section
+                key={secret.slug}
+                id={`secret-${secret.slug}`}
+                className="hydra-recall-band"
+              >
+                <div className="hydra-container">
+                  <div className="grid border-x border-[#353535] lg:grid-cols-2">
+                    <div
+                      className="border-b border-[#353535] p-8 md:p-10 lg:border-b-0 lg:border-r lg:p-12"
+                      data-hydra-reveal-x
+                    >
+                      <h2 className="hydra-h2-dark text-left text-white">
+                        {secret.title}
+                      </h2>
+                      {secret.summary ? (
+                        <p className="mt-6 max-w-md text-[15px] leading-[1.45] tracking-[-0.01em] text-[rgb(153,153,153)]">
+                          {secret.summary}
+                        </p>
+                      ) : null}
+                      <ul className="mt-8 space-y-5">
+                        {bullets.map((line) => (
+                          <li
+                            key={line}
+                            className="border-l-2 border-[var(--color-hydra-accent)] pl-4 text-[14px] leading-[1.4] tracking-[-0.01em] text-[rgb(153,153,153)]"
+                          >
+                            {line}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div
+                      className="relative min-h-[280px] overflow-hidden p-6 md:min-h-[340px] md:p-8"
+                      data-hydra-reveal
+                      data-hydra-parallax
+                      data-parallax-speed="0.4"
+                    >
+                      <p className="hydra-accent-label-sm mb-4">
+                        Clarity vs Project Complexity
+                      </p>
+                      <svg viewBox="0 0 420 220" className="h-auto w-full" aria-hidden>
+                        <g stroke="#353535" strokeWidth="1">
+                          {[0, 1, 2, 3, 4].map((i) => (
+                            <line key={i} x1="40" y1={20 + i * 40} x2="400" y2={20 + i * 40} />
+                          ))}
+                        </g>
+                        <path
+                          d="M40 40 C120 42, 200 55, 280 95 C340 130, 380 165, 400 190"
+                          fill="none"
+                          stroke="#ffffff"
+                          strokeWidth="1.5"
+                        />
+                        <path
+                          d="M40 48 C120 55, 200 85, 280 140 C340 175, 380 195, 400 205"
+                          fill="none"
+                          stroke="#f9c425"
+                          strokeWidth="1.5"
+                        />
+                        <path
+                          d="M40 30 C140 32, 220 38, 300 55 C360 72, 390 88, 400 98"
+                          fill="none"
+                          stroke="var(--color-hydra-accent)"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                      <div className="mt-4 flex flex-wrap gap-4 text-[11px] text-[rgb(153,153,153)]">
+                        <span className="inline-flex items-center gap-2">
+                          <i className="inline-block size-2.5 bg-[var(--color-hydra-accent)]" />{" "}
+                          ShiftBOi
+                        </span>
+                        <span className="inline-flex items-center gap-2">
+                          <i className="inline-block size-2.5 bg-white" /> Split teams
+                        </span>
+                        <span className="inline-flex items-center gap-2">
+                          <i className="inline-block size-2.5 bg-[#f9c425]" /> Spec-only
+                          handoff
+                        </span>
+                      </div>
+                      {secret.heroBody ? (
+                        <p className="mt-6 max-w-sm text-[13px] leading-relaxed text-white/55">
+                          {secret.heroBody}
+                        </p>
+                      ) : null}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </section>
-        </>
-      ) : null}
+              </section>
+            );
+          })
+        : null}
 
-      {/* Spacing — Recall ↔ Graph Native */}
+      {/* Spacing — Selected / Secret ↔ Graph Native */}
       <div className="hydra-section-gap" aria-hidden />
 
       {/* Graph Native — HydraDB framer-amkbys */}

@@ -218,8 +218,8 @@ export function ProjectsManager({
                 <label className="cms-field">
                   <span>Visibility</span>
                   <select name="visibility" defaultValue="PUBLIC">
-                    <option value="PUBLIC">Selected · detail page</option>
-                    <option value="CONFIDENTIAL">Limited · teaser</option>
+                    <option value="PUBLIC">Selected · 2-up grid + detail</option>
+                    <option value="CONFIDENTIAL">Secret · solo homepage row</option>
                   </select>
                 </label>
                 <label className="cms-check">

@@ -374,7 +374,7 @@ When the user pastes messy notes (timeline, name, stack, metrics, copy):
 4. Map timelines / milestones into sections[{label,title,paragraphs,bullets}].
 5. Map metrics / outcomes into highlights[{metric,label,title,body}].
 6. thesisLead / thesisHighlight / thesisRest form the hero sentence; thesisBody is the paragraph.
-7. visibility PUBLIC = Selected (detail page); CONFIDENTIAL = Limited teaser.
+7. visibility PUBLIC = Selected (2-up grid + detail); CONFIDENTIAL = Secret solo homepage row.
 8. Do not invent image URLs.
 9. After mutations, briefly summarize what changed and give the edit URL path.
 10. Reply in the same language the user used (Thai or English).

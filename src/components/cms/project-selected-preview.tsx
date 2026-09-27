@@ -591,8 +591,13 @@ export function ProjectSelectedPreview({
                       </div>
                       {!peer.featured ? (
                         <p className="cms-selected-slot-note">
-                          Not featured yet — turn on <strong>Featured on home</strong> in
-                          tools (or save after editing).
+                          Not on home yet — turn on <strong>Featured on home</strong>, then{" "}
+                          <strong>Publish</strong> (top bar) when ready.
+                        </p>
+                      ) : !peer.published ? (
+                        <p className="cms-selected-slot-note">
+                          Featured as <strong>Draft</strong> — click <strong>Publish</strong> in
+                          the top bar to show on the live site.
                         </p>
                       ) : null}
 

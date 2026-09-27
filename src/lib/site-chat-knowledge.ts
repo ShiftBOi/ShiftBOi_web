@@ -54,8 +54,9 @@ Projects:
 - Vibesaur Extension — Cursor/VS Code pet fed by commit quality; local-only island, stats desk, star store
 - SKNAT — Thai real-estate: search, map, compare + seller/admin for listings, leads, sales (Next.js + MySQL)
 - Tastesiam — Thai food heritage & local businesses on the map; i18n, commerce, multi-role dashboards
+- Worldgate — freight/logistics marketing site + invite-only CMS; content API for editable homepage (Next.js + Bun)
+- Artillery-FDC — Howitzer FDC web & Electron desktop; map placement, firing tables, mission workflows (Secret row)
 - Seenpi (Mview) — CCTV video-wall platform: publish → moderate → Android TV multi-cam + widgets; WebRTC
-- Artillery-FDC — Howitzer FDC web & Electron desktop; map placement, SQLite firing tables, MET corrections; drone/observer adjust-fire over local Socket.io
 
 About: "Building Things People Enjoy Opening." / "Quiet craft for web, mobile & AI — shipped with care, meant to feel alive."
 

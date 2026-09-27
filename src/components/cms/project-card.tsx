@@ -46,7 +46,7 @@ export function CmsProjectCard({ project }: { project: CmsProjectCardData }) {
               </span>
               {project.featured ? <span className="cms-dash-flag">Featured</span> : null}
               {project.visibility === "CONFIDENTIAL" ? (
-                <span className="cms-dash-flag is-soft">Private</span>
+                <span className="cms-dash-flag is-soft">Secret</span>
               ) : (
                 <span className="cms-dash-flag is-soft">Selected</span>
               )}

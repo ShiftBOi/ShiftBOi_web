@@ -199,6 +199,22 @@ export async function getFeaturedProjects(take = 24) {
   });
 }
 
+/** Homepage Secret rows — one full-width teaser each (no Selected grid). */
+export async function getSecretProjects(take = 12) {
+  return prisma.project.findMany({
+    where: { published: true, visibility: "CONFIDENTIAL" },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    take,
+    select: {
+      slug: true,
+      title: true,
+      summary: true,
+      techStack: true,
+      heroBody: true,
+    },
+  });
+}
+
 export async function getPublishedProjectBySlug(slug: string) {
   return prisma.project.findFirst({
     where: { slug, published: true },
@@ -212,13 +228,13 @@ export async function getPublishedProjectBySlug(slug: string) {
 
 export async function getPortfolioProjectBySlug(slug: string) {
   const row = await prisma.project.findUnique({ where: { slug } });
-  if (!row || !row.published) return null;
+  if (!row || !row.published || row.visibility !== "PUBLIC") return null;
   return mapProjectToPortfolio(row);
 }
 
 export async function getPortfolioSlugsFromDb() {
   const rows = await prisma.project.findMany({
-    where: { published: true },
+    where: { published: true, visibility: "PUBLIC" },
     select: { slug: true },
     orderBy: { sortOrder: "asc" },
   });
@@ -227,7 +243,7 @@ export async function getPortfolioSlugsFromDb() {
 
 export async function getOtherProjects(slug: string, take = 3) {
   const rows = await prisma.project.findMany({
-    where: { published: true, NOT: { slug } },
+    where: { published: true, visibility: "PUBLIC", NOT: { slug } },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     take,
   });
