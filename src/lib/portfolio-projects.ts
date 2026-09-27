@@ -539,6 +539,99 @@ export const PORTFOLIO_PROJECTS: PortfolioProject[] = [
     stack: ["Bun", "Elysia", "Postgres", "React", "Kotlin", "WebRTC"],
   },
   {
+    slug: "dji-drone",
+    title: "DJI Field Pin",
+    summary:
+      "Android DJI app that pins a ground location from live video and sends coordinates to a main coordination system — built to help people get found faster.",
+    thesisLead: "A helpful location should be",
+    thesisHighlight: "one tap",
+    thesisRest: "away from the people who need it.",
+    thesisBody:
+      "DJI Field Pin turns a live drone camera into a precise ground pin — then forwards that point to a main ops system so responders can move toward people who need help.",
+    year: "2025",
+    role: "Android · DJI Mobile SDK",
+    heroMetric: "1",
+    heroMetricLabel: "TAP → PIN → SEND",
+    heroTitle: "Mark a place from the sky, share it to the ground team",
+    heroBody:
+      "Connect a DJI aircraft, watch the live feed, tap the point that matters, and send clean coordinates to the main system coordinating help.",
+    media: {
+      type: "image",
+      src: "/images/projects/dji-drone/hero.png",
+      poster: "/images/projects/dji-drone/intro.jpg",
+    },
+    introSrc: "/images/projects/dji-drone/intro.jpg",
+    highlights: [
+      {
+        metric: "Tap",
+        label: "LIVE VIDEO",
+        title: "Pin from the camera, not a guess",
+        body: "Double-tap the live feed to mark the ground point under the view — so the pin matches what the operator actually sees.",
+      },
+      {
+        metric: "Send",
+        label: "TO MAIN SYSTEM",
+        title: "Coordinates that leave the aircraft",
+        body: "Once confirmed, the location is forwarded to a separate coordination host — the people organizing help get a shared point, not a screenshot in a chat.",
+      },
+      {
+        metric: "Map",
+        label: "CONTEXT",
+        title: "See the pin in place",
+        body: "Map context sits beside the feed so the team can sanity-check the mark before it becomes someone else’s walking direction.",
+      },
+    ],
+    sections: [
+      {
+        label: "The product",
+        title: "Drone vision that ends in a shared location",
+        paragraphs: [
+          "When someone needs help, the hard part is often not flying — it’s turning what the camera sees into a location the ground team can trust.",
+          "DJI Field Pin is an Android app on DJI Mobile SDK V5: live video and telemetry from the aircraft, a tap-to-pin gesture on the feed, and a send path into a main coordination system.",
+        ],
+      },
+      {
+        label: "Why it exists",
+        title: "Help people get found without losing the point",
+        paragraphs: [
+          "Verbal directions from the air break down. Screenshots lose precision. A dedicated pin → send loop keeps the mark structured so the main system can place it on a map and move people toward it.",
+          "The public story stays about locating and assisting — not about any closed or restricted domain. The portfolio shows the product shape: camera, pin, coordinate, handoff.",
+        ],
+      },
+      {
+        label: "What I built",
+        title: "Aircraft UI plus a clean handoff",
+        paragraphs: [
+          "I worked on the Android surface around DJI’s MSDK V5 stack: registration, live preview, map context, and the operator flow that confirms a pin before sending.",
+          "The interesting craft is keeping geolocation honest — attitude, GPS, and terrain context — while the UI stays calm enough to use under time pressure.",
+        ],
+        bullets: [
+          "Android app on DJI Mobile SDK V5 (consumer aircraft compatible)",
+          "Live video with tap-to-mark ground position",
+          "Map context for confirming the pin",
+          "Send path to a separate main coordination system",
+        ],
+      },
+      {
+        label: "Boundaries",
+        title: "What this write-up includes",
+        paragraphs: [
+          "This case study covers the operator UX and engineering shape — camera, pin, coordinate handoff — without publishing private keys, host internals, or restricted operational details.",
+          "The intent on the portfolio is clear: a drone tool for pointing a place so people can be helped faster.",
+        ],
+      },
+      {
+        label: "Why it belongs here",
+        title: "Hardware-adjacent product craft",
+        paragraphs: [
+          "DJI Field Pin shows I can ship past web dashboards into device SDKs — live media, maps, and a real send loop that another system can trust.",
+          "It’s also a crisp product sentence: tap what you see, send where it is, help someone get there.",
+        ],
+      },
+    ],
+    stack: ["Kotlin", "Android", "DJI Mobile SDK V5", "OpenStreetMap", "Socket.IO"],
+  },
+  {
     slug: "artillery-fdc",
     title: "Artillery-FDC",
     summary:

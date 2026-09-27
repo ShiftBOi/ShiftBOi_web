@@ -6,7 +6,14 @@ const prisma = new PrismaClient();
 const ADMIN_EMAIL =
   process.env.ADMIN_EMAIL?.toLowerCase().trim() || "rapeepongapic@gmail.com";
 
-const FEATURED_SLUGS = new Set(["vibesaur", "sknat", "tastesiam", "worldgate"]);
+const FEATURED_SLUGS = new Set([
+  "vibesaur",
+  "sknat",
+  "tastesiam",
+  "worldgate",
+  "seenpi",
+  "dji-drone",
+]);
 
 const SITE_SETTINGS: Record<string, Prisma.InputJsonValue> = {
   brand: {
