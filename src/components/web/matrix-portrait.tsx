@@ -157,7 +157,7 @@ export function MatrixPortrait() {
       const cellW = w / COLS;
       const cellH = h / ROWS;
       const fontPx = Math.max(6, Math.floor(Math.min(cellW, cellH) * 1.08));
-      ctx.font = `600 ${fontPx}px Pix32, ui-monospace, Menlo, monospace`;
+      ctx.font = `600 ${fontPx}px "Geist Pixel", ui-monospace, Menlo, monospace`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 

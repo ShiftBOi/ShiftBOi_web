@@ -41,7 +41,7 @@
 .title {
   display: flex;
   margin: 0;
-  font-family: var(--font-aeonik-fallback), Arial, sans-serif;
+  font-family: var(--font-site-sans), "Space Grotesk", system-ui, sans-serif;
   font-size: clamp(64px, 12vw, 164px);
   font-weight: 600;
   line-height: 1.1;
@@ -55,7 +55,7 @@
 .subtitle {
   margin: 0;
   color: #a8a5af;
-  font-family: var(--font-aeonik-fallback), Arial, sans-serif;
+  font-family: var(--font-site-sans), "Space Grotesk", system-ui, sans-serif;
   font-size: clamp(14px, 1.4vw, 19px);
   font-weight: 400;
   letter-spacing: -.015em;

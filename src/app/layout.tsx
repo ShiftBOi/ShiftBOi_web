@@ -3,8 +3,9 @@ import { Space_Grotesk } from "next/font/google";
 import { VisitBeacon } from "@/components/web/visit-beacon";
 import "./globals.css";
 
-const aeonikFallback = Space_Grotesk({
-  variable: "--font-aeonik-fallback",
+/** Primary UI sans — OFL via Google Fonts (replaces Aeonik Trial). */
+const siteSans = Space_Grotesk({
+  variable: "--font-site-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${aeonikFallback.variable} h-full antialiased`}>
+    <html lang="en" className={`${siteSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
         {children}
         <VisitBeacon />

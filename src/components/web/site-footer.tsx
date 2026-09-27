@@ -52,10 +52,6 @@ export function SiteFooter({
                   Full-stack Web &amp; Mobile Developer — Rapeepong Apichanakulchai
                 </p>
               </div>
-              <p className="site-footer-blurb">
-                Portfolio for production web, mobile, and AI-ready products —
-                selected work, stack, and craft notes under one brand.
-              </p>
               <div className="site-footer-nav">
                 <div className="site-footer-col">
                   <p className="site-footer-col-title">Explore</p>
@@ -143,6 +139,30 @@ export function SiteFooter({
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+
+        <div className="site-footer-row site-footer-row-credit">
+          <div className="site-footer-row-inner site-footer-row-inner-credit">
+            <p className="site-footer-credit">
+              Head geometry adapted from{" "}
+              <a
+                href="https://github.com/mrdoob/three.js/tree/dev/examples/models/gltf/LeePerrySmith"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Infinite, 3D Head Scan
+              </a>{" "}
+              by Lee Perry-Smith (
+              <a
+                href="https://creativecommons.org/licenses/by/3.0/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                CC BY 3.0
+              </a>
+              ).
+            </p>
           </div>
         </div>
       </div>

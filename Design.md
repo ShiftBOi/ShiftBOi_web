@@ -11,7 +11,7 @@ Create implementation-ready, token-driven UI guidance for HydraDB — The Graph 
 
 ## Style Foundations
 - Visual style: minimal, utility-first, accessibility-prioritized
-- Main font style: `font.family.primary=Aeonik TRIAL Regular`, `font.family.stack=Aeonik TRIAL Regular, Aeonik TRIAL Regular Placeholder, sans-serif`, `font.size.base=16px`, `font.weight.base=400`, `font.lineHeight.base=19.2px`
+- Main font style: `font.family.primary=Space Grotesk`, `font.family.stack=Space Grotesk, system-ui, sans-serif`, `font.size.base=16px`, `font.weight.base=400`, `font.lineHeight.base=19.2px`
 - Typography scale: `font.size.xs=11px`, `font.size.sm=12px`, `font.size.md=13px`, `font.size.lg=14px`, `font.size.xl=16px`, `font.size.2xl=18px`, `font.size.3xl=20px`, `font.size.4xl=23px`
 - Color palette: `color.text.primary=#ffffff`, `color.surface.base=#000000`, `color.text.tertiary=#757575`, `color.text.inverse=#999999`
 - Spacing scale: No reliable extraction yet; teams should define explicit semantic tokens manually.

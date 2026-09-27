@@ -35,7 +35,7 @@ type Obstacle = {
 const DINO_SIZE = 220;
 const PARTICLE_DIV = 2;
 const GRID = 24 * PARTICLE_DIV;
-const PIX_FONT = "Pix32, ui-monospace, monospace";
+const PIX_FONT = "Geist Pixel, ui-monospace, monospace";
 const SCALE_CACTUS = 7;
 /** Hurt frame that is fully white — freeze here after player death anim */
 const DINO_DEVICE_KEY = "shiftboi-dino-device";
