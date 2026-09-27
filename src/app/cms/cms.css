@@ -2023,11 +2023,14 @@ html:has(.cms-shell[data-cms-theme="dark"]) body {
   border: 1px solid var(--cms-border);
   border-radius: var(--cms-radius);
   overflow: hidden;
-  background: #fff;
+  /* Live project preview is always a dark portfolio surface (matches public site). */
+  background: #0a0a0a;
+  color: #f2f2f2;
 }
 
 .cms-shell[data-cms-theme="dark"] .cms-project-preview-wrap {
-  background: #0f1014;
+  background: #0a0a0a;
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .cms-editor-tools {
@@ -5896,10 +5899,11 @@ html:has(.cms-shell[data-cms-theme="dark"]) body {
 
 .cms-chip-btn {
   padding: 0.4rem 0.8rem;
-  border: 1px solid var(--cms-line);
+  border: 1px solid var(--cms-border);
   border-radius: var(--cms-radius-pill);
-  background: var(--cms-surface);
-  color: var(--cms-text);
+  /* Solid fill — transparent + theme ink breaks on dark live-preview surfaces */
+  background: var(--cms-paper-2);
+  color: var(--cms-ink);
   font: inherit;
   font-size: 0.78rem;
   font-weight: 550;
@@ -7486,3 +7490,107 @@ body.cms-chat-resizing .cms-chat-panel {
 .cms-shell[data-cms-theme="dark"] .cms-ai-chip-value code {
   color: var(--cms-accent-bright);
 }
+
+/* ── Theme contrast lock ───────────────────────────────────────────────
+   Live-preview embeds a dark portfolio canvas. CMS light-theme tokens
+   (dark ink) would paint invisible text/buttons on that surface — force
+   light copy for preview chrome regardless of shell theme. Also harden
+   general dark-shell text that still used light-only hex colors. */
+
+.cms-project-preview-wrap .cms-chip-btn,
+.cms-preview-root .cms-chip-btn,
+.project-services .cms-chip-btn,
+.cms-preview-root .cms-add-band-btn,
+.cms-project-preview-wrap .cms-add-band-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f2f2f2;
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.cms-preview-root .cms-add-band-btn strong,
+.cms-project-preview-wrap .cms-add-band-btn strong,
+.cms-preview-root .cms-add-band-btn em,
+.cms-project-preview-wrap .cms-add-band-btn em {
+  color: inherit;
+}
+
+.cms-project-preview-wrap .cms-chip-btn.is-danger,
+.cms-preview-root .cms-chip-btn.is-danger,
+.project-services .cms-chip-btn.is-danger {
+  color: #ff8a80;
+  border-color: rgba(255, 138, 128, 0.4);
+  background: rgba(255, 138, 128, 0.08);
+}
+
+.cms-project-preview-wrap .cms-band-chrome-label,
+.cms-preview-root .cms-band-chrome-label,
+.cms-project-preview-wrap .cms-detail-chrome-label,
+.cms-preview-root .cms-detail-chrome-label,
+.cms-project-preview-wrap .cms-rail-hint,
+.cms-preview-root .cms-preview-empty,
+.cms-preview-root .cms-preview-empty-chip {
+  color: rgba(242, 242, 242, 0.55);
+}
+
+.cms-project-preview-wrap .cms-detail-drag,
+.cms-preview-root .cms-detail-drag {
+  color: rgba(242, 242, 242, 0.7);
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.cms-project-preview-wrap .cms-preview-input,
+.cms-preview-root .cms-preview-input {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f2f2f2;
+  caret-color: #f2f2f2;
+}
+
+.cms-project-preview-wrap .cms-preview-input::placeholder,
+.cms-preview-root .cms-preview-input::placeholder {
+  color: rgba(242, 242, 242, 0.4);
+}
+
+/* Dark shell — catch leftover light-only ink on finance / glass widgets */
+.cms-shell[data-cms-theme="dark"] .cms-btn-ghost {
+  color: var(--cms-ink);
+  border-color: var(--cms-border);
+}
+
+.cms-shell[data-cms-theme="dark"] .cms-chip-btn {
+  background: var(--cms-paper-2);
+  color: var(--cms-ink);
+  border-color: var(--cms-border);
+}
+
+.cms-shell[data-cms-theme="dark"] .cms-inline-input,
+.cms-shell[data-cms-theme="dark"] .cms-field input,
+.cms-shell[data-cms-theme="dark"] .cms-field textarea,
+.cms-shell[data-cms-theme="dark"] .cms-field select {
+  color: var(--cms-ink);
+}
+
+.cms-shell[data-cms-theme="dark"] .cms-field input::placeholder,
+.cms-shell[data-cms-theme="dark"] .cms-field textarea::placeholder,
+.cms-shell[data-cms-theme="dark"] .cms-inline-input::placeholder {
+  color: var(--cms-text-soft);
+}
+
+.cms-shell[data-cms-theme="dark"] .cms-page-title,
+.cms-shell[data-cms-theme="dark"] .cms-page-lead,
+.cms-shell[data-cms-theme="dark"] label,
+.cms-shell[data-cms-theme="dark"] .cms-muted,
+.cms-shell[data-cms-theme="dark"] .cms-rail-hint {
+  color: inherit;
+}
+
+.cms-shell[data-cms-theme="dark"] .cms-page-title {
+  color: var(--cms-ink);
+}
+
+.cms-shell[data-cms-theme="dark"] .cms-page-lead,
+.cms-shell[data-cms-theme="dark"] .cms-rail-hint,
+.cms-shell[data-cms-theme="dark"] .cms-muted {
+  color: var(--cms-muted);
+}
+

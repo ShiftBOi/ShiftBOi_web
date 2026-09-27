@@ -8,15 +8,21 @@ import {
   getPublishedProjectBySlug,
   getSiteContent,
 } from "@/lib/content";
+import { asMedia } from "@/lib/project-draft";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [projects, site, artillery] = await Promise.all([
+  const [projectRows, site, artillery] = await Promise.all([
     getFeaturedProjects(24),
     getSiteContent(),
     getPublishedProjectBySlug("artillery-fdc"),
   ]);
+
+  const projects = projectRows.map((row) => ({
+    ...row,
+    media: asMedia(row.media),
+  }));
 
   return (
     <SmoothScroll>

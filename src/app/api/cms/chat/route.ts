@@ -46,12 +46,7 @@ export async function POST(request: NextRequest) {
       stopWhen: stepCountIs(6),
     });
 
-    return result.toUIMessageStreamResponse({
-      getErrorMessage: (error) => {
-        if (error instanceof Error && error.message) return error.message;
-        return "Chat failed";
-      },
-    });
+    return result.toUIMessageStreamResponse();
   } catch (error) {
     const detail = error instanceof Error ? error.message : "Chat failed";
     console.error("[api/cms/chat]", detail);

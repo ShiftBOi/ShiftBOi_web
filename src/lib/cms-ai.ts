@@ -1,7 +1,6 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { google } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
-import { cosineSimilarity, embed, embedMany, tool, type LanguageModel } from "ai";
+import { tool, type LanguageModel } from "ai";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { slugify } from "@/lib/project-draft";
@@ -21,8 +20,9 @@ export function isCmsAiConfigured() {
   return true;
 }
 
+/** Kept for status UI — semantic Gemini search disabled (optional / unused on Vercel). */
 export function isGeminiConfigured() {
-  return Boolean(process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim());
+  return false;
 }
 
 export function getCmsAiProviderInfo() {
@@ -57,9 +57,9 @@ export function getCmsChatModel(): LanguageModel {
   const apiKey = process.env.GROQ_API_KEY?.trim();
   if (apiKey) {
     const groq = createGroq({ apiKey });
-    return groq(process.env.GROQ_CMS_MODEL?.trim() || "openai/gpt-oss-120b");
+    return groq(process.env.GROQ_CMS_MODEL?.trim() || "openai/gpt-oss-120b") as LanguageModel;
   }
-  return getOllamaChatModel();
+  return getOllamaChatModel() as LanguageModel;
 }
 
 /** Public site chat — separate Groq key/model when set, else CMS Groq, else Ollama. */
@@ -72,9 +72,9 @@ export function getSiteChatModel(): LanguageModel {
       process.env.GROQ_SITE_MODEL?.trim() ||
       process.env.GROQ_CMS_MODEL?.trim() ||
       "openai/gpt-oss-120b";
-    return groq(model);
+    return groq(model) as LanguageModel;
   }
-  return getOllamaChatModel();
+  return getOllamaChatModel() as LanguageModel;
 }
 
 const highlightSchema = z.object({
@@ -136,7 +136,7 @@ function projectSearchText(p: {
     .join("\n");
 }
 
-/** Gemini embeddings: find closest projects by meaning. Falls back to ILIKE. */
+/** Keyword project search (Gemini embeddings removed — avoids AI SDK type conflicts on Vercel). */
 export async function findProjectsByMeaning(query: string, limit = 5) {
   const projects = await prisma.project.findMany({
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
@@ -157,50 +157,18 @@ export async function findProjectsByMeaning(query: string, limit = 5) {
 
   if (projects.length === 0) return [];
 
-  if (!isGeminiConfigured()) {
-    const q = query.toLowerCase();
-    return projects
-      .filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.slug.toLowerCase().includes(q) ||
-          p.summary.toLowerCase().includes(q),
-      )
-      .slice(0, limit)
-      .map((p) => ({ ...p, score: 1 }));
-  }
+  const q = query.toLowerCase().trim();
+  if (!q) return projects.slice(0, limit).map((p) => ({ ...p, score: 1 }));
 
-  try {
-    const { embedding: queryEmbedding } = await embed({
-      model: google.embedding("gemini-embedding-001"),
-      value: query,
-    });
-
-    const { embeddings } = await embedMany({
-      model: google.embedding("gemini-embedding-001"),
-      values: projects.map(projectSearchText),
-    });
-
-    return projects
-      .map((p, i) => ({
-        ...p,
-        score: cosineSimilarity(queryEmbedding, embeddings[i]!),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit);
-  } catch (error) {
-    console.error("[cms-ai] embedding search failed", error);
-    const q = query.toLowerCase();
-    return projects
-      .filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.slug.toLowerCase().includes(q) ||
-          p.summary.toLowerCase().includes(q),
-      )
-      .slice(0, limit)
-      .map((p) => ({ ...p, score: 1 }));
-  }
+  return projects
+    .map((p) => {
+      const hay = projectSearchText(p).toLowerCase();
+      const score = hay.includes(q) ? 1 : q.split(/\s+/).filter((w) => w && hay.includes(w)).length;
+      return { ...p, score };
+    })
+    .filter((p) => p.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
 }
 
 export function buildCmsProjectTools() {

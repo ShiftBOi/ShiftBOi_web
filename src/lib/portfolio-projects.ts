@@ -36,6 +36,7 @@ export type PortfolioProject = {
     poster?: string;
     colorSrc?: string;
     bwSrc?: string;
+    objectPosition?: string;
   };
   /** Split media+copy boxes under the hero */
   bands?: ProjectBand[];
