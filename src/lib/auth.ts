@@ -8,17 +8,35 @@ import { ADMIN_EMAIL, isAllowedAdminEmail } from "@/lib/constants";
 
 const appUrl = process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
+function originCandidates(url: string) {
+  try {
+    const u = new URL(url);
+    const host = u.hostname;
+    const origins = [u.origin];
+    if (host.startsWith("www.")) {
+      origins.push(`${u.protocol}//${host.slice(4)}`);
+    } else if (host.includes(".")) {
+      origins.push(`${u.protocol}//www.${host}`);
+    }
+    return origins;
+  } catch {
+    return [url];
+  }
+}
+
 export const auth = betterAuth({
   appName: "WebPort v2",
   baseURL: appUrl,
   secret: process.env.BETTER_AUTH_SECRET,
   // Dev often runs on :3001 when :3000 is busy — trust both local origins
   trustedOrigins: [
-    appUrl,
+    ...originCandidates(appUrl),
     "http://localhost:3000",
     "http://localhost:3001",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
+    "https://shiftboi.xyz",
+    "https://www.shiftboi.xyz",
   ].filter((v, i, arr) => Boolean(v) && arr.indexOf(v) === i),
   database: prismaAdapter(prisma, {
     provider: "postgresql",
