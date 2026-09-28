@@ -29,10 +29,11 @@ export default async function HomePage() {
       <SiteShell>
         <SiteHeader />
         <main className="flex-1 pt-12 md:pt-14">
-          <div className="flex min-h-[calc(100dvh-3rem)] flex-col md:min-h-[calc(100dvh-3.5rem)]">
+          {/* svh locks first screen on iOS — dvh grows when the URL bar hides and stretches the dino lane */}
+          <div className="hero-lock flex h-[calc(100svh-3rem)] max-h-[calc(100svh-3rem)] flex-col overflow-hidden md:h-auto md:max-h-none md:min-h-[calc(100dvh-3.5rem)]">
             <Hero content={site.hero} />
-            <IconVelocityMarquee />
           </div>
+          <IconVelocityMarquee />
 
           <SiteBody projects={projects} site={site} secrets={secrets} />
         </main>

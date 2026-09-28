@@ -316,29 +316,35 @@ a.site-nav-link:focus-visible::after {
   height: 280px;
 }
 
-/* Mobile hero demo — bottom lane, smaller so it clears the CTA */
+/* Mobile hero demo — reserved bottom lane, clear of the CTA */
 @media (max-width: 767px) {
   .dino-dash-root:not(.is-playing):not(.is-entering) {
     left: 0;
     right: 0;
-    bottom: 8px;
-    height: 132px;
-    padding: 0 6px;
+    bottom: 6px;
+    height: 112px;
+    padding: 0 8px;
     z-index: 0;
   }
 
   .dino-dash-root:not(.is-playing):not(.is-entering) .dino-lift {
     transform-origin: left bottom;
-    scale: 0.58;
+    scale: 0.5;
   }
 
   .dino-dash-root:not(.is-playing):not(.is-entering) .dino-obstacle {
     transform-origin: left bottom;
-    scale: 0.58;
+    scale: 0.5;
   }
 
   .dino-dash-root:not(.is-playing):not(.is-entering) .dino-dash-stage {
     border-bottom: 1px solid rgba(172, 103, 255, 0.35);
+  }
+
+  /* Keep CTA above the lane; don't let copy flex into the dino */
+  .hero-copy {
+    min-height: 0;
+    overflow: hidden;
   }
 }
 
