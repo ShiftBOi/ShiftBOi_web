@@ -316,24 +316,25 @@ a.site-nav-link:focus-visible::after {
   height: 280px;
 }
 
-/* Mobile hero demo — same bottom lane as desktop, just larger sprites */
+/* Mobile hero demo — bottom lane, smaller so it clears the CTA */
 @media (max-width: 767px) {
   .dino-dash-root:not(.is-playing):not(.is-entering) {
     left: 0;
     right: 0;
-    bottom: 10px;
-    height: 220px;
-    padding: 0 4px;
+    bottom: 8px;
+    height: 132px;
+    padding: 0 6px;
+    z-index: 0;
   }
 
   .dino-dash-root:not(.is-playing):not(.is-entering) .dino-lift {
     transform-origin: left bottom;
-    scale: 0.92;
+    scale: 0.58;
   }
 
   .dino-dash-root:not(.is-playing):not(.is-entering) .dino-obstacle {
     transform-origin: left bottom;
-    scale: 0.92;
+    scale: 0.58;
   }
 
   .dino-dash-root:not(.is-playing):not(.is-entering) .dino-dash-stage {

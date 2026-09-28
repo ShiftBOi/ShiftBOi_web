@@ -251,7 +251,7 @@ export function Hero({
     <section
       className={`relative flex min-h-0 flex-1 flex-col${heroBusy ? " hero-dino-game" : ""}`}
     >
-      <div className="hero-copy relative z-[1] mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-start px-5 pb-8 pt-12 md:px-10 md:pb-10 md:pt-16">
+      <div className="hero-copy relative z-[2] mx-auto flex w-full max-w-[1400px] flex-1 flex-col justify-start px-5 pb-36 pt-12 md:px-10 md:pb-10 md:pt-16">
         <motion.div
           aria-hidden
           className="pointer-events-none absolute inset-0 overflow-hidden"
