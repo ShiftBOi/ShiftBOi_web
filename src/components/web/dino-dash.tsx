@@ -228,6 +228,14 @@ const OBSTACLE_HIT_INSET: Record<ObstacleKind, number> = {
   cactus3: 0.006,
 };
 
+/** Narrow playfield (phones) — roomier gaps, fewer packs */
+function isCompactPlayfield() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 767px)").matches
+  );
+}
+
 /** How far the dino travels while still above the clear height */
 function clearTravel(speed: number) {
   const a = 0.5 * PLAY_GRAVITY;
@@ -246,7 +254,11 @@ function clearTravel(speed: number) {
  * Always passable: land + jump again with margin (never frame-perfect only).
  */
 function safeMinGap(speed: number) {
-  return clearTravel(speed) * 0.88 + 0.06;
+  const compact = isCompactPlayfield();
+  // Phones: clearable with a beat of air — tight enough to feel sharp, not stacked
+  const base =
+    clearTravel(speed) * (compact ? 0.98 : 0.88) + (compact ? 0.08 : 0.06);
+  return compact ? base * 1.18 : base;
 }
 
 /**
@@ -254,6 +266,21 @@ function safeMinGap(speed: number) {
  */
 function rollObstacleGap(speed: number, tightStreak: number) {
   const base = safeMinGap(speed);
+  const compact = isCompactPlayfield();
+
+  if (compact) {
+    if (tightStreak >= 1) {
+      return { gap: base + 0.14 + Math.random() * 0.18, tight: false };
+    }
+    const roll = Math.random();
+    if (roll < 0.28) {
+      return { gap: base + Math.random() * 0.05, tight: true };
+    }
+    if (roll < 0.62) {
+      return { gap: base + 0.08 + Math.random() * 0.1, tight: false };
+    }
+    return { gap: base + 0.2 + Math.random() * 0.18, tight: false };
+  }
 
   if (tightStreak >= 2) {
     return { gap: base + 0.14 + Math.random() * 0.24, tight: false };
@@ -277,15 +304,21 @@ function rollObstacleGap(speed: number, tightStreak: number) {
 
 /** Max pack width clearable in one jump — keep under clearTravel with margin */
 function maxPackSpan(speed: number) {
-  return clearTravel(speed) * 0.7;
+  return clearTravel(speed) * (isCompactPlayfield() ? 0.45 : 0.7);
 }
 
 /** Intra-pack step — snug but still one-jump clearable via maxPackSpan */
 function rollPackStep(kind: ObstacleKind) {
-  return OBSTACLE_LANE_W[kind] + 0.006 + Math.random() * 0.012;
+  const compact = isCompactPlayfield();
+  const pad = compact ? 0.02 : 0.006;
+  return OBSTACLE_LANE_W[kind] + pad + Math.random() * (compact ? 0.02 : 0.012);
 }
 
 function rollSpawnBurst(speed: number): 1 | 2 | 3 {
+  if (isCompactPlayfield()) {
+    // Mostly singles; occasional pair for bite
+    return Math.random() < 0.78 ? 1 : 2;
+  }
   const roll = Math.random();
   if (roll < 0.55) return 1;
   if (roll < 0.88 || maxPackSpan(speed) < 0.15) return 2;
@@ -870,22 +903,26 @@ function usePlayerDinoLoop(
     idRef.current = 1;
     recentKindsRef.current = [];
     tightStreakRef.current = 0;
+    const compact = isCompactPlayfield();
     const seedA = pickObstacleKind(recentKindsRef.current);
     recentKindsRef.current.push(seedA);
     const seedB = pickObstacleKind(recentKindsRef.current);
     recentKindsRef.current.push(seedB);
-    const seedSpeed = 0.34;
-    const seedGap = safeMinGap(seedSpeed) + Math.random() * 0.1;
-    const seedX0 = 0.58 + Math.random() * 0.08;
-    obstaclesRef.current = [
-      spawnObstacle(idRef.current++, false, seedX0, seedA),
-      spawnObstacle(
-        idRef.current++,
-        false,
-        seedX0 + OBSTACLE_LANE_W[seedA] + seedGap,
-        seedB,
-      ),
-    ];
+    const seedSpeed = compact ? 0.28 : 0.34;
+    const seedGap =
+      safeMinGap(seedSpeed) + (compact ? 0.18 : 0) + Math.random() * (compact ? 0.16 : 0.1);
+    const seedX0 = (compact ? 0.68 : 0.58) + Math.random() * 0.08;
+    obstaclesRef.current = compact
+      ? [spawnObstacle(idRef.current++, false, seedX0, seedA)]
+      : [
+          spawnObstacle(idRef.current++, false, seedX0, seedA),
+          spawnObstacle(
+            idRef.current++,
+            false,
+            seedX0 + OBSTACLE_LANE_W[seedA] + seedGap,
+            seedB,
+          ),
+        ];
     lastObstacleKeyRef.current = "";
     speedRef.current = seedSpeed;
     const firstGap = rollObstacleGap(seedSpeed, 0);
@@ -971,9 +1008,22 @@ function usePlayerDinoLoop(
 
       runningTimeRef.current += dt;
       // Chrome-like: ramps hard early, keeps climbing for a long time
-      const accel =
-        speedRef.current < 0.48 ? 0.011 : speedRef.current < 0.62 ? 0.007 : 0.0035;
-      speedRef.current = Math.min(0.78, speedRef.current + dt * accel);
+      const compact = isCompactPlayfield();
+      const accel = compact
+        ? speedRef.current < 0.42
+          ? 0.007
+          : speedRef.current < 0.55
+            ? 0.0045
+            : 0.0022
+        : speedRef.current < 0.48
+          ? 0.011
+          : speedRef.current < 0.62
+            ? 0.007
+            : 0.0035;
+      speedRef.current = Math.min(
+        compact ? 0.62 : 0.78,
+        speedRef.current + dt * accel,
+      );
       scoreRef.current += dt * speedRef.current * 140;
       onScore?.(Math.floor(scoreRef.current));
 
@@ -1469,8 +1519,8 @@ export function DinoDashStage({
               </span>
               <span className="dino-hud-hint">
                 {phase === "dead"
-                  ? "crashed · space retry · esc exit"
-                  : "space jump · esc exit"}
+                  ? "crashed · tap retry"
+                  : "tap to jump"}
               </span>
             </div>
           )}
