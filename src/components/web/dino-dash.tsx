@@ -40,7 +40,14 @@ const SCALE_CACTUS = 7;
 /** Hurt frame that is fully white — freeze here after player death anim */
 const DINO_DEVICE_KEY = "shiftboi-dino-device";
 const DINO_BEST_KEY = "shiftboi-dino-best";
-const DINO_BOARD_TAKE = 8;
+const DINO_BOARD_TAKE = 40;
+
+type BoardEntry = {
+  rank: number;
+  score: number;
+  tag: string;
+  you: boolean;
+};
 
 function getDinoDeviceId(): string {
   if (typeof window === "undefined") return "";
@@ -74,55 +81,124 @@ function writeLocalBest(score: number) {
   }
 }
 
-async function fetchDinoBoard(): Promise<number[]> {
+function normalizeEntries(
+  entries: BoardEntry[] | undefined,
+  scores: number[] | undefined,
+): BoardEntry[] {
+  if (Array.isArray(entries) && entries.length > 0) {
+    return entries
+      .filter((e) => Number.isFinite(e.score))
+      .slice(0, DINO_BOARD_TAKE)
+      .map((e, i) => ({
+        rank: e.rank || i + 1,
+        score: Math.floor(e.score),
+        tag: e.tag || "----",
+        you: Boolean(e.you),
+      }));
+  }
+  if (!Array.isArray(scores)) return [];
+  return scores
+    .filter((n) => Number.isFinite(n))
+    .slice(0, DINO_BOARD_TAKE)
+    .map((score, i) => ({
+      rank: i + 1,
+      score: Math.floor(score),
+      tag: "----",
+      you: false,
+    }));
+}
+
+/** Live view: your row uses max(savedBest, liveScore), then re-rank. */
+function withLiveScore(
+  entries: BoardEntry[],
+  liveScore: number,
+  myBest: number,
+): BoardEntry[] {
+  const effective = Math.max(0, Math.floor(Math.max(myBest, liveScore)));
+  if (effective <= 0) return entries;
+
+  const others = entries.filter((e) => !e.you).map((e) => ({ ...e, you: false }));
+  const mine: BoardEntry = {
+    rank: 0,
+    score: effective,
+    tag: "YOU",
+    you: true,
+  };
+  const merged = [...others, mine]
+    .sort((a, b) => b.score - a.score || Number(b.you) - Number(a.you))
+    .slice(0, DINO_BOARD_TAKE)
+    .map((e, i) => ({ ...e, rank: i + 1 }));
+  return merged;
+}
+
+async function fetchDinoBoard(deviceId?: string): Promise<{
+  entries: BoardEntry[];
+  myBest: number;
+}> {
+  const id = deviceId || getDinoDeviceId();
   try {
-    const res = await fetch("/api/dino/scores", { cache: "no-store" });
-    if (!res.ok) return [];
-    const data = (await res.json()) as { scores?: number[] };
-    return Array.isArray(data.scores)
-      ? data.scores.filter((n) => Number.isFinite(n)).slice(0, DINO_BOARD_TAKE)
-      : [];
+    const q = id ? `?deviceId=${encodeURIComponent(id)}` : "";
+    const res = await fetch(`/api/dino/scores${q}`, { cache: "no-store" });
+    if (!res.ok) return { entries: [], myBest: readLocalBest() };
+    const data = (await res.json()) as {
+      entries?: BoardEntry[];
+      scores?: number[];
+      myBest?: number;
+    };
+    const myBest =
+      typeof data.myBest === "number" && data.myBest > 0
+        ? data.myBest
+        : readLocalBest();
+    if (myBest > 0) writeLocalBest(myBest);
+    return { entries: normalizeEntries(data.entries, data.scores), myBest };
   } catch {
-    return [];
+    return { entries: [], myBest: readLocalBest() };
   }
 }
 
-/** Submit only when score beats this device's best; returns online board. */
+/** Always sync with server — one best per device; server decides upsert. */
 async function submitDinoBest(score: number): Promise<{
-  scores: number[];
+  entries: BoardEntry[];
   bestScore: number;
   updated: boolean;
 }> {
   const deviceId = getDinoDeviceId();
   const localBest = readLocalBest();
-  if (!deviceId || score <= localBest) {
-    return { scores: await fetchDinoBoard(), bestScore: localBest, updated: false };
+  const floored = Math.floor(score);
+  if (!deviceId || floored <= 0) {
+    const board = await fetchDinoBoard(deviceId);
+    return { entries: board.entries, bestScore: board.myBest || localBest, updated: false };
   }
 
   try {
     const res = await fetch("/api/dino/scores", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ deviceId, score: Math.floor(score) }),
+      body: JSON.stringify({ deviceId, score: floored }),
     });
     if (!res.ok) {
-      return { scores: await fetchDinoBoard(), bestScore: localBest, updated: false };
+      const board = await fetchDinoBoard(deviceId);
+      return { entries: board.entries, bestScore: board.myBest || localBest, updated: false };
     }
     const data = (await res.json()) as {
+      entries?: BoardEntry[];
       scores?: number[];
       bestScore?: number;
       updated?: boolean;
     };
     const bestScore =
-      typeof data.bestScore === "number" ? data.bestScore : Math.max(localBest, score);
+      typeof data.bestScore === "number"
+        ? data.bestScore
+        : Math.max(localBest, floored);
     writeLocalBest(bestScore);
     return {
-      scores: Array.isArray(data.scores) ? data.scores.slice(0, DINO_BOARD_TAKE) : [],
+      entries: normalizeEntries(data.entries, data.scores),
       bestScore,
       updated: Boolean(data.updated),
     };
   } catch {
-    return { scores: await fetchDinoBoard(), bestScore: localBest, updated: false };
+    const board = await fetchDinoBoard(deviceId);
+    return { entries: board.entries, bestScore: board.myBest || localBest, updated: false };
   }
 }
 
@@ -1229,7 +1305,7 @@ export function DinoDashStage({
   const [score, setScore] = useState(0);
   const [finalScore, setFinalScore] = useState(0);
   const [sessionId, setSessionId] = useState(0);
-  const [board, setBoard] = useState<number[]>([]);
+  const [board, setBoard] = useState<BoardEntry[]>([]);
   const [myBest, setMyBest] = useState(0);
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -1254,8 +1330,11 @@ export function DinoDashStage({
     sync();
     setReady(true);
     setMyBest(readLocalBest());
-    getDinoDeviceId();
-    void fetchDinoBoard().then(setBoard);
+    const deviceId = getDinoDeviceId();
+    void fetchDinoBoard(deviceId).then((data) => {
+      setBoard(data.entries);
+      if (data.myBest > 0) setMyBest(data.myBest);
+    });
     mq.addEventListener("change", sync);
     return () => mq.removeEventListener("change", sync);
   }, []);
@@ -1265,13 +1344,39 @@ export function DinoDashStage({
     let cancelled = false;
     void submitDinoBest(finalScore).then((result) => {
       if (cancelled) return;
-      setBoard(result.scores);
+      setBoard(result.entries);
       setMyBest(result.bestScore);
     });
     return () => {
       cancelled = true;
     };
   }, [phase, finalScore]);
+
+  /** Refresh online board while playing so other players' bests stay current. */
+  useEffect(() => {
+    if (phase !== "playing") return;
+    let cancelled = false;
+    const tick = () => {
+      void fetchDinoBoard().then((data) => {
+        if (cancelled) return;
+        setBoard(data.entries);
+        if (data.myBest > 0) setMyBest(data.myBest);
+      });
+    };
+    const id = window.setInterval(tick, 6000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(id);
+    };
+  }, [phase, sessionId]);
+
+  /** Live rank while playing — your row tracks max(best, current run). */
+  const displayBoard = useMemo(() => {
+    const live =
+      phase === "playing" ? score : phase === "dead" ? finalScore : 0;
+    if (phase !== "playing" && phase !== "dead") return board;
+    return withLiveScore(board, live, myBest);
+  }, [board, finalScore, myBest, phase, score]);
 
   const onJumpLift = useCallback(
     (lift01: number) => {
@@ -1507,6 +1612,68 @@ export function DinoDashStage({
           <DinoClouds />
         </div>
 
+        {phase === "dead" && (
+          <div className="dino-dead-panel" role="dialog" aria-label="Game over">
+            <div className="dino-dead-body">
+              <p className="dino-dead-title">game over</p>
+              <p className="dino-dead-score">score {finalScore}</p>
+              {myBest > 0 ? (
+                <p className="dino-dead-best">your best {myBest}</p>
+              ) : null}
+
+              <div className="dino-dead-board" aria-label="Online leaderboard">
+                <div className="dino-board-head">
+                  <p className="dino-board-title">leaderboard</p>
+                  <p className="dino-board-mine">online · per player</p>
+                </div>
+                {displayBoard.length > 0 ? (
+                  <ol className="dino-board-list">
+                    {displayBoard.map((entry) => (
+                      <li
+                        key={`${entry.tag}-${entry.rank}-${entry.score}`}
+                        className={entry.you ? "is-you" : undefined}
+                      >
+                        <span className="dino-board-rank">
+                          {String(entry.rank).padStart(2, "0")}
+                        </span>
+                        <span className="dino-board-name">
+                          {entry.you ? "you" : `p-${entry.tag}`}
+                        </span>
+                        <span className="dino-board-score">{entry.score}</span>
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="dino-board-empty">be the first</p>
+                )}
+              </div>
+            </div>
+
+            <div className="dino-dead-footer">
+              <div className="dino-prompt-actions">
+                <button
+                  type="button"
+                  className="dino-prompt-btn dino-prompt-btn-yes"
+                  onClick={() => {
+                    setScore(0);
+                    setSessionId((n) => n + 1);
+                    setPhaseBoth("playing");
+                  }}
+                >
+                  retry
+                </button>
+                <button
+                  type="button"
+                  className="dino-prompt-btn dino-prompt-btn-no"
+                  onClick={exitToDemo}
+                >
+                  exit
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div
           ref={stageRef}
           className="dino-dash-stage"
@@ -1523,35 +1690,6 @@ export function DinoDashStage({
                   : "tap to jump"}
               </span>
             </div>
-          )}
-
-          {(phase === "playing" || phase === "dead") && (
-            <aside className="dino-board" aria-label="High scores">
-              <p className="dino-board-title">scores</p>
-              {myBest > 0 ? (
-                <p className="dino-board-mine">best {myBest}</p>
-              ) : null}
-              {board.length > 0 ? (
-                <ol className="dino-board-list">
-                  {board.map((s, i) => {
-                    const current =
-                      phase === "dead" &&
-                      s === finalScore &&
-                      i === board.indexOf(finalScore);
-                    return (
-                      <li key={`${s}-${i}`} className={current ? "is-current" : undefined}>
-                        <span className="dino-board-rank">
-                          {String(i + 1).padStart(2, "0")}
-                        </span>
-                        <span className="dino-board-score">{s}</span>
-                      </li>
-                    );
-                  })}
-                </ol>
-              ) : (
-                <p className="dino-board-empty">no scores yet</p>
-              )}
-            </aside>
           )}
 
           <div ref={obstacleLayerRef} className="dino-obstacle-layer">
@@ -1596,33 +1734,6 @@ export function DinoDashStage({
               aria-label="Jump"
               onClick={() => requestJump()}
             />
-          )}
-
-          {phase === "dead" && (
-            <div className="dino-dead-panel">
-              <p className="dino-dead-title">game over</p>
-              <p className="dino-dead-score">score {finalScore}</p>
-              <div className="dino-prompt-actions">
-                <button
-                  type="button"
-                  className="dino-prompt-btn dino-prompt-btn-yes"
-                  onClick={() => {
-                    setScore(0);
-                    setSessionId((n) => n + 1);
-                    setPhaseBoth("playing");
-                  }}
-                >
-                  retry
-                </button>
-                <button
-                  type="button"
-                  className="dino-prompt-btn dino-prompt-btn-no"
-                  onClick={exitToDemo}
-                >
-                  exit
-                </button>
-              </div>
-            </div>
           )}
         </div>
       </div>
