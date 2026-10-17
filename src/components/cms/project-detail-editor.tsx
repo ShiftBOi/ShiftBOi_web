@@ -23,7 +23,14 @@ import {
   type EditableField,
   type ProjectDraft,
 } from "@/components/cms/project-editor-primitives";
-import { usesRevealHero } from "@/lib/project-draft";
+import {
+  asCollage,
+  clearedSectionMedia,
+  SECTION_MEDIA_CLEARED,
+  usesRevealHero,
+  type CollageItem,
+} from "@/lib/project-draft";
+import { resolveCollageSlots } from "@/components/cms/cms-collage-editor";
 
 type EditorPage = "detail" | "selected";
 
@@ -37,7 +44,10 @@ type MediaField =
   | "heroMedia"
   | "heroPoster"
   | `bandMedia:${number}`
-  | `bandPoster:${number}`;
+  | `bandPoster:${number}`
+  | `detailMedia:${number}`
+  | `detailPoster:${number}`
+  | `collageMedia:${number}`;
 
 function serialize(draft: ProjectDraft) {
   return JSON.stringify({
@@ -47,6 +57,8 @@ function serialize(draft: ProjectDraft) {
     description: draft.description,
     year: draft.year,
     role: draft.role,
+    scope: draft.scope,
+    links: draft.links,
     coverImage: draft.coverImage,
     introSrc: draft.introSrc,
     titleIcon: draft.titleIcon,
@@ -60,6 +72,7 @@ function serialize(draft: ProjectDraft) {
     heroBody: draft.heroBody,
     media: draft.media,
     bands: draft.bands,
+    collage: draft.collage,
     techStack: draft.techStack,
     visibility: draft.visibility,
     featured: draft.featured,
@@ -78,6 +91,8 @@ function normalizeProject(project: ProjectDraft): ProjectDraft {
   const split = splitDetails(details);
   return {
     ...project,
+    scope: project.scope ?? null,
+    links: Array.isArray(project.links) ? project.links : [],
     media,
     bands: resolveBands({
       bands: project.bands,
@@ -85,6 +100,7 @@ function normalizeProject(project: ProjectDraft): ProjectDraft {
       heroTitle: project.heroTitle,
       heroBody: project.heroBody,
     }),
+    collage: asCollage(project.collage),
     details,
     highlights: split.highlights,
     sections: split.sections,
@@ -93,6 +109,16 @@ function normalizeProject(project: ProjectDraft): ProjectDraft {
 
 function parseBandIndex(field: MediaField): number | null {
   const match = /^(?:bandMedia|bandPoster):(\d+)$/.exec(field);
+  return match ? Number(match[1]) : null;
+}
+
+function parseDetailMediaIndex(field: MediaField): number | null {
+  const match = /^(?:detailMedia|detailPoster):(\d+)$/.exec(field);
+  return match ? Number(match[1]) : null;
+}
+
+function parseCollageIndex(field: MediaField): number | null {
+  const match = /^collageMedia:(\d+)$/.exec(field);
   return match ? Number(match[1]) : null;
 }
 
@@ -223,7 +249,6 @@ export function ProjectDetailEditor({
     setSaving(true);
     setError(null);
     try {
-      const firstBand = draft.bands[0];
       const split = splitDetails(draft.details);
       const projectId = draft.id || project.id;
       const res = await fetch(`/api/cms/projects/${encodeURIComponent(projectId)}`, {
@@ -236,6 +261,8 @@ export function ProjectDetailEditor({
           description: draft.description || draft.summary,
           year: draft.year,
           role: draft.role,
+          scope: draft.scope,
+          links: draft.links,
           coverImage: draft.coverImage || null,
           introSrc: draft.introSrc || draft.coverImage || null,
           titleIcon: draft.titleIcon || null,
@@ -243,12 +270,13 @@ export function ProjectDetailEditor({
           thesisHighlight: draft.thesisHighlight,
           thesisRest: draft.thesisRest,
           thesisBody: draft.thesisBody,
-          heroMetric: draft.heroMetric,
-          heroMetricLabel: draft.heroMetricLabel,
-          heroTitle: draft.heroTitle || firstBand?.title || null,
-          heroBody: draft.heroBody || firstBand?.body || null,
+          heroMetric: split.highlights[0]?.metric ?? "",
+          heroMetricLabel: split.highlights[0]?.label ?? "",
+          heroTitle: draft.heroTitle || null,
+          heroBody: draft.heroBody || null,
           media: draft.media,
           bands: draft.bands,
+          collage: draft.collage,
           techStack: draft.techStack,
           visibility: draft.visibility,
           featured: draft.featured,
@@ -406,6 +434,50 @@ export function ProjectDetailEditor({
       return;
     }
 
+    const detailIndex = parseDetailMediaIndex(imageField);
+    if (detailIndex !== null) {
+      const current = draft.details[detailIndex];
+      if (!current || current.kind !== "section") return;
+
+      if (imageField.startsWith("detailPoster:")) {
+        if (!current.media?.src) return;
+        changeDetail(detailIndex, {
+          media: { ...current.media, poster: url || undefined },
+        });
+        return;
+      }
+
+      changeDetail(detailIndex, {
+        media: url
+          ? {
+              type: kind,
+              src: url,
+              poster: current.media?.poster,
+            }
+          : clearedSectionMedia(),
+      });
+      return;
+    }
+
+    const collageIndex = parseCollageIndex(imageField);
+    if (collageIndex !== null) {
+      const slots = resolveCollageSlots(draft);
+      const current = slots[collageIndex];
+      if (!current) return;
+      const next: CollageItem[] = slots.map((slot, i) =>
+        i === collageIndex
+          ? {
+              ...slot,
+              type: kind,
+              src: url,
+              poster: url ? slot.poster : undefined,
+            }
+          : slot,
+      );
+      patch("collage", next);
+      return;
+    }
+
     if (
       imageField === "coverImage" ||
       imageField === "introSrc" ||
@@ -434,6 +506,8 @@ export function ProjectDetailEditor({
       details: next,
       highlights: split.highlights,
       sections: split.sections,
+      heroMetric: split.highlights[0]?.metric ?? "",
+      heroMetricLabel: split.highlights[0]?.label ?? "",
     }));
   }
 
@@ -454,6 +528,8 @@ export function ProjectDetailEditor({
   }
 
   function addDetailHighlight() {
+    const count = draft.details.filter((d) => d.kind === "highlight").length;
+    if (count >= 4) return;
     setDetails([...draft.details, emptyDetailHighlight()]);
   }
 
@@ -466,6 +542,19 @@ export function ProjectDetailEditor({
       const band = draft.bands[bandIndex];
       if (imageField.startsWith("bandPoster:")) return band?.media?.poster ?? "";
       return band?.media?.src ?? "";
+    }
+    const detailIndex = parseDetailMediaIndex(imageField);
+    if (detailIndex !== null) {
+      const block = draft.details[detailIndex];
+      if (block?.kind === "section") {
+        if (imageField.startsWith("detailPoster:")) return block.media?.poster ?? "";
+        const src = block.media?.src ?? "";
+        return src === SECTION_MEDIA_CLEARED ? "" : src;
+      }
+    }
+    const collageIndex = parseCollageIndex(imageField);
+    if (collageIndex !== null) {
+      return resolveCollageSlots(draft)[collageIndex]?.src ?? "";
     }
     if (
       imageField === "coverImage" ||
@@ -480,8 +569,11 @@ export function ProjectDetailEditor({
   const pickerAccept =
     imageField === "heroMedia" ||
     imageField?.startsWith("bandMedia:") ||
+    imageField?.startsWith("detailMedia:") ||
+    imageField?.startsWith("collageMedia:") ||
     imageField === "heroPoster" ||
-    imageField?.startsWith("bandPoster:")
+    imageField?.startsWith("bandPoster:") ||
+    imageField?.startsWith("detailPoster:")
       ? imageField.includes("Poster")
         ? "image"
         : "media"
@@ -590,6 +682,7 @@ export function ProjectDetailEditor({
               onRemoveDetail={removeDetail}
               onAddDetailSection={addDetailSection}
               onAddDetailHighlight={addDetailHighlight}
+              onChangeCollage={(collage) => patch("collage", collage)}
             />
           ) : draft.visibility === "CONFIDENTIAL" ? (
             <ProjectSecretPreview
@@ -755,30 +848,137 @@ export function ProjectDetailEditor({
           ) : (
             <>
           <div className="cms-rail-card">
-            <p className="cms-rail-label">Page layout</p>
+            <p className="cms-rail-label">Case study meta</p>
+            <p className="cms-rail-hint cms-rail-hint-tight">
+              Public page uses Role · Timeline (year) · Scope, plus thesis links.
+            </p>
+            <label className="cms-rail-field">
+              <span>Scope</span>
+              <input
+                type="text"
+                value={draft.scope ?? ""}
+                placeholder="Product, UX, Brand…"
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, scope: e.target.value || null }))
+                }
+              />
+            </label>
+            <label className="cms-rail-field">
+              <span>Role</span>
+              <input
+                type="text"
+                value={draft.role ?? ""}
+                placeholder="Full-stack designer"
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, role: e.target.value || null }))
+                }
+              />
+            </label>
+            <label className="cms-rail-field">
+              <span>Timeline (year)</span>
+              <input
+                type="text"
+                value={draft.year ?? ""}
+                placeholder="2026"
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, year: e.target.value || null }))
+                }
+              />
+            </label>
+            <div className="cms-rail-links">
+              <div className="cms-rail-card-head">
+                <p className="cms-rail-label">Links</p>
+                <button
+                  type="button"
+                  className="cms-rail-mini"
+                  onClick={() =>
+                    setDraft((d) => ({
+                      ...d,
+                      links: [...(d.links ?? []), { label: "Website", href: "https://" }],
+                    }))
+                  }
+                >
+                  Add
+                </button>
+              </div>
+              {(draft.links ?? []).length === 0 ? (
+                <p className="cms-rail-empty">No links yet.</p>
+              ) : (
+                <ul className="cms-rail-link-list">
+                  {(draft.links ?? []).map((link, index) => (
+                    <li key={`link-${index}`}>
+                      <input
+                        type="text"
+                        aria-label="Link label"
+                        value={link.label}
+                        onChange={(e) =>
+                          setDraft((d) => {
+                            const links = [...(d.links ?? [])];
+                            links[index] = { ...links[index]!, label: e.target.value };
+                            return { ...d, links };
+                          })
+                        }
+                      />
+                      <input
+                        type="url"
+                        aria-label="Link URL"
+                        value={link.href}
+                        onChange={(e) =>
+                          setDraft((d) => {
+                            const links = [...(d.links ?? [])];
+                            links[index] = { ...links[index]!, href: e.target.value };
+                            return { ...d, links };
+                          })
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="cms-rail-mini"
+                        onClick={() =>
+                          setDraft((d) => ({
+                            ...d,
+                            links: (d.links ?? []).filter((_, i) => i !== index),
+                          }))
+                        }
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+
+          <div className="cms-rail-card">
+            <p className="cms-rail-label">Hero media</p>
+            <p className="cms-rail-hint cms-rail-hint-tight">
+              Full-bleed case-study hero (video or image). Highlights → stats strip
+              (max 4). Every text section becomes a sticky-title block on the public page.
+            </p>
             <div className="cms-rail-segment cms-rail-segment-stack">
               <button
                 type="button"
                 className={revealOn ? "is-active" : ""}
                 onClick={() => setHeroLayout("reveal")}
               >
-                <strong>Behind text</strong>
-                <span>Full-bleed hero like Vibesaur</span>
+                <strong>Full-bleed hero</strong>
+                <span>Boros-style cover media</span>
               </button>
               <button
                 type="button"
                 className={!revealOn ? "is-active" : ""}
                 onClick={() => setHeroLayout("split")}
               >
-                <strong>Text + boxes</strong>
-                <span>Intro copy, then media boxes</span>
+                <strong>No hero media</strong>
+                <span>Title-only header fallback</span>
               </button>
             </div>
           </div>
 
           {revealOn ? (
             <div className="cms-rail-card">
-              <p className="cms-rail-label">Hero media</p>
+              <p className="cms-rail-label">Upload hero</p>
               <button
                 type="button"
                 className="cms-rail-btn"
@@ -796,17 +996,17 @@ export function ProjectDetailEditor({
                 </span>
                 <i />
               </button>
-              <p className="cms-rail-hint">Plays behind the overview text.</p>
+              <p className="cms-rail-hint">Full-bleed cover at the top of the case study.</p>
             </div>
           ) : null}
 
           <div className="cms-rail-card">
             <div className="cms-rail-card-head">
-              <p className="cms-rail-label">Media boxes</p>
+              <p className="cms-rail-label">Showcase bands</p>
               <span className="cms-rail-count">{draft.bands.length}</span>
             </div>
             <p className="cms-rail-hint cms-rail-hint-tight">
-              Same split pattern everywhere — media left, copy right.
+              Rounded showcase cards + collage frames on the public page.
             </p>
 
             {draft.bands.length === 0 ? (
@@ -872,7 +1072,8 @@ export function ProjectDetailEditor({
               <span className="cms-rail-count">{draft.details.length}</span>
             </div>
             <p className="cms-rail-hint cms-rail-hint-tight">
-              Drag the ··· handle in the preview to reorder. Divider pattern matches the live page.
+              Add as many text sections as you want — each gets a sticky left title
+              while the right column scrolls. Bullets become numbered cards.
             </p>
 
             {draft.details.length === 0 ? (
@@ -955,13 +1156,19 @@ export function ProjectDetailEditor({
               ? "Title icon"
               : imageField === "introSrc"
                 ? "Intro image"
-                : imageField === "heroPoster" || imageField.startsWith("bandPoster:")
+                : imageField === "heroPoster" ||
+                    imageField.startsWith("bandPoster:") ||
+                    imageField.startsWith("detailPoster:")
                   ? "Video poster"
                   : imageField === "heroMedia"
                     ? "Hero image or video"
                     : imageField.startsWith("bandMedia:")
                       ? "Box image or video"
-                      : "Cover image"
+                      : imageField.startsWith("detailMedia:")
+                        ? "Section image or video"
+                        : imageField.startsWith("collageMedia:")
+                          ? "Collage image or video"
+                          : "Cover image"
           }
           folder={
             imageField === "titleIcon"
@@ -974,7 +1181,10 @@ export function ProjectDetailEditor({
                     ? "hero"
                     : imageField.startsWith("bandMedia:")
                       ? "band"
-                      : "coverimage"
+                      : imageField.startsWith("detailMedia:") ||
+                          imageField.startsWith("collageMedia:")
+                        ? "section"
+                        : "coverimage"
           }
           accept={pickerAccept}
           value={pickerValue}

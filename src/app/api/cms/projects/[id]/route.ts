@@ -45,6 +45,15 @@ const patchSchema = z.object({
   introSrc: z.string().nullable().optional(),
   titleIcon: z.string().nullable().optional(),
   role: z.string().nullable().optional(),
+  scope: z.string().nullable().optional(),
+  links: z
+    .array(
+      z.object({
+        label: z.string().min(1).max(80),
+        href: z.string().min(1).max(500),
+      }),
+    )
+    .optional(),
   thesisLead: z.string().nullable().optional(),
   thesisHighlight: z.string().nullable().optional(),
   thesisRest: z.string().nullable().optional(),
@@ -87,10 +96,39 @@ const patchSchema = z.object({
           label: z.string(),
           title: z.string(),
           paragraphs: z.array(z.string()),
-          bullets: z.array(z.string()).nullish(),
+          bullets: z
+            .array(
+              z.union([
+                z.string(),
+                z.object({
+                  text: z.string(),
+                  icon: z.string().nullable().optional(),
+                }),
+              ]),
+            )
+            .nullish(),
+          media: z
+            .object({
+              type: z.enum(["image", "video"]),
+              src: z.string().min(1),
+              poster: z.string().optional(),
+            })
+            .nullable()
+            .optional(),
         }),
       ]),
     )
+    .optional(),
+  collage: z
+    .array(
+      z.object({
+        id: z.string(),
+        type: z.enum(["image", "video"]),
+        src: z.string(),
+        poster: z.string().optional(),
+      }),
+    )
+    .nullable()
     .optional(),
   highlights: z
     .array(
@@ -108,7 +146,25 @@ const patchSchema = z.object({
         label: z.string(),
         title: z.string(),
         paragraphs: z.array(z.string()),
-        bullets: z.array(z.string()).nullish(),
+        bullets: z
+          .array(
+            z.union([
+              z.string(),
+              z.object({
+                text: z.string(),
+                icon: z.string().nullable().optional(),
+              }),
+            ]),
+          )
+          .nullish(),
+        media: z
+          .object({
+            type: z.enum(["image", "video"]),
+            src: z.string().min(1),
+            poster: z.string().optional(),
+          })
+          .nullable()
+          .optional(),
       }),
     )
     .optional(),
@@ -133,9 +189,8 @@ export async function GET(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: "Project not found" }, { status: 404 });
   }
 
-  const { asMedia, resolveBands, resolveDetails, splitDetails } = await import(
-    "@/lib/project-draft"
-  );
+  const { asCollage, asLinks, asMedia, resolveBands, resolveDetails, splitDetails } =
+    await import("@/lib/project-draft");
   const media = asMedia(project.media);
   const details = resolveDetails({
     details: project.details,
@@ -153,6 +208,8 @@ export async function GET(request: NextRequest, { params }: Params) {
       description: project.description,
       year: project.year,
       role: project.role,
+      scope: project.scope,
+      links: asLinks(project.links),
       coverImage: project.coverImage,
       introSrc: project.introSrc,
       titleIcon: project.titleIcon,
@@ -171,6 +228,7 @@ export async function GET(request: NextRequest, { params }: Params) {
         heroTitle: project.heroTitle,
         heroBody: project.heroBody,
       }),
+      collage: asCollage(project.collage),
       details,
       techStack: project.techStack,
       visibility: project.visibility,
@@ -226,16 +284,46 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    const { media, bands, highlights, sections, details, ...rest } = parsed.data;
+    const data = parsed.data;
     const project = await prisma.project.update({
       where: { id: targetId },
       data: {
-        ...rest,
-        ...(media !== undefined ? { media: asJson(media) } : {}),
-        ...(bands !== undefined ? { bands: asJson(bands) } : {}),
-        ...(details !== undefined ? { details: asJson(details) } : {}),
-        ...(highlights !== undefined ? { highlights: asJson(highlights) } : {}),
-        ...(sections !== undefined ? { sections: asJson(sections) } : {}),
+        ...(data.title !== undefined ? { title: data.title } : {}),
+        ...(data.slug !== undefined ? { slug: data.slug } : {}),
+        ...(data.summary !== undefined ? { summary: data.summary } : {}),
+        ...(data.description !== undefined ? { description: data.description } : {}),
+        ...(data.year !== undefined ? { year: data.year } : {}),
+        ...(data.role !== undefined ? { role: data.role } : {}),
+        ...(data.scope !== undefined ? { scope: data.scope } : {}),
+        ...(data.published !== undefined ? { published: data.published } : {}),
+        ...(data.featured !== undefined ? { featured: data.featured } : {}),
+        ...(data.techStack !== undefined ? { techStack: data.techStack } : {}),
+        ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
+        ...(data.visibility !== undefined ? { visibility: data.visibility } : {}),
+        ...(data.coverImage !== undefined ? { coverImage: data.coverImage } : {}),
+        ...(data.introSrc !== undefined ? { introSrc: data.introSrc } : {}),
+        ...(data.titleIcon !== undefined ? { titleIcon: data.titleIcon } : {}),
+        ...(data.thesisLead !== undefined ? { thesisLead: data.thesisLead } : {}),
+        ...(data.thesisHighlight !== undefined
+          ? { thesisHighlight: data.thesisHighlight }
+          : {}),
+        ...(data.thesisRest !== undefined ? { thesisRest: data.thesisRest } : {}),
+        ...(data.thesisBody !== undefined ? { thesisBody: data.thesisBody } : {}),
+        ...(data.heroMetric !== undefined ? { heroMetric: data.heroMetric } : {}),
+        ...(data.heroMetricLabel !== undefined
+          ? { heroMetricLabel: data.heroMetricLabel }
+          : {}),
+        ...(data.heroTitle !== undefined ? { heroTitle: data.heroTitle } : {}),
+        ...(data.heroBody !== undefined ? { heroBody: data.heroBody } : {}),
+        ...(data.media !== undefined ? { media: asJson(data.media) } : {}),
+        ...(data.bands !== undefined ? { bands: asJson(data.bands) } : {}),
+        ...(data.collage !== undefined ? { collage: asJson(data.collage) } : {}),
+        ...(data.details !== undefined ? { details: asJson(data.details) } : {}),
+        ...(data.highlights !== undefined
+          ? { highlights: asJson(data.highlights) }
+          : {}),
+        ...(data.sections !== undefined ? { sections: asJson(data.sections) } : {}),
+        ...(data.links !== undefined ? { links: asJson(data.links) } : {}),
       },
     });
     return NextResponse.json({ project });
@@ -252,13 +340,14 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     }
     console.error("[cms/projects PATCH]", error);
     const raw = error instanceof Error ? error.message : "Failed to save project";
-    // Prisma dumps the full invocation — keep only the first useful line
-    const short =
-      raw
-        .split("\n")
-        .map((l) => l.trim())
-        .find((l) => /unknown argument|invalid|failed|not found/i.test(l)) ||
-      "Failed to save project. Restart the dev server if you just changed the database schema.";
+    const unknownArg = raw.match(/Unknown argument[`\s]+`?(\w+)`?/i)?.[1];
+    const short = unknownArg
+      ? `Database client is out of date (missing “${unknownArg}”). Restart \`bun dev\` and try again.`
+      : raw
+          .split("\n")
+          .map((l) => l.trim())
+          .find((l) => /unknown argument|invalid|failed|not found/i.test(l)) ||
+        "Failed to save project. Restart the dev server if you just changed the database schema.";
     return NextResponse.json({ error: short }, { status: 500 });
   }
 }

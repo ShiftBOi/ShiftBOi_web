@@ -11,6 +11,9 @@ import {
 } from "@/components/cms/project-editor-primitives";
 import { usesRevealHero } from "@/lib/project-draft";
 import { CmsDetailBlocks } from "@/components/cms/cms-detail-blocks";
+import { CmsCollageEditor } from "@/components/cms/cms-collage-editor";
+import { CmsStatsBar } from "@/components/cms/cms-stats-bar";
+import type { CollageItem } from "@/lib/project-draft";
 
 type Props = {
   draft: ProjectDraft;
@@ -26,7 +29,10 @@ type Props = {
       | "heroMedia"
       | "heroPoster"
       | `bandMedia:${number}`
-      | `bandPoster:${number}`,
+      | `bandPoster:${number}`
+      | `detailMedia:${number}`
+      | `detailPoster:${number}`
+      | `collageMedia:${number}`,
   ) => void;
   onAddBand: () => void;
   onRemoveBand: (index: number) => void;
@@ -35,6 +41,7 @@ type Props = {
   onRemoveDetail: (index: number) => void;
   onAddDetailSection: () => void;
   onAddDetailHighlight: () => void;
+  onChangeCollage: (collage: CollageItem[] | null) => void;
 };
 
 function updateBand(
@@ -224,6 +231,7 @@ export function ProjectLivePreview({
   onRemoveDetail,
   onAddDetailSection,
   onAddDetailHighlight,
+  onChangeCollage,
 }: Props) {
   const media = draft.media;
   const useReveal = usesRevealHero(media);
@@ -318,7 +326,7 @@ export function ProjectLivePreview({
 
       <div className="project-intro-label">
         <span aria-hidden>◆</span>
-        <span>The Overview</span>
+        <span>Thesis</span>
       </div>
 
       <h2 className="project-intro-lead">
@@ -589,60 +597,70 @@ export function ProjectLivePreview({
         </button>
       </div>
 
-      <section className="project-services" aria-label="Project details">
-        <div className="project-page-shell">
-          <div className="project-services-rule" aria-hidden />
-
-          <div className="project-services-head">
-            <div className="project-services-label">
-              <span aria-hidden>◆</span>
-              <span>Details</span>
-            </div>
-            <h2 className="project-services-headline">
+      <section className="cms-cs-preview-block" aria-label="Case study sections">
+        <div className="cs-shell">
+          <div className="cms-cs-preview-head">
+            <p className="cms-cs-block-label">Case study sections</p>
+            <p className="cms-rail-hint cms-rail-hint-tight">
+              Matches the public page: sticky titles, rich body text, hover gray cards.
+            </p>
+            <div className="cms-cs-overview-fields">
               <EditableRegion
                 field="heroTitle"
                 editing={editing}
                 onEdit={onEdit}
-                label="details title"
-                className="is-inline-edit"
+                label="overview title"
+                as="div"
+                className="cms-editable-block"
               >
                 {editing === "heroTitle" ? (
                   <PreviewInput
                     value={draft.heroTitle ?? ""}
                     onChange={(v) => onChange("heroTitle", v)}
                     onDone={onDone}
-                    className="is-inline"
                   />
                 ) : (
-                  <span>{draft.heroTitle || "Hero title"}</span>
+                  <p className="cs-section-title">
+                    {draft.heroTitle || "Overview title (heroTitle)"}
+                  </p>
                 )}
               </EditableRegion>
-              {". "}
               <EditableRegion
                 field="heroBody"
                 editing={editing}
                 onEdit={onEdit}
-                label="details body"
-                className="is-inline-edit"
+                label="overview body"
+                as="div"
+                className="cms-editable-block"
               >
                 {editing === "heroBody" ? (
                   <PreviewInput
+                    multiline
+                    rows={3}
                     value={draft.heroBody ?? ""}
                     onChange={(v) => onChange("heroBody", v)}
                     onDone={onDone}
-                    className="is-inline"
                   />
                 ) : (
-                  <span>{draft.heroBody || "Hero body"}</span>
+                  <p className="cs-section-body">
+                    {draft.heroBody || "Overview body (heroBody)"}
+                  </p>
                 )}
               </EditableRegion>
-            </h2>
+            </div>
           </div>
 
-          <div className="project-services-rule-partial" aria-hidden>
-            <span />
-            <i />
-          </div>
+          <CmsStatsBar
+            details={details}
+            techStack={draft.techStack}
+            editing={editing}
+            onEdit={onEdit}
+            onChangeBlock={onChangeDetail}
+            onRemove={onRemoveDetail}
+            onAddHighlight={onAddDetailHighlight}
+            onChangeTechStack={(next) => onChange("techStack", next)}
+            onDone={onDone}
+          />
 
           <CmsDetailBlocks
             details={details}
@@ -652,49 +670,30 @@ export function ProjectLivePreview({
             onChangeBlock={onChangeDetail}
             onRemove={onRemoveDetail}
             onAddSection={onAddDetailSection}
-            onAddHighlight={onAddDetailHighlight}
+            onPickSectionMedia={(index, kind) => {
+              onPickImage(
+                kind === "poster" ? `detailPoster:${index}` : `detailMedia:${index}`,
+              );
+            }}
+            sectionMediaFallbacks={(() => {
+              const hasOverview = Boolean(
+                draft.heroTitle?.trim() || draft.heroBody?.trim(),
+              );
+              const sectionCount = details.filter((d) => d.kind === "section").length;
+              return Array.from({ length: sectionCount }, (_, i) => {
+                const band = draft.bands[hasOverview ? i + 1 : i];
+                const src = band?.media?.src?.trim() || "";
+                return src || null;
+              });
+            })()}
             onDone={onDone}
           />
 
-          <div className="project-services-stack">
-            <div className="project-services-label">
-              <span aria-hidden>◆</span>
-              <span>Stack</span>
-            </div>
-            <EditableRegion
-              field="techStack"
-              editing={editing}
-              onEdit={onEdit}
-              label="stack"
-              as="div"
-              className="cms-editable-block"
-            >
-              {editing === "techStack" ? (
-                <PreviewInput
-                  value={draft.techStack.join(", ")}
-                  placeholder="Next.js, Prisma, …"
-                  onChange={(v) =>
-                    onChange(
-                      "techStack",
-                      v
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter(Boolean),
-                    )
-                  }
-                  onDone={onDone}
-                />
-              ) : (
-                <ul>
-                  {draft.techStack.length > 0 ? (
-                    draft.techStack.map((s) => <li key={s}>{s}</li>)
-                  ) : (
-                    <li className="cms-preview-empty-chip">Add stack</li>
-                  )}
-                </ul>
-              )}
-            </EditableRegion>
-          </div>
+          <CmsCollageEditor
+            draft={draft}
+            onChange={onChangeCollage}
+            onPickSlot={(index) => onPickImage(`collageMedia:${index}`)}
+          />
         </div>
       </section>
 

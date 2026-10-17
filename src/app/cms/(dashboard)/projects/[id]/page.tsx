@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/lib/session";
 import { ProjectDetailEditor } from "@/components/cms/project-detail-editor";
 import {
+  asCollage,
+  asLinks,
   asMedia,
   resolveBands,
   resolveDetails,
@@ -68,6 +70,8 @@ export default async function CmsProjectDetailPage({ params, searchParams }: Pro
         description: project.description,
         year: project.year,
         role: project.role,
+        scope: project.scope,
+        links: asLinks(project.links),
         coverImage: project.coverImage,
         introSrc: project.introSrc,
         titleIcon: project.titleIcon,
@@ -86,6 +90,7 @@ export default async function CmsProjectDetailPage({ params, searchParams }: Pro
           heroTitle: project.heroTitle,
           heroBody: project.heroBody,
         }),
+        collage: asCollage(project.collage),
         details,
         techStack: project.techStack,
         visibility: project.visibility,

@@ -52,3 +52,6 @@ next-env.d.ts
 # local CMS uploads (when R2 is not configured)
 /public/uploads/**
 !/public/uploads/.gitkeep
+
+# local reference scrape (do not commit)
+/april_zhu.com/

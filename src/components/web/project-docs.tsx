@@ -30,7 +30,9 @@ function buildPages(project: PortfolioProject): DocPage[] {
       category: section.label,
       title: section.title,
       paragraphs: section.paragraphs,
-      bullets: section.bullets,
+      bullets: section.bullets?.map((b) =>
+        typeof b === "string" ? b : b.text,
+      ),
     });
   }
 

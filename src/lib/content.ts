@@ -4,7 +4,13 @@ import type {
   PortfolioProject,
   ProjectSection,
 } from "@/lib/portfolio-projects";
-import { asMedia, resolveBands, resolveDetails } from "@/lib/project-draft";
+import {
+  asCollage,
+  asLinks,
+  asMedia,
+  resolveBands,
+  resolveDetails,
+} from "@/lib/project-draft";
 
 export type HeroContent = {
   eyebrow: string;
@@ -104,6 +110,7 @@ export function mapProjectToPortfolio(row: Project): PortfolioProject {
     highlights: row.highlights,
     sections: row.sections,
   });
+  const links = asLinks(row.links);
 
   return {
     slug: row.slug,
@@ -115,10 +122,13 @@ export function mapProjectToPortfolio(row: Project): PortfolioProject {
     thesisBody: row.thesisBody ?? row.description,
     year: row.year ?? "",
     role: row.role ?? "",
+    scope: row.scope ?? undefined,
+    links: links.length ? links : undefined,
     heroMetric: row.heroMetric ?? "",
     heroMetricLabel: row.heroMetricLabel ?? "",
-    heroTitle: row.heroTitle ?? row.title,
-    heroBody: row.heroBody ?? row.summary,
+    // Keep empty when unset — case study must not invent an Overview section.
+    heroTitle: row.heroTitle ?? "",
+    heroBody: row.heroBody ?? "",
     media: media
       ? {
           type: media.type,
@@ -130,6 +140,7 @@ export function mapProjectToPortfolio(row: Project): PortfolioProject {
         }
       : undefined,
     bands,
+    collage: asCollage(row.collage),
     details,
     introSrc: row.introSrc ?? row.coverImage ?? undefined,
     titleIcon: row.titleIcon ?? undefined,
@@ -248,6 +259,21 @@ export async function getOtherProjects(slug: string, take = 3) {
     take,
   });
   return rows.map(mapProjectToPortfolio);
+}
+
+/** Previous / next published public projects in sort order. */
+export async function getAdjacentProjects(slug: string) {
+  const rows = await prisma.project.findMany({
+    where: { published: true, visibility: "PUBLIC" },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    select: { slug: true, title: true },
+  });
+  const index = rows.findIndex((r) => r.slug === slug);
+  if (index < 0) return { prev: null, next: null };
+  return {
+    prev: index > 0 ? rows[index - 1]! : null,
+    next: index < rows.length - 1 ? rows[index + 1]! : null,
+  };
 }
 
 export async function getAllProjectsForCms() {

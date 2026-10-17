@@ -5,11 +5,37 @@ export type HighlightItem = {
   body: string;
 };
 
+/** Sentinel src — section media intentionally removed (skip auto-fill). */
+export const SECTION_MEDIA_CLEARED = "__none__";
+
+export type SectionMedia = {
+  type: "image" | "video";
+  src: string;
+  poster?: string;
+};
+
+export function isSectionMediaCleared(
+  media: SectionMedia | null | undefined,
+): boolean {
+  return media?.src === SECTION_MEDIA_CLEARED;
+}
+
+export function clearedSectionMedia(): SectionMedia {
+  return { type: "image", src: SECTION_MEDIA_CLEARED };
+}
+
+export type PointCard = {
+  text: string;
+  /** Tech badge id from TECH_STACK_CATALOG */
+  icon?: string | null;
+};
+
 export type SectionItem = {
   label: string;
   title: string;
   paragraphs: string[];
-  bullets?: string[];
+  bullets?: PointCard[];
+  media?: SectionMedia | null;
 };
 
 export type DetailHighlight = {
@@ -27,7 +53,8 @@ export type DetailSection = {
   label: string;
   title: string;
   paragraphs: string[];
-  bullets?: string[];
+  bullets?: PointCard[];
+  media?: SectionMedia | null;
 };
 
 /** Unified Details list — drag order is preserved site-wide */
@@ -55,6 +82,18 @@ export type ProjectBand = {
   } | null;
 };
 
+export type ProjectLink = {
+  label: string;
+  href: string;
+};
+
+export type CollageItem = {
+  id: string;
+  type: "image" | "video";
+  src: string;
+  poster?: string;
+};
+
 export type ProjectDraft = {
   id: string;
   slug: string;
@@ -63,6 +102,7 @@ export type ProjectDraft = {
   description: string;
   year: string | null;
   role: string | null;
+  scope: string | null;
   coverImage: string | null;
   introSrc: string | null;
   titleIcon: string | null;
@@ -76,6 +116,9 @@ export type ProjectDraft = {
   heroBody: string | null;
   media: ProjectMedia | null;
   bands: ProjectBand[];
+  /** End snap collage. null = auto from assets, [] = hidden section */
+  collage: CollageItem[] | null;
+  links: ProjectLink[];
   techStack: string[];
   visibility: "PUBLIC" | "CONFIDENTIAL";
   featured: boolean;
@@ -86,6 +129,20 @@ export type ProjectDraft = {
   sections: SectionItem[];
   details: DetailBlock[];
 };
+
+export function asLinks(value: unknown): ProjectLink[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((item) => {
+      if (!item || typeof item !== "object") return null;
+      const row = item as Record<string, unknown>;
+      const label = String(row.label ?? "").trim();
+      const href = String(row.href ?? "").trim();
+      if (!label || !href) return null;
+      return { label, href };
+    })
+    .filter((x): x is ProjectLink => Boolean(x));
+}
 
 /** Scalar fields + dynamic highlight:/section:/band:/detail: keys */
 export type EditableField = string | null;
@@ -237,6 +294,79 @@ export function asHighlights(value: unknown): HighlightItem[] {
   });
 }
 
+export function asPointCards(value: unknown): PointCard[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const cards = value
+    .map((item) => {
+      if (typeof item === "string") {
+        const text = item.trim();
+        return text ? { text } : null;
+      }
+      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+      const row = item as Record<string, unknown>;
+      const text = String(row.text ?? row.body ?? "").trim();
+      if (!text) return null;
+      const iconRaw = row.icon;
+      const icon =
+        typeof iconRaw === "string" && iconRaw.trim() ? iconRaw.trim() : null;
+      return { text, icon };
+    })
+    .filter((x): x is PointCard => Boolean(x));
+  return cards.length ? cards : undefined;
+}
+
+function asSectionMedia(value: unknown): SectionMedia | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+  const row = value as Record<string, unknown>;
+  const src = String(row.src ?? "").trim();
+  if (!src) return null;
+  if (src === SECTION_MEDIA_CLEARED) {
+    return clearedSectionMedia();
+  }
+  const type =
+    row.type === "video" || /\.(mov|mp4|webm|m4v)(\?|#|$)/i.test(src)
+      ? "video"
+      : "image";
+  const poster = String(row.poster ?? "").trim();
+  return {
+    type,
+    src,
+    ...(poster ? { poster } : {}),
+  };
+}
+
+export function asCollage(value: unknown): CollageItem[] | null {
+  if (value === null || value === undefined) return null;
+  if (!Array.isArray(value)) return null;
+  if (value.length === 0) return [];
+  const items: CollageItem[] = [];
+  value.slice(0, 3).forEach((item, index) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return;
+    const row = item as Record<string, unknown>;
+    const src = String(row.src ?? "").trim();
+    const type =
+      row.type === "video" || (src && /\.(mov|mp4|webm|m4v)(\?|#|$)/i.test(src))
+        ? ("video" as const)
+        : ("image" as const);
+    const poster = String(row.poster ?? "").trim();
+    items.push({
+      id: String(row.id ?? `collage-${index}`),
+      type,
+      src,
+      ...(poster ? { poster } : {}),
+    });
+  });
+  return items;
+}
+
+export function emptyCollageSlot(index = 0): CollageItem {
+  return {
+    id: `collage-${Date.now().toString(36)}-${index}`,
+    type: "image",
+    src: "",
+  };
+}
+
 export function asSections(value: unknown): SectionItem[] {
   if (!Array.isArray(value)) return [];
   return value.map((item) => {
@@ -247,47 +377,46 @@ export function asSections(value: unknown): SectionItem[] {
       paragraphs: Array.isArray(row.paragraphs)
         ? row.paragraphs.map((p) => String(p))
         : [],
-      bullets: Array.isArray(row.bullets)
-        ? row.bullets.map((b) => String(b))
-        : undefined,
+      bullets: asPointCards(row.bullets),
+      media: asSectionMedia(row.media),
     };
   });
 }
 
 export function asDetails(value: unknown): DetailBlock[] {
   if (!Array.isArray(value)) return [];
-  return value
-    .map((item, index) => {
-      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
-      const row = item as Record<string, unknown>;
-      const kind = row.kind === "highlight" ? "highlight" : "section";
-      const id = String(row.id ?? `${kind}-${index}`);
-      if (kind === "highlight") {
-        return {
-          id,
-          kind: "highlight" as const,
-          metric: String(row.metric ?? ""),
-          label: String(row.label ?? ""),
-          title: String(row.title ?? ""),
-          body: String(row.body ?? ""),
-        } satisfies DetailHighlight;
-      }
-      return {
+  const blocks: DetailBlock[] = [];
+  value.forEach((item, index) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return;
+    const row = item as Record<string, unknown>;
+    const kind = row.kind === "highlight" ? "highlight" : "section";
+    const id = String(row.id ?? `${kind}-${index}`);
+    if (kind === "highlight") {
+      blocks.push({
         id,
-        kind: "section" as const,
-        label: String(row.label ?? "Section"),
+        kind: "highlight",
+        metric: String(row.metric ?? ""),
+        label: String(row.label ?? ""),
         title: String(row.title ?? ""),
-        paragraphs: Array.isArray(row.paragraphs)
-          ? row.paragraphs.map((p) => String(p))
-          : row.body
-            ? [String(row.body)]
-            : [],
-        bullets: Array.isArray(row.bullets)
-          ? row.bullets.map((b) => String(b))
-          : undefined,
-      } satisfies DetailSection;
-    })
-    .filter((b): b is DetailBlock => Boolean(b));
+        body: String(row.body ?? ""),
+      });
+      return;
+    }
+    blocks.push({
+      id,
+      kind: "section",
+      label: String(row.label ?? "Section"),
+      title: String(row.title ?? ""),
+      paragraphs: Array.isArray(row.paragraphs)
+        ? row.paragraphs.map((p) => String(p))
+        : row.body
+          ? [String(row.body)]
+          : [],
+      bullets: asPointCards(row.bullets),
+      media: asSectionMedia(row.media),
+    });
+  });
+  return blocks;
 }
 
 /** Prefer stored details; else build from legacy highlights + sections. */
@@ -330,11 +459,12 @@ export function splitDetails(details: DetailBlock[]): {
       .map(({ metric, label, title, body }) => ({ metric, label, title, body })),
     sections: details
       .filter((d): d is DetailSection => d.kind === "section")
-      .map(({ label, title, paragraphs, bullets }) => ({
+      .map(({ label, title, paragraphs, bullets, media }) => ({
         label,
         title,
         paragraphs,
         bullets,
+        media: media ?? null,
       })),
   };
 }
@@ -347,6 +477,7 @@ export function emptyDetailSection(): DetailSection {
     title: "New text section",
     paragraphs: ["Write the story here."],
     bullets: [],
+    media: null,
   };
 }
 
@@ -372,7 +503,7 @@ export function detailToServiceItem(block: DetailBlock) {
   return {
     title: block.title,
     paragraphs: block.paragraphs.length ? block.paragraphs : [""],
-    bullets: block.bullets ?? [],
+    bullets: (block.bullets ?? []).map((b) => b.text),
   };
 }
 

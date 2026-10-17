@@ -110,6 +110,8 @@ model Project {
   links       Json?
   year        String?
   role        String?
+  /// Case-study meta (Boros-style Scope column)
+  scope       String?
   thesisLead  String?
   thesisHighlight String?
   thesisRest  String?
@@ -125,6 +127,8 @@ model Project {
   sections    Json?
   /// Ordered detail blocks (highlight + text sections) — preserves drag order
   details     Json?
+  /// End-of-page snap collage (up to 3 image/video cards). null = auto, [] = hidden
+  collage     Json?
   download    Json?
   /// PUBLIC = Selected Projects (detail page, 2-col grid)
   /// CONFIDENTIAL = limited disclose (homepage full-row only, no deep page)

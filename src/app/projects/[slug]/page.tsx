@@ -4,19 +4,15 @@ import { SiteHeader } from "@/components/web/hero";
 import { SiteFooter } from "@/components/web/site-footer";
 import { SiteShell } from "@/components/web/site-shell";
 import { SmoothScroll } from "@/components/web/smooth-scroll";
-import {
-  ProjectHeroCopy,
-  ProjectHeroReveal,
-} from "@/components/web/project-hero-reveal";
-import { ProjectServices } from "@/components/web/project-services";
+import { CaseStudyPage } from "@/components/web/case-study/case-study-page";
 import { ProjectMoreList } from "@/components/web/project-more-list";
-import { ProjectSplitBands } from "@/components/web/project-split-band";
 import {
+  getAdjacentProjects,
   getOtherProjects,
   getPortfolioProjectBySlug,
   getPortfolioSlugsFromDb,
 } from "@/lib/content";
-import { resolveRevealSources } from "@/lib/project-draft";
+import { resolveCaseStudy } from "@/lib/case-study";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -43,74 +39,37 @@ export default async function ProjectPage({ params }: Props) {
   if (!project) notFound();
 
   const others = await getOtherProjects(slug, 3);
-  const reveal = resolveRevealSources(project.media ?? null);
-  const useReveal = Boolean(reveal);
-  const bands = project.bands ?? [];
-
-  const heroCopy = (
-    <ProjectHeroCopy
-      crumbHref="/#work"
-      crumbLabel={project.title}
-      title={project.title}
-      titleIcon={project.titleIcon}
-      role={project.role}
-      thesisLead={project.thesisLead}
-      thesisHighlight={project.thesisHighlight}
-      thesisRest={project.thesisRest}
-      thesisBody={project.thesisBody}
-      meta={`${project.heroMetric} ${project.heroMetricLabel} · ${project.year}`}
-    />
-  );
+  const { prev, next } = await getAdjacentProjects(slug);
+  const study = resolveCaseStudy(project);
 
   return (
     <SmoothScroll>
       <SiteShell>
         <SiteHeader />
-        <main className={`project-page flex-1${useReveal ? " is-reveal" : " pt-12 md:pt-14"}`}>
-          <div className="project-page-vgrid" aria-hidden />
-
-          {reveal ? (
-            <ProjectHeroReveal
-              colorSrc={reveal.colorSrc}
-              bwSrc={reveal.bwSrc}
-              poster={reveal.poster}
-              objectPosition={reveal.objectPosition}
-              alt={`${project.title} visual`}
-            >
-              {heroCopy}
-            </ProjectHeroReveal>
-          ) : (
-            <section className="project-intro">
-              <div className="project-page-shell">{heroCopy}</div>
-            </section>
-          )}
-
-          <ProjectSplitBands
-            bands={bands.map((b) => ({
-              title: b.title,
-              body: b.body,
-              media: b.media ?? null,
-            }))}
+        <main className="project-page is-case-study flex-1">
+          <CaseStudyPage
+            study={study}
+            prev={prev}
+            next={next}
+            moreSlot={
+              others.length > 0 ? (
+                <section className="project-more" aria-label="More projects">
+                  <div className="cs-shell">
+                    <p className="project-docs-list-head">More projects</p>
+                    <ProjectMoreList
+                      projects={others.map((p) => ({
+                        slug: p.slug,
+                        title: p.title,
+                        summary: p.summary,
+                        year: p.year,
+                        introSrc: p.introSrc,
+                      }))}
+                    />
+                  </div>
+                </section>
+              ) : null
+            }
           />
-
-          <ProjectServices project={project} />
-
-          {others.length > 0 ? (
-            <section className="project-more" aria-label="More projects">
-              <div className="project-page-shell">
-                <p className="project-docs-list-head">More projects</p>
-                <ProjectMoreList
-                  projects={others.map((p) => ({
-                    slug: p.slug,
-                    title: p.title,
-                    summary: p.summary,
-                    year: p.year,
-                    introSrc: p.introSrc,
-                  }))}
-                />
-              </div>
-            </section>
-          ) : null}
         </main>
         <SiteFooter />
       </SiteShell>

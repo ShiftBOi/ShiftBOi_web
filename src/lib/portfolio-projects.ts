@@ -2,7 +2,8 @@ export type ProjectSection = {
   label: string;
   title: string;
   paragraphs: string[];
-  bullets?: string[];
+  /** Plain strings or `{ text, icon }` cards — normalized when resolved */
+  bullets?: Array<string | import("@/lib/project-draft").PointCard>;
 };
 
 export type ProjectBand = {
@@ -26,6 +27,10 @@ export type PortfolioProject = {
   thesisBody: string;
   year: string;
   role: string;
+  /** Case-study Scope meta */
+  scope?: string;
+  /** External project links shown under thesis */
+  links?: Array<{ label: string; href: string }>;
   heroMetric: string;
   heroMetricLabel: string;
   heroTitle: string;
@@ -40,6 +45,8 @@ export type PortfolioProject = {
   };
   /** Split media+copy boxes under the hero */
   bands?: ProjectBand[];
+  /** End snap collage — null/omit = auto, [] = hidden */
+  collage?: import("@/lib/project-draft").CollageItem[] | null;
   /** Ordered detail blocks (preserves CMS drag order) */
   details?: import("@/lib/project-draft").DetailBlock[];
   /** Hover preview in “More projects” lists */
