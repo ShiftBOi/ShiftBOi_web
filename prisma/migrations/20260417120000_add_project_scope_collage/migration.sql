@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "project" ADD COLUMN IF NOT EXISTS "scope" TEXT;
+ALTER TABLE "project" ADD COLUMN IF NOT EXISTS "collage" JSONB;

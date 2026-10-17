@@ -19,8 +19,13 @@ type Props = { params: Promise<{ slug: string }> };
 export const revalidate = 60;
 
 export async function generateStaticParams() {
-  const slugs = await getPortfolioSlugsFromDb();
-  return slugs.map((slug) => ({ slug }));
+  try {
+    const slugs = await getPortfolioSlugsFromDb();
+    return slugs.map((slug) => ({ slug }));
+  } catch {
+    // Build/preview without DB access — fall back to on-demand rendering.
+    return [];
+  }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
