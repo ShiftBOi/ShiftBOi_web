@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { CaseStudyBand, CaseStudyLink } from "@/lib/case-study";
+import { CaseStudyVideo } from "./case-study-video";
 
 export function CaseStudyBandCards({
   bands,
@@ -16,13 +17,9 @@ export function CaseStudyBandCards({
           {band.media?.src ? (
             <div className="cs-band-media">
               {band.media.type === "video" ? (
-                <video
+                <CaseStudyVideo
                   src={band.media.src}
                   poster={band.media.poster}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
                   aria-label={band.title}
                 />
               ) : (
@@ -32,6 +29,7 @@ export function CaseStudyBandCards({
                   fill
                   className="object-cover"
                   sizes="(max-width:900px) 100vw, 70vw"
+                  loading="lazy"
                 />
               )}
             </div>

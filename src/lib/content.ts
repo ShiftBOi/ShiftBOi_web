@@ -257,8 +257,22 @@ export async function getOtherProjects(slug: string, take = 3) {
     where: { published: true, visibility: "PUBLIC", NOT: { slug } },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     take,
+    select: {
+      slug: true,
+      title: true,
+      summary: true,
+      year: true,
+      introSrc: true,
+      coverImage: true,
+    },
   });
-  return rows.map(mapProjectToPortfolio);
+  return rows.map((row) => ({
+    slug: row.slug,
+    title: row.title,
+    summary: row.summary,
+    year: row.year ?? "",
+    introSrc: row.introSrc ?? row.coverImage ?? undefined,
+  }));
 }
 
 /** Previous / next published public projects in sort order. */

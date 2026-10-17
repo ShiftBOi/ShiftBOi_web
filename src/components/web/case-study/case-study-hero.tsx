@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CaseStudyMedia } from "@/lib/case-study";
+import { CaseStudyVideo } from "./case-study-video";
 
 export function CaseStudyHero({
   title,
@@ -15,15 +16,11 @@ export function CaseStudyHero({
     <section className="cs-hero" aria-label={`${title} hero`}>
       <div className="cs-hero-media">
         {hero?.type === "video" ? (
-          <video
+          <CaseStudyVideo
             className="cs-hero-asset"
             src={hero.src}
             poster={hero.poster}
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="auto"
+            eager
             aria-label={`${title} visual`}
           />
         ) : hero?.src ? (

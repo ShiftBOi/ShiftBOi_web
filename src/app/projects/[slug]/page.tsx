@@ -7,7 +7,6 @@ import { SmoothScroll } from "@/components/web/smooth-scroll";
 import { CaseStudyPage } from "@/components/web/case-study/case-study-page";
 import { ProjectMoreList } from "@/components/web/project-more-list";
 import {
-  getAdjacentProjects,
   getOtherProjects,
   getPortfolioProjectBySlug,
   getPortfolioSlugsFromDb,
@@ -16,7 +15,8 @@ import { resolveCaseStudy } from "@/lib/case-study";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const dynamic = "force-dynamic";
+/** Fresh enough for CMS edits without blocking every request as fully dynamic. */
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   const slugs = await getPortfolioSlugsFromDb();
@@ -35,11 +35,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ProjectPage({ params }: Props) {
   const { slug } = await params;
-  const project = await getPortfolioProjectBySlug(slug);
+  const [project, others] = await Promise.all([
+    getPortfolioProjectBySlug(slug),
+    getOtherProjects(slug, 3),
+  ]);
   if (!project) notFound();
 
-  const others = await getOtherProjects(slug, 3);
-  const { prev, next } = await getAdjacentProjects(slug);
   const study = resolveCaseStudy(project);
 
   return (
@@ -49,8 +50,6 @@ export default async function ProjectPage({ params }: Props) {
         <main className="project-page is-case-study flex-1">
           <CaseStudyPage
             study={study}
-            prev={prev}
-            next={next}
             moreSlot={
               others.length > 0 ? (
                 <section className="project-more" aria-label="More projects">

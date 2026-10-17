@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { CaseStudyMedia } from "@/lib/case-study";
+import { CaseStudyVideo } from "./case-study-video";
 
 export function CaseStudyCollage({
   images,
@@ -10,7 +11,7 @@ export function CaseStudyCollage({
 }) {
   if (images.length === 0) return null;
 
-  const frames = images.slice(0, 5);
+  const frames = images.slice(0, 3);
   const single = frames.length === 1;
 
   return (
@@ -22,14 +23,7 @@ export function CaseStudyCollage({
             className={`cs-collage-frame cs-collage-frame-${index + 1}`}
           >
             {frame.type === "video" ? (
-              <video
-                src={frame.src}
-                poster={frame.poster}
-                autoPlay
-                muted
-                loop
-                playsInline
-              />
+              <CaseStudyVideo src={frame.src} poster={frame.poster} />
             ) : (
               <Image
                 src={frame.src}
@@ -37,6 +31,7 @@ export function CaseStudyCollage({
                 fill
                 className="object-cover"
                 sizes="(max-width:900px) 90vw, 60vw"
+                loading="lazy"
               />
             )}
           </div>

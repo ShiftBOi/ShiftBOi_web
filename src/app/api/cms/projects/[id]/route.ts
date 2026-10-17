@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
@@ -326,6 +327,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
         ...(data.links !== undefined ? { links: asJson(data.links) } : {}),
       },
     });
+    revalidatePath(`/projects/${project.slug}`);
+    revalidatePath("/");
     return NextResponse.json({ project });
   } catch (error) {
     const code =

@@ -3,18 +3,15 @@ import type { ReactNode } from "react";
 import type { CaseStudyMedia, CaseStudySection } from "@/lib/case-study";
 import { sanitizeRichHtml } from "@/lib/rich-text";
 import { CaseStudyPointCards } from "./case-study-point-cards";
+import { CaseStudyVideo } from "./case-study-video";
 
 function SectionMedia({ media, title }: { media: CaseStudyMedia; title: string }) {
   return (
     <div className="cs-section-media">
       {media.type === "video" ? (
-        <video
+        <CaseStudyVideo
           src={media.src}
           poster={media.poster}
-          autoPlay
-          muted
-          loop
-          playsInline
           aria-label={title}
         />
       ) : (
@@ -24,6 +21,7 @@ function SectionMedia({ media, title }: { media: CaseStudyMedia; title: string }
           fill
           className="object-cover"
           sizes="(max-width:900px) 100vw, 60vw"
+          loading="lazy"
         />
       )}
     </div>
