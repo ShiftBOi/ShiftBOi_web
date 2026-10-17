@@ -26,6 +26,7 @@ export function ProjectFeatureCell({ href, title, body, children }: Props) {
     <Link
       ref={rootRef}
       href={href}
+      prefetch
       className={`hydra-feature-cell is-project-link${active ? " is-hot" : ""}`}
       data-hydra-stagger-item
       onMouseEnter={() => setActive(true)}

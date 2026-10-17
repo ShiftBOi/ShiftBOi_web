@@ -206,7 +206,7 @@ export function ProjectHeroReveal({
                 loop
                 playsInline
                 autoPlay
-                preload="auto"
+                preload="metadata"
                 aria-hidden
                 style={mediaPositionStyle}
               />
@@ -237,7 +237,7 @@ export function ProjectHeroReveal({
                 loop
                 playsInline
                 autoPlay
-                preload="auto"
+                preload="metadata"
                 aria-label={alt}
                 style={mediaPositionStyle}
               />

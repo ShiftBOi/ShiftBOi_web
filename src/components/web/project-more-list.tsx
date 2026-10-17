@@ -191,6 +191,7 @@ export function ProjectMoreList({ projects }: { projects: ProjectMoreItem[] }) {
           <li key={p.slug} className="project-docs-row">
             <Link
               href={`/projects/${p.slug}`}
+              prefetch
               className="project-docs-row-hit is-link"
               onMouseEnter={() => onEnter(p.introSrc)}
             >

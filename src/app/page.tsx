@@ -10,7 +10,8 @@ import {
 } from "@/lib/content";
 import { asMedia } from "@/lib/project-draft";
 
-export const dynamic = "force-dynamic";
+/** Cache the marketing homepage; CMS save calls revalidatePath("/"). */
+export const revalidate = 60;
 
 export default async function HomePage() {
   const [projectRows, secrets, site] = await Promise.all([

@@ -354,7 +354,7 @@ export function MatrixPortrait() {
         loop
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
       />
       <canvas ref={glowRef} className={styles.glow} aria-hidden />
       <canvas

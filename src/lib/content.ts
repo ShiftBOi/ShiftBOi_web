@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Project, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import type {
@@ -207,6 +208,17 @@ export async function getFeaturedProjects(take = 24) {
     where: { published: true, featured: true, visibility: "PUBLIC" },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     take,
+    // Grid only needs card fields — skip heavy details/bands/collage JSON.
+    select: {
+      id: true,
+      slug: true,
+      title: true,
+      summary: true,
+      year: true,
+      coverImage: true,
+      introSrc: true,
+      media: true,
+    },
   });
 }
 
@@ -237,11 +249,12 @@ export async function getPublishedProjectBySlug(slug: string) {
   });
 }
 
-export async function getPortfolioProjectBySlug(slug: string) {
+/** Dedupes metadata + page fetch in the same request. */
+export const getPortfolioProjectBySlug = cache(async (slug: string) => {
   const row = await prisma.project.findUnique({ where: { slug } });
   if (!row || !row.published || row.visibility !== "PUBLIC") return null;
   return mapProjectToPortfolio(row);
-}
+});
 
 export async function getPortfolioSlugsFromDb() {
   const rows = await prisma.project.findMany({

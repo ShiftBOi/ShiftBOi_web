@@ -45,14 +45,41 @@ function AccuracyVisual({
   poster,
   objectPosition = "50% 50%",
   label,
+  lazyVideo = false,
 }: {
   src?: string | null;
   poster?: string | null;
   objectPosition?: string;
   label?: string;
+  /** Only load/play when near the viewport (homepage grid fallback). */
+  lazyVideo?: boolean;
 }) {
   const video = src && isVideoSrc(src) ? src : null;
   const image = !video ? src || poster || null : null;
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoActive, setVideoActive] = useState(!lazyVideo);
+
+  useEffect(() => {
+    if (!lazyVideo || !video) return;
+    const node = videoRef.current;
+    if (!node) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          setVideoActive(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "120px 0px", threshold: 0.01 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [lazyVideo, video]);
+
+  useEffect(() => {
+    if (!videoActive || !video) return;
+    void videoRef.current?.play().catch(() => undefined);
+  }, [videoActive, video]);
 
   if (video) {
     return (
@@ -63,15 +90,16 @@ function AccuracyVisual({
         data-parallax-speed="0.25"
       >
         <video
+          ref={videoRef}
           className="hydra-accuracy-video"
-          src={video}
+          src={videoActive ? video : undefined}
           poster={poster || undefined}
           style={{ objectPosition }}
-          autoPlay
+          autoPlay={videoActive}
           loop
           muted
           playsInline
-          preload="metadata"
+          preload={lazyVideo ? "none" : "metadata"}
           aria-label={label || "Project demo"}
         />
       </div>
@@ -189,9 +217,25 @@ function ProjectCellVisual({ project, index }: { project: Project; index: number
   const media = project.media;
   const mediaSrc = media?.src || null;
   const poster = media?.poster || project.coverImage || project.introSrc || null;
-  const image = project.coverImage || project.introSrc || null;
+  // Prefer stills on the homepage grid — never autoplay multi‑MB heroes here.
+  const still =
+    project.coverImage ||
+    project.introSrc ||
+    media?.poster ||
+    (mediaSrc && !isVideoSrc(mediaSrc) ? mediaSrc : null) ||
+    null;
   const kind = FALLBACK_VISUALS[index % FALLBACK_VISUALS.length];
 
+  if (still) {
+    return (
+      <AccuracyVisual
+        src={still}
+        poster={poster}
+        objectPosition={media?.objectPosition}
+        label={project.title}
+      />
+    );
+  }
   if (mediaSrc && (media?.type === "video" || isVideoSrc(mediaSrc))) {
     return (
       <AccuracyVisual
@@ -199,16 +243,7 @@ function ProjectCellVisual({ project, index }: { project: Project; index: number
         poster={poster}
         objectPosition={media?.objectPosition}
         label={project.title}
-      />
-    );
-  }
-  if (image || mediaSrc) {
-    return (
-      <AccuracyVisual
-        src={image || mediaSrc}
-        poster={poster}
-        objectPosition={media?.objectPosition}
-        label={project.title}
+        lazyVideo
       />
     );
   }
