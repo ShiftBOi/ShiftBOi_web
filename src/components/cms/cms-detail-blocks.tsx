@@ -15,6 +15,8 @@ import {
   clearedSectionMedia,
   isSectionMediaCleared,
 } from "@/lib/project-draft";
+import { CmsPreviewVideo } from "@/components/cms/cms-preview-video";
+import { CmsMediaTrashButton } from "@/components/cms/cms-media-trash";
 
 type Props = {
   details: DetailBlock[];
@@ -259,14 +261,9 @@ function DetailRow({
                 >
                   {mediaSrc ? (
                     mediaIsVideo ? (
-                      <video
+                      <CmsPreviewVideo
                         src={mediaSrc}
                         poster={section.media?.poster || undefined}
-                        autoPlay
-                        loop
-                        muted
-                        playsInline
-                        preload="metadata"
                         aria-hidden
                       />
                     ) : (
@@ -289,32 +286,12 @@ function DetailRow({
                   </span>
                 </button>
                 {mediaSrc ? (
-                  <button
-                    type="button"
-                    className="cms-cs-media-trash"
-                    aria-label="Remove section image"
-                    title="Remove image"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onChangeBlock(index, { media: clearedSectionMedia() });
-                    }}
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      aria-hidden
-                    >
-                      <path
-                        d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </button>
+                  <CmsMediaTrashButton
+                    label="Remove section image"
+                    onClick={() =>
+                      onChangeBlock(index, { media: clearedSectionMedia() })
+                    }
+                  />
                 ) : null}
               </div>
               <div className="cms-cs-section-media-actions">

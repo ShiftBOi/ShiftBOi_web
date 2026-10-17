@@ -6,6 +6,8 @@ import {
   emptyCollageSlot,
   SECTION_MEDIA_CLEARED,
 } from "@/lib/project-draft";
+import { CmsPreviewVideo } from "@/components/cms/cms-preview-video";
+import { CmsMediaTrashButton } from "@/components/cms/cms-media-trash";
 
 function isVideoSrc(src: string) {
   return /\.(mov|mp4|webm|m4v)(\?|#|$)/i.test(src);
@@ -151,59 +153,56 @@ export function CmsCollageEditor({ draft, onChange, onPickSlot }: Props) {
           const video = hasSrc && (slot.type === "video" || isVideoSrc(slot.src));
           return (
             <div key={slot.id || `slot-${index}`} className="cms-cs-collage-slot">
-              <button
-                type="button"
-                className={`cms-preview-split-media cms-cs-collage-pick${hasSrc ? "" : " is-empty"}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPickSlot(index);
-                }}
-                aria-label={hasSrc ? `Change collage card ${index + 1}` : `Add collage card ${index + 1}`}
-              >
-                {hasSrc ? (
-                  video ? (
-                    <video
-                      src={slot.src}
-                      poster={slot.poster}
-                      autoPlay
-                      muted
-                      loop
-                      playsInline
-                      preload="metadata"
-                      aria-hidden
-                    />
-                  ) : (
-                    <Image
-                      src={slot.src}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      sizes="200px"
-                      unoptimized={slot.src.startsWith("http")}
-                    />
-                  )
-                ) : (
-                  <div className="project-media-fallback" aria-hidden />
-                )}
-                <span className="cms-cs-media-hint" aria-hidden>
-                  {hasSrc ? "Change" : `+ Card 0${index + 1}`}
-                </span>
-              </button>
-              {hasSrc ? (
+              <div className="cms-cs-section-media-frame">
                 <button
                   type="button"
-                  className="cms-chip-btn"
+                  className={`cms-preview-split-media cms-cs-collage-pick${hasSrc ? "" : " is-empty"}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    const next = slots.map((s, i) =>
-                      i === index ? { ...s, src: "", poster: undefined } : s,
-                    );
-                    onChange(next);
+                    onPickSlot(index);
                   }}
+                  aria-label={
+                    hasSrc
+                      ? `Change collage card ${index + 1}`
+                      : `Add collage card ${index + 1}`
+                  }
                 >
-                  Clear
+                  {hasSrc ? (
+                    video ? (
+                      <CmsPreviewVideo
+                        src={slot.src}
+                        poster={slot.poster}
+                        aria-hidden
+                      />
+                    ) : (
+                      <Image
+                        src={slot.src}
+                        alt=""
+                        fill
+                        className="object-cover"
+                        sizes="200px"
+                        unoptimized={slot.src.startsWith("http")}
+                      />
+                    )
+                  ) : (
+                    <div className="project-media-fallback" aria-hidden />
+                  )}
+                  <span className="cms-cs-media-hint" aria-hidden>
+                    {hasSrc ? "Change" : `+ Card 0${index + 1}`}
+                  </span>
                 </button>
-              ) : null}
+                {hasSrc ? (
+                  <CmsMediaTrashButton
+                    label={`Remove collage card ${index + 1}`}
+                    onClick={() => {
+                      const next = slots.map((s, i) =>
+                        i === index ? { ...s, src: "", poster: undefined } : s,
+                      );
+                      onChange(next);
+                    }}
+                  />
+                ) : null}
+              </div>
             </div>
           );
         })}

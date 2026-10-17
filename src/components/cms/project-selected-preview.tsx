@@ -16,6 +16,8 @@ import {
   persistFeaturedOrder,
 } from "@/components/cms/selected-grid-order";
 import { SelectedCardActionIcons } from "@/components/cms/selected-card-actions";
+import { CmsMediaTrashButton } from "@/components/cms/cms-media-trash";
+import { CmsPreviewVideo } from "@/components/cms/cms-preview-video";
 
 export type SelectedGridPeer = {
   id: string;
@@ -129,6 +131,7 @@ function CellMedia({
   title,
   editable,
   onPick,
+  onClear,
 }: {
   media: ProjectMedia | null;
   coverImage: string | null;
@@ -136,6 +139,7 @@ function CellMedia({
   title: string;
   editable?: boolean;
   onPick?: () => void;
+  onClear?: () => void;
 }) {
   const mediaSrc = media?.src || null;
   const poster = media?.poster || coverImage || introSrc || null;
@@ -144,23 +148,18 @@ function CellMedia({
     mediaSrc && (media?.type === "video" || isVideoSrc(mediaSrc))
       ? mediaSrc
       : null;
-  const show = video || image || mediaSrc;
+  const show = Boolean(video || image || mediaSrc);
   const objectPosition = media?.objectPosition || "50% 50%";
   const { rootRef, hot, setHot, pos, onMove } = useFollowCursor();
 
   const body = (
     <>
       {video ? (
-        <video
+        <CmsPreviewVideo
           className="cms-selected-visual-asset"
           src={video}
           poster={poster || undefined}
           style={{ objectPosition }}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
           aria-hidden
         />
       ) : show ? (
@@ -191,21 +190,30 @@ function CellMedia({
 
   if (editable && onPick) {
     return (
-      <button
-        ref={rootRef}
-        type="button"
-        className={`cms-selected-visual${show ? " has-media" : ""}${hot ? " is-hot" : ""}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onPick();
-        }}
-        onMouseEnter={() => setHot(true)}
-        onMouseLeave={() => setHot(false)}
-        onMouseMove={onMove}
-        aria-label={show ? "Change Selected Projects media" : "Add Selected Projects media"}
-      >
-        {body}
-      </button>
+      <div className="cms-selected-visual-frame">
+        <button
+          ref={rootRef}
+          type="button"
+          className={`cms-selected-visual${show ? " has-media" : ""}${hot ? " is-hot" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onPick();
+          }}
+          onMouseEnter={() => setHot(true)}
+          onMouseLeave={() => setHot(false)}
+          onMouseMove={onMove}
+          aria-label={
+            show
+              ? "Change Selected Projects media"
+              : "Add Selected Projects media"
+          }
+        >
+          {body}
+        </button>
+        {show && onClear ? (
+          <CmsMediaTrashButton label="Remove card media" onClick={onClear} />
+        ) : null}
+      </div>
     );
   }
 
@@ -655,6 +663,11 @@ export function ProjectSelectedPreview({
                           title={draft.title}
                           editable
                           onPick={() => onPickImage("heroMedia")}
+                          onClear={() => {
+                            onChange("media", null);
+                            onChange("coverImage", null);
+                            onChange("introSrc", null);
+                          }}
                         />
                       </div>
                     </article>

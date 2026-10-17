@@ -13,6 +13,8 @@ import { usesRevealHero } from "@/lib/project-draft";
 import { CmsDetailBlocks } from "@/components/cms/cms-detail-blocks";
 import { CmsCollageEditor } from "@/components/cms/cms-collage-editor";
 import { CmsStatsBar } from "@/components/cms/cms-stats-bar";
+import { CmsMediaTrashButton } from "@/components/cms/cms-media-trash";
+import { CmsPreviewVideo } from "@/components/cms/cms-preview-video";
 import type { CollageItem } from "@/lib/project-draft";
 
 type Props = {
@@ -103,58 +105,60 @@ function RevealMediaLayer({
   poster,
   hasMedia,
   onPick,
+  onClear,
 }: {
   heroBg: string | null;
   heroBgIsVideo: boolean;
   poster?: string;
   hasMedia: boolean;
   onPick: () => void;
+  onClear?: () => void;
 }) {
   const { rootRef, hot, setHot, pos, onMove } = useFollowCursor();
 
   return (
-    <button
-      ref={rootRef}
-      type="button"
-      className={`cms-preview-hero-media${hot ? " is-hot" : ""}`}
-      onClick={onPick}
-      onMouseEnter={() => setHot(true)}
-      onMouseLeave={() => setHot(false)}
-      onMouseMove={onMove}
-      aria-label={hasMedia ? "Change hero media" : "Add hero image or video"}
-    >
-      {heroBg ? (
-        heroBgIsVideo ? (
-          <video
-            className="cms-preview-hero-asset"
-            src={heroBg}
-            poster={poster}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            aria-hidden
-          />
+    <div className="cms-preview-hero-media-wrap">
+      <button
+        ref={rootRef}
+        type="button"
+        className={`cms-preview-hero-media${hot ? " is-hot" : ""}`}
+        onClick={onPick}
+        onMouseEnter={() => setHot(true)}
+        onMouseLeave={() => setHot(false)}
+        onMouseMove={onMove}
+        aria-label={hasMedia ? "Change hero media" : "Add hero image or video"}
+      >
+        {heroBg ? (
+          heroBgIsVideo ? (
+            <CmsPreviewVideo
+              className="cms-preview-hero-asset"
+              src={heroBg}
+              poster={poster}
+              aria-hidden
+            />
+          ) : (
+            <Image
+              src={heroBg}
+              alt=""
+              fill
+              className="object-cover cms-preview-hero-asset"
+              sizes="100vw"
+              unoptimized={heroBg.startsWith("http")}
+            />
+          )
         ) : (
-          <Image
-            src={heroBg}
-            alt=""
-            fill
-            className="object-cover cms-preview-hero-asset"
-            sizes="100vw"
-            unoptimized={heroBg.startsWith("http")}
-          />
-        )
-      ) : (
-        <div className="cms-preview-hero-empty">
-          <span>Click to add hero image or video</span>
-          <span>Shows behind the overview text</span>
-        </div>
-      )}
-      <span className="cms-preview-hero-scrim" aria-hidden />
-      <FollowHint hot={hot} pos={pos} label={hasMedia ? "Change media" : "Add media"} />
-    </button>
+          <div className="cms-preview-hero-empty">
+            <span>Click to add hero image or video</span>
+            <span>Shows behind the overview text</span>
+          </div>
+        )}
+        <span className="cms-preview-hero-scrim" aria-hidden />
+        <FollowHint hot={hot} pos={pos} label={hasMedia ? "Change media" : "Add media"} />
+      </button>
+      {hasMedia && onClear ? (
+        <CmsMediaTrashButton label="Remove hero media" onClick={onClear} />
+      ) : null}
+    </div>
   );
 }
 
@@ -163,57 +167,55 @@ function SplitMediaLayer({
   isVideo,
   poster,
   onPick,
+  onClear,
 }: {
   src: string | null;
   isVideo: boolean;
   poster?: string;
   onPick: () => void;
+  onClear?: () => void;
 }) {
   const { rootRef, hot, setHot, pos, onMove } = useFollowCursor();
   const hasMedia = Boolean(src);
 
   return (
-    <button
-      ref={rootRef}
-      type="button"
-      className={`cms-preview-split-media${hot ? " is-hot" : ""}${hasMedia ? "" : " is-empty"}`}
-      onClick={onPick}
-      onMouseEnter={() => setHot(true)}
-      onMouseLeave={() => setHot(false)}
-      onMouseMove={onMove}
-      aria-label={hasMedia ? "Change box media" : "Add image or video to box"}
-    >
-      {src ? (
-        isVideo ? (
-          <video
-            src={src}
-            poster={poster}
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="metadata"
-            aria-hidden
-          />
+    <div className="cms-cs-section-media-frame cms-preview-split-media-wrap">
+      <button
+        ref={rootRef}
+        type="button"
+        className={`cms-preview-split-media${hot ? " is-hot" : ""}${hasMedia ? "" : " is-empty"}`}
+        onClick={onPick}
+        onMouseEnter={() => setHot(true)}
+        onMouseLeave={() => setHot(false)}
+        onMouseMove={onMove}
+        aria-label={hasMedia ? "Change box media" : "Add image or video to box"}
+      >
+        {src ? (
+          isVideo ? (
+            <CmsPreviewVideo src={src} poster={poster} aria-hidden />
+          ) : (
+            <Image
+              src={src}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="(max-width:900px) 100vw, 55vw"
+              unoptimized={src.startsWith("http")}
+            />
+          )
         ) : (
-          <Image
-            src={src}
-            alt=""
-            fill
-            className="object-cover"
-            sizes="(max-width:900px) 100vw, 55vw"
-            unoptimized={src.startsWith("http")}
-          />
-        )
-      ) : (
-        <div className="project-media-fallback" aria-hidden />
-      )}
-      <FollowHint
-        hot={hot}
-        pos={pos}
-        label={hasMedia ? "Change media" : "Add image / video"}
-      />
-    </button>
+          <div className="project-media-fallback" aria-hidden />
+        )}
+        <FollowHint
+          hot={hot}
+          pos={pos}
+          label={hasMedia ? "Change media" : "Add image / video"}
+        />
+      </button>
+      {hasMedia && onClear ? (
+        <CmsMediaTrashButton label="Remove box media" onClick={onClear} />
+      ) : null}
+    </div>
   );
 }
 
@@ -269,26 +271,34 @@ export function ProjectLivePreview({
         <h1
           className={`project-page-title project-intro-title${draft.titleIcon ? " has-icon" : ""}`}
         >
-          <EditableRegion
-            field="titleIcon"
-            editing={editing}
-            onEdit={() => onPickImage("titleIcon")}
-            label="icon"
-            className="cms-editable-icon"
-          >
+          <span className="cms-editable-icon-wrap">
+            <EditableRegion
+              field="titleIcon"
+              editing={editing}
+              onEdit={() => onPickImage("titleIcon")}
+              label="icon"
+              className="cms-editable-icon"
+            >
+              {draft.titleIcon ? (
+                <Image
+                  src={draft.titleIcon}
+                  alt=""
+                  width={72}
+                  height={72}
+                  unoptimized={draft.titleIcon.startsWith("http")}
+                  className="project-page-title-icon"
+                />
+              ) : (
+                <span className="cms-icon-placeholder">+</span>
+              )}
+            </EditableRegion>
             {draft.titleIcon ? (
-              <Image
-                src={draft.titleIcon}
-                alt=""
-                width={72}
-                height={72}
-                unoptimized={draft.titleIcon.startsWith("http")}
-                className="project-page-title-icon"
+              <CmsMediaTrashButton
+                label="Remove title icon"
+                onClick={() => onChange("titleIcon", null)}
               />
-            ) : (
-              <span className="cms-icon-placeholder">+</span>
-            )}
-          </EditableRegion>
+            ) : null}
+          </span>
 
           <EditableRegion field="title" editing={editing} onEdit={onEdit} label="title">
             {editing === "title" ? (
@@ -456,6 +466,7 @@ export function ProjectLivePreview({
             poster={media?.poster || undefined}
             hasMedia={Boolean(revealColor)}
             onPick={() => onPickImage("heroMedia")}
+            onClear={() => onChange("media", null)}
           />
           <div className="cms-preview-hero-copy project-page-shell">{introCopy}</div>
           {revealIsVideo ? (
@@ -510,6 +521,12 @@ export function ProjectLivePreview({
                     isVideo={boxIsVideo}
                     poster={band.media?.poster}
                     onPick={() => onPickImage(`bandMedia:${index}`)}
+                    onClear={() =>
+                      onChange(
+                        "bands",
+                        updateBand(bands, index, { media: null }),
+                      )
+                    }
                   />
                 </div>
                 <div className="project-hero-copy cms-preview-hero-secondary">

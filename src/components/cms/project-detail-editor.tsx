@@ -1,15 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ProjectLivePreview } from "@/components/cms/project-live-preview";
-import {
-  ProjectSelectedPreview,
-  type SelectedGridPeer,
-  type SelectedPickerItem,
+import type {
+  SelectedGridPeer,
+  SelectedPickerItem,
 } from "@/components/cms/project-selected-preview";
-import { ProjectSecretPreview } from "@/components/cms/project-secret-preview";
 import {
   ProjectImagePicker,
   asMedia,
@@ -31,6 +29,45 @@ import {
   type CollageItem,
 } from "@/lib/project-draft";
 import { resolveCollageSlots } from "@/components/cms/cms-collage-editor";
+
+const ProjectLivePreview = dynamic(
+  () =>
+    import("@/components/cms/project-live-preview").then((m) => ({
+      default: m.ProjectLivePreview,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="cms-preview-chunk-loading">Loading detail preview…</div>
+    ),
+  },
+);
+
+const ProjectSelectedPreview = dynamic(
+  () =>
+    import("@/components/cms/project-selected-preview").then((m) => ({
+      default: m.ProjectSelectedPreview,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="cms-preview-chunk-loading">Loading selected preview…</div>
+    ),
+  },
+);
+
+const ProjectSecretPreview = dynamic(
+  () =>
+    import("@/components/cms/project-secret-preview").then((m) => ({
+      default: m.ProjectSecretPreview,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="cms-preview-chunk-loading">Loading secret preview…</div>
+    ),
+  },
+);
 
 type EditorPage = "detail" | "selected";
 
@@ -159,7 +196,6 @@ export function ProjectDetailEditor({
     const href =
       next === "selected" ? `${pathname}?view=selected` : pathname;
     router.replace(href, { scroll: false });
-    if (next === "selected") router.refresh();
   }
 
   useEffect(() => {
@@ -293,7 +329,8 @@ export function ProjectDetailEditor({
         setDraft((d) => ({ ...d, id: body.project.id }));
       }
       setBaseline(serialize(draft));
-      router.refresh();
+      // Skip router.refresh() — local draft is already current; refresh
+      // re-fetched the whole editor and felt like a long re-render.
     } catch (err) {
       setError(err instanceof Error ? err.message : "Save failed");
     } finally {

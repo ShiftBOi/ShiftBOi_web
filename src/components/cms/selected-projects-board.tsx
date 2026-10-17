@@ -23,6 +23,8 @@ import {
   persistFeaturedOrder,
 } from "@/components/cms/selected-grid-order";
 import { SelectedCardActionIcons } from "@/components/cms/selected-card-actions";
+import { CmsMediaTrashButton } from "@/components/cms/cms-media-trash";
+import { CmsPreviewVideo } from "@/components/cms/cms-preview-video";
 import type {
   SelectedGridPeer,
   SelectedPickerItem,
@@ -99,9 +101,11 @@ function useFollowCursor() {
 function CellMedia({
   item,
   onPick,
+  onClear,
 }: {
   item: SelectedGridPeer;
   onPick: () => void;
+  onClear?: () => void;
 }) {
   const media = item.media;
   const mediaSrc = media?.src || null;
@@ -116,54 +120,54 @@ function CellMedia({
   const { rootRef, hot, setHot, pos, onMove } = useFollowCursor();
 
   return (
-    <button
-      ref={rootRef}
-      type="button"
-      className={`cms-selected-visual${show ? " has-media" : ""}${hot ? " is-hot" : ""}`}
-      onClick={(e) => {
-        e.stopPropagation();
-        onPick();
-      }}
-      onMouseEnter={() => setHot(true)}
-      onMouseLeave={() => setHot(false)}
-      onMouseMove={onMove}
-      aria-label={show ? "Change media" : "Add image or clip"}
-    >
-      {video ? (
-        <video
-          className="cms-selected-visual-asset"
-          src={video}
-          poster={poster || undefined}
-          style={{ objectPosition }}
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="metadata"
-          aria-hidden
+    <div className="cms-selected-visual-frame">
+      <button
+        ref={rootRef}
+        type="button"
+        className={`cms-selected-visual${show ? " has-media" : ""}${hot ? " is-hot" : ""}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          onPick();
+        }}
+        onMouseEnter={() => setHot(true)}
+        onMouseLeave={() => setHot(false)}
+        onMouseMove={onMove}
+        aria-label={show ? "Change media" : "Add image or clip"}
+      >
+        {video ? (
+          <CmsPreviewVideo
+            className="cms-selected-visual-asset"
+            src={video}
+            poster={poster || undefined}
+            style={{ objectPosition }}
+            aria-hidden
+          />
+        ) : show ? (
+          <Image
+            src={image || mediaSrc || ""}
+            alt=""
+            fill
+            className="cms-selected-visual-asset object-cover"
+            style={{ objectPosition }}
+            sizes="(max-width: 900px) 100vw, 50vw"
+            unoptimized={(image || mediaSrc || "").startsWith("http")}
+          />
+        ) : (
+          <span className="cms-selected-visual-empty">
+            <strong>Add image or clip</strong>
+            <em>Click to upload — shows on homepage</em>
+          </span>
+        )}
+        <FollowHint
+          hot={hot}
+          pos={pos}
+          label={show ? "Change media" : "Add image / video"}
         />
-      ) : show ? (
-        <Image
-          src={image || mediaSrc || ""}
-          alt=""
-          fill
-          className="cms-selected-visual-asset object-cover"
-          style={{ objectPosition }}
-          sizes="(max-width: 900px) 100vw, 50vw"
-          unoptimized={(image || mediaSrc || "").startsWith("http")}
-        />
-      ) : (
-        <span className="cms-selected-visual-empty">
-          <strong>Add image or clip</strong>
-          <em>Click to upload — shows on homepage</em>
-        </span>
-      )}
-      <FollowHint
-        hot={hot}
-        pos={pos}
-        label={show ? "Change media" : "Add image / video"}
-      />
-    </button>
+      </button>
+      {show && onClear ? (
+        <CmsMediaTrashButton label="Remove card media" onClick={onClear} />
+      ) : null}
+    </div>
   );
 }
 
@@ -672,6 +676,13 @@ export function SelectedProjectsBoard({
                         item={item}
                         onPick={() =>
                           setMediaTarget({ id: item.id, field: "heroMedia" })
+                        }
+                        onClear={() =>
+                          patchLocal(item.id, {
+                            media: null,
+                            coverImage: null,
+                            introSrc: null,
+                          })
                         }
                       />
                     </div>

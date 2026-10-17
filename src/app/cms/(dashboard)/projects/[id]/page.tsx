@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireCmsSession } from "@/lib/session";
@@ -18,12 +19,13 @@ type Props = {
   searchParams: Promise<{ view?: string }>;
 };
 
+const getProjectById = cache(async (id: string) =>
+  prisma.project.findUnique({ where: { id } }),
+);
+
 export async function generateMetadata({ params }: Props) {
   const { id } = await params;
-  const project = await prisma.project.findUnique({
-    where: { id },
-    select: { title: true },
-  });
+  const project = await getProjectById(id);
   return { title: project ? `Edit · ${project.title}` : "Project" };
 }
 
@@ -33,10 +35,24 @@ export default async function CmsProjectDetailPage({ params, searchParams }: Pro
   const { view } = await searchParams;
 
   const [project, featuredPeers, pickerItems] = await Promise.all([
-    prisma.project.findUnique({ where: { id } }),
+    getProjectById(id),
+    // Selected-grid peers only need card fields — skip details/bands JSON.
     prisma.project.findMany({
       where: { featured: true, visibility: "PUBLIC" },
       orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      select: {
+        id: true,
+        slug: true,
+        title: true,
+        summary: true,
+        coverImage: true,
+        introSrc: true,
+        media: true,
+        featured: true,
+        published: true,
+        visibility: true,
+        sortOrder: true,
+      },
     }),
     prisma.project.findMany({
       select: {
