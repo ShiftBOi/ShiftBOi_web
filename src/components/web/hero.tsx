@@ -11,7 +11,6 @@ const nav = [
   { href: "#work", label: "Work" },
   { href: "#use-cases", label: "Focus" },
   { href: "#services", label: "Services" },
-  { href: "#get-in-touch", label: "Contact" },
 ];
 
 export function SiteHeader() {
