@@ -161,11 +161,11 @@ def render_mark_rgba(size: int, *, on_black: bool = True) -> Image.Image:
 
 
 def save_icons() -> None:
+    # Tab favicons: transparent so bars don't sit in a black square frame
     for size, name in [(32, "favicon-32.png"), (192, "icon-192.png"), (512, "icon-512.png")]:
-        render_mark_rgba(size, on_black=True).save(OUT_PUBLIC / name, "PNG")
+        render_mark_rgba(size, on_black=False).save(OUT_PUBLIC / name, "PNG")
 
-    # Multi-resolution ICO from the 32px master
-    master = render_mark_rgba(32, on_black=True).convert("RGBA")
+    master = render_mark_rgba(32, on_black=False).convert("RGBA")
     im16 = master.resize((16, 16), Image.Resampling.LANCZOS)
     im48 = master.resize((48, 48), Image.Resampling.LANCZOS)
     im16.save(
@@ -175,8 +175,20 @@ def save_icons() -> None:
         append_images=[master, im48],
     )
 
+    # Brand PNGs keep black plate for OG / solid surfaces
     render_mark_rgba(64, on_black=True).save(OUT_BRAND / "shiftboi-mark-64.png", "PNG")
     render_mark_rgba(512, on_black=True).save(OUT_BRAND / "shiftboi-mark.png", "PNG")
+
+    # Next.js App Router — these override public/ favicons in the browser tab
+    app_dir = ROOT / "src" / "app"
+    if app_dir.is_dir():
+        import shutil
+
+        shutil.copyfile(OUT_PUBLIC / "favicon.ico", app_dir / "favicon.ico")
+        render_mark_rgba(192, on_black=False).save(app_dir / "icon.png", "PNG")
+        # Apple touch icons prefer opaque plate on home screens
+        render_mark_rgba(180, on_black=True).save(app_dir / "apple-icon.png", "PNG")
+        print("  synced src/app/favicon.ico, icon.png, apple-icon.png")
 
 
 def load_font(size: int, *, bold: bool = False) -> ImageFont.FreeTypeFont | ImageFont.ImageFont:
