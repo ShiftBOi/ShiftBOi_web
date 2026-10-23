@@ -209,9 +209,10 @@ export function TouchAscii({
 
     // Look up animation
     const animName = config.animation || 'none';
-    let animFn: ((s: typeof states, r: number, c: number, cw: number, ch: number, t: number, f: ParsedFrame) => void) | null = null;
-    if (animName !== 'none' && typeof ANIMATION_PRESETS !== 'undefined') {
-      animFn = (ANIMATION_PRESETS as Record<string, typeof animFn>)[animName] || null;
+    type AnimFn = (typeof ANIMATION_PRESETS)[string];
+    let animFn: AnimFn | null = null;
+    if (animName !== 'none') {
+      animFn = ANIMATION_PRESETS[animName] ?? null;
     }
 
     const isStatic = parsedFrames.length <= 1 && !animFn;

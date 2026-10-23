@@ -180,25 +180,26 @@ const DEFAULT_SITE: SiteContent = {
 
 function asServiceItems(value: unknown): ServiceItem[] {
   if (!Array.isArray(value)) return [];
-  return value
-    .map((raw, index) => {
-      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
-      const row = raw as Record<string, unknown>;
-      const title = String(row.title ?? "").trim();
-      if (!title) return null;
-      const tags = Array.isArray(row.tags)
-        ? row.tags.map((t) => String(t)).filter(Boolean)
-        : [];
-      return {
-        id: String(row.id ?? `service-${index}`),
-        title,
-        summary: String(row.summary ?? ""),
-        tags,
-        color: row.color ? String(row.color) : undefined,
-        figure: row.figure ? String(row.figure) : undefined,
-      } satisfies ServiceItem;
-    })
-    .filter((item): item is ServiceItem => Boolean(item));
+  const items: ServiceItem[] = [];
+  value.forEach((raw, index) => {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) return;
+    const row = raw as Record<string, unknown>;
+    const title = String(row.title ?? "").trim();
+    if (!title) return;
+    const tags = Array.isArray(row.tags)
+      ? row.tags.map((t) => String(t)).filter(Boolean)
+      : [];
+    const item: ServiceItem = {
+      id: String(row.id ?? `service-${index}`),
+      title,
+      summary: String(row.summary ?? ""),
+      tags,
+    };
+    if (row.color) item.color = String(row.color);
+    if (row.figure) item.figure = String(row.figure);
+    items.push(item);
+  });
+  return items;
 }
 
 function asObject(value: Prisma.JsonValue | null | undefined): Record<string, unknown> | null {
