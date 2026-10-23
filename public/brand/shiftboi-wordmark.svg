@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 40" role="img" aria-label="ShiftBOi">
+  <rect x="2" y="2" width="36" height="36" rx="9" fill="#000000"/>
+  <g transform="translate(4,4)">
+    <path fill="#7c3aed" d="M13.792,5.120 H27.168 Q29.760,5.120 29.760,7.712 V8.288 Q29.760,10.880 27.168,10.880 H13.792 Q11.200,10.880 11.200,8.288 V7.712 Q11.200,5.120 13.792,5.120 Z"/>
+    <path fill="#a78bfa" d="M9.312,13.600 H22.688 Q25.280,13.600 25.280,16.192 V16.768 Q25.280,19.360 22.688,19.360 H9.312 Q6.720,19.360 6.720,16.768 V16.192 Q6.720,13.600 9.312,13.600 Z"/>
+    <path fill="#c4b5fd" d="M4.832,22.080 H18.208 Q20.800,22.080 20.800,24.672 V25.248 Q20.800,27.840 18.208,27.840 H4.832 Q2.240,27.840 2.240,25.248 V24.672 Q2.240,22.080 4.832,22.080 Z"/>
+  </g>
+  <text x="48" y="27"
+        font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif"
+        font-size="20" font-weight="600" letter-spacing="-0.03em" fill="#ffffff">ShiftBOi</text>
+</svg>

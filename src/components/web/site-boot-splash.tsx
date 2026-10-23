@@ -18,7 +18,8 @@ export function SiteBootSplash() {
         setPhase("done");
         return;
       }
-      sessionStorage.setItem(BOOT_SEEN_KEY, "1");
+      /* Do NOT write BOOT_SEEN_KEY here — React Strict Mode remounts once in
+         dev; writing early makes the second mount skip the intro forever. */
     } catch {
       // Private mode / blocked storage — still show once this mount
     }
@@ -29,14 +30,23 @@ export function SiteBootSplash() {
     let disposed = false;
     let dismissed = false;
     let loaded = document.readyState === "complete";
-    let fontsReady = document.fonts.status === "loaded";
+    let fontsReady = document.fonts?.status === "loaded";
 
     setPhase("loading");
     document.documentElement.classList.add("hydra-booting");
 
+    const markSeen = () => {
+      try {
+        sessionStorage.setItem(BOOT_SEEN_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+    };
+
     const leave = () => {
       if (disposed || dismissed) return;
       dismissed = true;
+      markSeen();
       setPhase("leaving");
       timers.push(
         setTimeout(() => {
@@ -62,10 +72,14 @@ export function SiteBootSplash() {
     skipRef.current = leave;
     window.addEventListener("load", onLoad, { once: true });
     document.addEventListener("keydown", onEscape);
-    void document.fonts.ready.then(() => {
+    if (document.fonts?.ready) {
+      void document.fonts.ready.then(() => {
+        fontsReady = true;
+        whenReady();
+      });
+    } else {
       fontsReady = true;
-      whenReady();
-    });
+    }
     whenReady();
     timers.push(setTimeout(leave, reduced ? 1200 : INTRO_MAX_MS));
 

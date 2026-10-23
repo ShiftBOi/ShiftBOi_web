@@ -1,4 +1,3 @@
-import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export function utcDay(date = new Date()) {
@@ -52,12 +51,6 @@ export async function getTrafficSummary() {
   };
 }
 
-function isUniqueViolation(err: unknown) {
-  return (
-    err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002"
-  );
-}
-
 export async function recordPageHit(visitorId: string) {
   const day = utcDay();
 
@@ -67,14 +60,14 @@ export async function recordPageHit(visitorId: string) {
     update: { pageViews: { increment: 1 } },
   });
 
-  try {
-    await prisma.siteVisitorDay.create({
-      data: { day, visitorId },
-    });
-  } catch (err) {
-    if (isUniqueViolation(err)) return; // already counted today
-    throw err;
-  }
+  /* createMany + skipDuplicates avoids Prisma P2002 error logs on
+     same-day re-hits (React Strict Mode / double beacon / refresh). */
+  const inserted = await prisma.siteVisitorDay.createMany({
+    data: [{ day, visitorId }],
+    skipDuplicates: true,
+  });
+
+  if (inserted.count === 0) return;
 
   await prisma.siteTrafficDay.update({
     where: { day },

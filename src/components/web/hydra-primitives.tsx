@@ -57,11 +57,10 @@ export function HydraFooterRule() {
   );
 }
 
-/** ShiftBOi 2×2 mark — matches navbar brand glyph */
+/** ShiftBOi “shift stairs” mark — three offset bars (matches brand SVG) */
 export function ShiftBoiMark({ className = "" }: { className?: string }) {
   return (
     <span aria-hidden className={`shiftboi-mark ${className}`.trim()}>
-      <span />
       <span />
       <span />
       <span />

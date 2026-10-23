@@ -1395,24 +1395,40 @@ a.site-nav-link:focus-visible::after {
   background: var(--color-hydra-accent);
 }
 
-/* ShiftBOi 2×2 brand mark (navbar glyph) */
+/* ShiftBOi shift-stairs mark (navbar glyph) */
 .shiftboi-mark {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1px;
-  width: 1.2em;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 1.15em;
   height: 1em;
   flex-shrink: 0;
+  gap: 0.12em;
 }
 
-.shiftboi-mark > span:nth-child(1),
-.shiftboi-mark > span:nth-child(4) {
-  background: var(--color-accent-purple, var(--color-hydra-accent));
+.shiftboi-mark > span {
+  display: block;
+  height: 0.22em;
+  border-radius: 999px;
+  flex: 0 0 auto;
 }
 
-.shiftboi-mark > span:nth-child(2),
+.shiftboi-mark > span:nth-child(1) {
+  width: 72%;
+  margin-left: 28%;
+  background: var(--color-accent-purple, #7c3aed);
+}
+
+.shiftboi-mark > span:nth-child(2) {
+  width: 72%;
+  margin-left: 14%;
+  background: var(--color-accent-purple-bright, #a78bfa);
+}
+
 .shiftboi-mark > span:nth-child(3) {
-  background: var(--color-accent-purple-bright, var(--color-hydra-accent));
+  width: 72%;
+  margin-left: 0;
+  background: #c4b5fd;
 }
 
 /* Equal black gap between sections (no divider line) */
@@ -2894,15 +2910,34 @@ a.sb-touch__line:hover .sb-touch__line-value {
 }
 
 .hydra-data-logo {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
   width: 88px;
   height: 72px;
+  gap: 8px;
 }
 
 .hydra-data-logo > span {
+  display: block;
+  height: 18px;
+  border-radius: 999px;
   background: #ffffff;
+}
+
+.hydra-data-logo > span:nth-child(1) {
+  width: 72%;
+  margin-left: 28%;
+}
+
+.hydra-data-logo > span:nth-child(2) {
+  width: 72%;
+  margin-left: 14%;
+}
+
+.hydra-data-logo > span:nth-child(3) {
+  width: 72%;
+  margin-left: 0;
 }
 
 .hydra-data-edge {

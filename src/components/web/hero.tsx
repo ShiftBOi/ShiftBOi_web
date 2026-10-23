@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import gsap from "gsap";
 import { DinoDashHorizon, DinoDashStage } from "@/components/web/dino-dash";
+import { ShiftBoiMark } from "@/components/web/hydra-primitives";
 
 const nav = [
   { href: "#work", label: "Work" },
@@ -21,15 +22,7 @@ export function SiteHeader() {
           href="/"
           className="flex shrink-0 items-center gap-2.5 text-[24px] font-semibold leading-none tracking-tight text-white md:text-[26px]"
         >
-          <span
-            aria-hidden
-            className="grid h-[1em] w-[1.2em] shrink-0 grid-cols-2 gap-px self-center"
-          >
-            <span className="bg-[var(--color-accent-purple)]" />
-            <span className="bg-[var(--color-accent-purple-bright)]" />
-            <span className="bg-[var(--color-accent-purple-bright)]" />
-            <span className="bg-[var(--color-accent-purple)]" />
-          </span>
+          <ShiftBoiMark className="self-center" />
           ShiftBOi
         </Link>
 

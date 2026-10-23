@@ -84,7 +84,7 @@ export function SiteLoadingOverlay({
       <div className={styles.scene}>
         <div className={styles.lockup}>
           <span className={styles.mark} aria-hidden>
-            {[0, 1, 2, 3].map((index) => <i key={index} />)}
+            {[0, 1, 2].map((index) => <i key={index} />)}
           </span>
           <p className={styles.title} aria-label={label}>
             {Array.from(label).map((letter, index) => (
