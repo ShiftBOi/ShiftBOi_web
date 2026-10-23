@@ -289,7 +289,6 @@ export function CmsLoginForm() {
                 setOtp("");
                 setError(null);
                 setInfo(null);
-                setDevOtp(null);
                 lastAutoVerified.current = "";
               }}
             >
