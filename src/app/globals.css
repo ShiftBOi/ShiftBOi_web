@@ -1580,6 +1580,13 @@ a.site-nav-link:focus-visible::after {
   /* visible — clip/hidden on the pinned section causes Y jitter with Lenis */
   overflow: visible;
   border-top: none;
+  /* Opaque plane — stops Focus/gap showing through during pin engage */
+  background: #000000;
+}
+
+/* GSAP wraps the pin; paint spacer black so unpin/pin never flashes page bg */
+.sb-svc .pin-spacer {
+  background: #000000;
 }
 
 .sb-svc__pin {
@@ -1592,8 +1599,11 @@ a.site-nav-link:focus-visible::after {
   padding-block: clamp(0.5rem, 1.5vw, 1rem) clamp(1.75rem, 4vw, 2.75rem);
   overflow: hidden;
   width: 100%;
+  background: #000000;
   /* Do NOT set transform here — GSAP pinType:transform owns it (prevents Y jitter) */
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  isolation: isolate;
 }
 
 /* Purple H-lines + corners; band uses page bg so cards read as separate tiles */
@@ -1735,12 +1745,16 @@ a.site-nav-link:focus-visible::after {
   box-shadow: none;
 }
 
-/* While pin-scrubbing, freeze hover paint so nothing fights the track transform */
-.sb-svc__stage.is-pin-scrub .sb-svc__card:hover {
-  background: #ffffff;
-}
+/*
+ * While pin-scrubbing, freeze ALL card paint — toggling is-active mid-scrub
+ * (and hover) causes white↔zinc flashes at the viewport edge.
+ */
+.sb-svc__stage.is-pin-scrub .sb-svc__card,
+.sb-svc__stage.is-pin-scrub .sb-svc__card:hover,
 .sb-svc__stage.is-pin-scrub .sb-svc__card.is-active {
-  background: #f4f4f5;
+  background: #ffffff;
+  box-shadow: none;
+  transition: none;
 }
 
 .sb-svc__fig {
@@ -2806,6 +2820,11 @@ a.sb-touch__line:hover .sb-touch__line-value {
   background: #000000;
   border-top: 1px solid var(--color-hydra-accent);
   border-bottom: 1px solid var(--color-hydra-accent);
+  /* Own compositor layer — cuts purple-ring bleed/flicker at section edge */
+  isolation: isolate;
+  contain: paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .hydra-data-hex-wrap {
@@ -2843,16 +2862,11 @@ a.sb-touch__line:hover .sb-touch__line-value {
   overflow: visible;
 }
 
-.hydra-data-hex-ring {
-  will-change: transform, opacity;
-}
-
 .hydra-data-card-float {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
   gap: 5px;
-  will-change: transform;
 }
 
 .hydra-data-card-stack {

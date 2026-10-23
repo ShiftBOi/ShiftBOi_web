@@ -253,7 +253,7 @@ export function ServicesFolders({
    * - ease none (no mid-acceleration jank)
    * - scrub true (lock to Lenis scroll, no dual lag)
    * - cached travel (no layout reads every frame)
-   * - no React state during scrub
+   * - no React state / active-class thrash during scrub (flicker)
    */
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -303,45 +303,68 @@ export function ServicesFolders({
           pinSpacing: true,
           /* transform pairs with Lenis; avoid CSS transform on .sb-svc__pin */
           pinType: "transform",
-          anticipatePin: 0,
+          /* Apply pin slightly early — kills 1-frame flash at viewport edge */
+          anticipatePin: 1,
           /* true = 1:1 with Lenis scroll — no second lag layer */
           scrub: true,
           invalidateOnRefresh: true,
-          fastScrollEnd: false,
-          preventOverlaps: true,
+          /* Snap to end when whizzing past — stops mid-pin flash on fast scroll */
+          fastScrollEnd: true,
+          /* Overlap kill/restart with neighboring STs causes Focus↔Services flicker */
+          preventOverlaps: false,
           onRefreshInit: () => {
             measureTravel();
-            gsap.set(track, { x: 0, y: 0 });
             stage.scrollLeft = 0;
-          },
-          onUpdate: (self) => {
-            syncActiveFromOffset(self.progress * travelRef.current);
+            /* Don't hard-reset x mid-scrub — that flashes the track back to start */
           },
         },
       });
     }, section);
 
-    const refresh = () => {
-      measureTravel();
+    let refreshTimer = 0;
+    let lastTravel = travelRef.current;
+    const refresh = (force = false) => {
+      const next = measureTravel();
+      /* Skip no-op refreshes (late image decode) — they flash pin at the edge */
+      if (!force && Math.abs(next - lastTravel) < 2) return;
+      lastTravel = next;
       ScrollTrigger.refresh();
     };
 
-    track.querySelectorAll("img").forEach((img) => {
-      if (!img.complete) img.addEventListener("load", refresh, { once: true });
-    });
+    const scheduleRefresh = (force = false) => {
+      window.clearTimeout(refreshTimer);
+      refreshTimer = window.setTimeout(() => refresh(force), 180);
+    };
 
-    const onMq = () => refresh();
+    /* One batched refresh after figures decode — never per-image mid-scroll */
+    const imgs = Array.from(track.querySelectorAll("img"));
+    let pending = imgs.filter((img) => !img.complete).length;
+    if (pending === 0) {
+      scheduleRefresh(true);
+    } else {
+      imgs.forEach((img) => {
+        if (img.complete) return;
+        const done = () => {
+          pending -= 1;
+          if (pending <= 0) scheduleRefresh(true);
+        };
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+      });
+    }
+
+    const onMq = () => scheduleRefresh(true);
     mobileMq.addEventListener?.("change", onMq);
 
     let resizeTimer = 0;
     const onResize = () => {
       window.clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(refresh, 120);
+      resizeTimer = window.setTimeout(() => refresh(true), 120);
     };
     window.addEventListener("resize", onResize);
 
     requestAnimationFrame(() => {
-      requestAnimationFrame(refresh);
+      requestAnimationFrame(() => scheduleRefresh(true));
     });
 
     return () => {
@@ -349,11 +372,12 @@ export function ServicesFolders({
       stage.classList.remove("is-pin-scrub");
       gsap.set(track, { clearProps: "transform" });
       window.clearTimeout(resizeTimer);
+      window.clearTimeout(refreshTimer);
       window.removeEventListener("resize", onResize);
       mobileMq.removeEventListener?.("change", onMq);
       ctx.revert();
     };
-  }, [services.length, measureTravel, syncActiveFromOffset]);
+  }, [services.length, measureTravel]);
 
   if (!services.length) return null;
 
@@ -403,8 +427,9 @@ export function ServicesFolders({
                           src={`${fig}?v=isoglow3`}
                           alt=""
                           className="sb-svc__fig-img"
-                          loading={index < 2 ? "eager" : "lazy"}
+                          loading="eager"
                           decoding="async"
+                          fetchPriority={index < 3 ? "high" : "auto"}
                           draggable={false}
                         />
                       </div>
