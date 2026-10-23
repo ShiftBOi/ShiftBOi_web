@@ -62,7 +62,7 @@ function messageText(message: { parts: Array<{ type: string; text?: string }> })
 }
 
 const WELCOME =
-  "Hi! I'm the ShiftBOi assistant. Ask me anything about the portfolio, focus areas, or how to get in touch via the footer.";
+  "Hi! I'm the ShiftBOi assistant. Ask me anything about the portfolio, focus areas, or how to get in touch via the Get in touch card.";
 
 const CHAT_STORAGE_KEY = "shiftboi-site-chat-v1";
 

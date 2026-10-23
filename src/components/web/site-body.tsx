@@ -14,6 +14,8 @@ import { useHydraScroll } from "@/components/web/use-hydra-scroll";
 import { MatrixPortrait } from "@/components/web/matrix-portrait";
 import { ProjectFeatureCell, ComingSoonFeatureCell } from "@/components/web/project-feature-cell";
 import { SiteFooter } from "@/components/web/site-footer";
+import { GetInTouchCard } from "@/components/web/get-in-touch";
+import { ServicesFolders } from "@/components/web/services-folders";
 import type { SiteContent } from "@/lib/content";
 
 type ProjectMedia = {
@@ -495,76 +497,6 @@ const WITH_ROWS = [
   "AI features that ship inside the product loop — with clear handoff",
   "Architecture that grows from prototype to production without a reset",
 ];
-
-const PRACTICE_LEAD =
-  "After the selected work, this is the honest close — how the practice runs, what fits, and what is in motion right now. Contact lives in the footer and chat; this page stays about the work.";
-
-const PRACTICE_RULES = [
-  {
-    kicker: "01",
-    title: "Own the loop",
-    body: "UI, API, data, and deploy stay one story — so demos survive real auth, real content, and real edge cases.",
-  },
-  {
-    kicker: "02",
-    title: "Clarity under complexity",
-    body: "Maps, CMS, roles, and AI features only earn a place when the product stays readable for the next person who opens it.",
-  },
-  {
-    kicker: "03",
-    title: "Ship in phases",
-    body: "Prototype → MVP → production without a rewrite tax. Each phase should feel intentional, not disposable.",
-  },
-] as const;
-
-const PRACTICE_FIT = [
-  {
-    name: "Product builds",
-    detail:
-      "New web or mobile products from brief to first production deploy — including the operator tools that keep them alive.",
-  },
-  {
-    name: "Platform & CMS",
-    detail:
-      "Marketing sites, dashboards, and content pipelines where the public surface and the edit loop share one system.",
-  },
-  {
-    name: "AI inside the product",
-    detail:
-      "Assistants, workflows, and LLM features that live in the UX — with clear failure paths, not bolted-on demos.",
-  },
-] as const;
-
-const PRACTICE_SKIP = [
-  "Design-only passes with no engineering ownership",
-  "Spec dumps without a product owner in the loop",
-  "AI demos that never touch real product UX",
-  "Rewrites sold as “just a redesign”",
-] as const;
-
-const PRACTICE_NOW = [
-  {
-    kicker: "Building",
-    title: "Selected work that stays editable",
-    body: "Freight brands, owner CMS loops, and product surfaces where the public page and the edit path share one system.",
-  },
-  {
-    kicker: "Shipping",
-    title: "Tools people keep open",
-    body: "Editor pets, map-first ops UIs, and video walls — demos that survive real data instead of dying at the screenshot.",
-  },
-  {
-    kicker: "Exploring",
-    title: "AI inside the product loop",
-    body: "Assistants and workflows that live in the UX with clear failure paths — not a chatbot sticker on a marketing page.",
-  },
-] as const;
-
-const PRACTICE_META = [
-  ["Shape", "Solo full-stack · web & mobile"],
-  ["Pace", "Phased ships · async-friendly"],
-  ["Base", "Thailand · remote-ready"],
-] as const;
 
 /** HydraDB Data band (framer-10mxf4d) — purple accents + ShiftBOi center mark */
 function DataBandSection() {
@@ -1087,89 +1019,20 @@ export function SiteBody({
       {/* Data / metrics band — HydraDB framer-10mxf4d */}
       <DataBandSection />
 
-      {/* Spacing — Data ↔ Practice */}
-      <div className="hydra-section-gap" aria-hidden />
+      {/* Spacing — Data ↔ Services (tight) */}
+      <div className="hydra-section-gap hydra-section-gap--tight" aria-hidden />
 
-      {/* Practice — single closing chapter before footer */}
-      <section id="practice" className="hydra-section practice-section">
-        <div className="hydra-container py-12 md:py-16 lg:py-20">
-          <header className="practice-hero" data-hydra-reveal>
-            <p className="hydra-eyebrow">{"// Practice //"}</p>
-            <h2 className="practice-title mt-3">How the work actually runs</h2>
-            <p className="hydra-body mt-4 max-w-2xl text-white/65">{PRACTICE_LEAD}</p>
-            <dl className="practice-meta" data-hydra-stagger>
-              {PRACTICE_META.map(([label, value]) => (
-                <div key={label} className="practice-meta-item" data-hydra-stagger-item>
-                  <dt>{label}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-            </dl>
-          </header>
+      <ServicesFolders
+        services={site.services.items}
+        eyebrow={site.services.eyebrow}
+        title={site.services.title}
+        lead={site.services.lead}
+      />
 
-          <div className="practice-shell" data-hydra-reveal>
-            <div className="practice-grid">
-              <div className="practice-panel practice-panel-rules">
-                <p className="practice-panel-label">How I work</p>
-                <ol className="practice-rules">
-                  {PRACTICE_RULES.map((item) => (
-                    <li key={item.title} className="practice-rule">
-                      <span className="practice-rule-num" aria-hidden>
-                        {item.kicker}
-                      </span>
-                      <div>
-                        <h3 className="practice-rule-title">{item.title}</h3>
-                        <p className="hydra-body-sm mt-2 text-white/60">{item.body}</p>
-                      </div>
-                    </li>
-                  ))}
-                </ol>
-              </div>
+      {/* Tight spacing — Services ↔ Get in touch */}
+      <div className="hydra-section-gap hydra-section-gap--tight" aria-hidden />
 
-              <div className="practice-panel practice-panel-fit">
-                <p className="practice-panel-label">Good fit</p>
-                <ul className="practice-fit">
-                  {PRACTICE_FIT.map((item) => (
-                    <li key={item.name} className="practice-fit-item">
-                      <p className="practice-fit-name">{item.name}</p>
-                      <p className="hydra-body-sm mt-2 text-white/60">{item.detail}</p>
-                    </li>
-                  ))}
-                </ul>
-                <div className="practice-skip">
-                  <p className="practice-panel-label">Not a fit</p>
-                  <ul>
-                    {PRACTICE_SKIP.map((line) => (
-                      <li key={line}>{line}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="practice-now">
-              <div className="practice-now-head">
-                <p className="practice-panel-label">In motion</p>
-                <p className="hydra-body-sm text-white/55">
-                  Live notes so the portfolio doesn&apos;t pretend everything is finished.
-                </p>
-              </div>
-              <ul className="practice-now-rail">
-                {PRACTICE_NOW.map((item) => (
-                  <li key={item.title} className="practice-now-row">
-                    <span className="practice-now-dot" aria-hidden />
-                    <span className="practice-now-kicker">{item.kicker}</span>
-                    <div>
-                      <p className="practice-now-title">{item.title}</p>
-                      <p className="hydra-body-sm mt-1 text-white/55">{item.body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
+      <GetInTouchCard contact={site.contact} />
 
       <SiteFooter
         selectedProjects={projects.map((p) => ({

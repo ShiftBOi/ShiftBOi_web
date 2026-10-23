@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState, useTransition } from "react";
+import { FormEvent, useEffect, useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { CmsProjectCard, type CmsProjectCardData } from "@/components/cms/project-card";
 import { SelectedProjectsBoard } from "@/components/cms/selected-projects-board";
@@ -18,6 +18,7 @@ type Stats = {
 };
 
 type ViewMode = "all" | "selected";
+type FilterMode = "all" | "live" | "draft" | "featured";
 
 export function ProjectsManager({
   projects,
@@ -35,6 +36,8 @@ export function ProjectsManager({
   const router = useRouter();
   const pathname = usePathname();
   const [view, setViewState] = useState<ViewMode>(initialView);
+  const [filter, setFilter] = useState<FilterMode>("all");
+  const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -50,6 +53,22 @@ export function ProjectsManager({
     router.replace(href, { scroll: false });
     if (next === "selected") router.refresh();
   }
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return projects.filter((p) => {
+      if (filter === "live" && !p.published) return false;
+      if (filter === "draft" && p.published) return false;
+      if (filter === "featured" && !p.featured) return false;
+      if (!q) return true;
+      return (
+        p.title.toLowerCase().includes(q) ||
+        p.slug.toLowerCase().includes(q) ||
+        p.summary.toLowerCase().includes(q) ||
+        (p.year ?? "").includes(q)
+      );
+    });
+  }, [projects, filter, query]);
 
   function onCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -114,15 +133,22 @@ export function ProjectsManager({
         </div>
       </section>
 
-      <section className={`cms-dash-panel${view === "selected" ? " is-selected-board" : ""}`}>
+      <section
+        className={`cms-dash-panel${view === "selected" ? " is-selected-board" : ""}`}
+      >
         <div className="cms-dash-panel-head">
           <div>
             <p className="cms-dash-kicker">
               {view === "selected" ? "Homepage" : "Library"}
             </p>
             <h2 className="cms-dash-heading">
-              {view === "selected" ? "Selected Projects" : "All projects"}
+              {view === "selected" ? "Selected Projects" : "Project folders"}
             </h2>
+            {view === "all" ? (
+              <p className="cms-folder-hint">
+                Click a folder to edit · hover to peek the cover
+              </p>
+            ) : null}
           </div>
           <div className="cms-projects-head-actions">
             <div className="cms-page-switch" role="group" aria-label="Projects view">
@@ -131,14 +157,14 @@ export function ProjectsManager({
                 className={view === "all" ? "is-active" : ""}
                 onClick={() => setView("all")}
               >
-                All projects
+                Folders
               </button>
               <button
                 type="button"
                 className={view === "selected" ? "is-active" : ""}
                 onClick={() => setView("selected")}
               >
-                Selected Projects
+                Selected
               </button>
             </div>
             {view === "all" ? (
@@ -161,19 +187,82 @@ export function ProjectsManager({
             featured={featured}
             pickerItems={pickerItems}
           />
-        ) : projects.length > 0 ? (
-          <ul className="cms-plist">
-            {projects.map((p) => (
-              <CmsProjectCard key={p.id} project={p} />
-            ))}
-          </ul>
         ) : (
-          <p className="cms-dash-empty">No projects yet — add one to get started.</p>
+          <>
+            <div className="cms-folder-toolbar">
+              <label className="cms-folder-search">
+                <span className="cms-folder-search__icon" aria-hidden>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <circle
+                      cx="11"
+                      cy="11"
+                      r="6.5"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                    />
+                    <path
+                      d="M16 16l4 4"
+                      stroke="currentColor"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </span>
+                <input
+                  type="search"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search projects…"
+                  aria-label="Search projects"
+                />
+              </label>
+              <div
+                className="cms-page-switch cms-folder-filters"
+                role="group"
+                aria-label="Filter folders"
+              >
+                {(
+                  [
+                    ["all", "All"],
+                    ["live", "Live"],
+                    ["draft", "Draft"],
+                    ["featured", "Featured"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={filter === id ? "is-active" : ""}
+                    onClick={() => setFilter(id)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {filtered.length > 0 ? (
+              <ul className="cms-folder-grid">
+                {filtered.map((p) => (
+                  <CmsProjectCard key={p.id} project={p} />
+                ))}
+              </ul>
+            ) : (
+              <p className="cms-dash-empty">
+                {projects.length === 0
+                  ? "No projects yet — add one to get started."
+                  : "No folders match this search."}
+              </p>
+            )}
+          </>
         )}
       </section>
 
       {modalOpen ? (
-        <div className="cms-modal-backdrop" onClick={() => !pending && setModalOpen(false)}>
+        <div
+          className="cms-modal-backdrop"
+          onClick={() => !pending && setModalOpen(false)}
+        >
           <div
             className="cms-modal"
             role="dialog"
@@ -241,7 +330,11 @@ export function ProjectsManager({
                 >
                   Cancel
                 </button>
-                <button type="submit" className="cms-btn cms-btn-primary" disabled={pending}>
+                <button
+                  type="submit"
+                  className="cms-btn cms-btn-primary"
+                  disabled={pending}
+                >
                   {pending ? "Creating…" : "Create"}
                 </button>
               </div>

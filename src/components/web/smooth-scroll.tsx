@@ -15,13 +15,16 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     if (reduced) return;
 
     gsap.registerPlugin(ScrollTrigger);
+    /* Keep pin scrub stable with Lenis — avoid mobile resize thrash */
+    ScrollTrigger.config({ ignoreMobileResize: true });
 
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 1.15,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
       touchMultiplier: 1.4,
-      wheelMultiplier: 0.95,
+      wheelMultiplier: 0.9,
+      autoRaf: false,
     });
 
     (window as unknown as { lenis?: Lenis }).lenis = lenis;
@@ -35,7 +38,9 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
     gsap.ticker.lagSmoothing(0);
 
     const onAnchorClick = (event: MouseEvent) => {
-      const anchor = (event.target as HTMLElement | null)?.closest?.("a[href^='#']");
+      const anchor = (event.target as HTMLElement | null)?.closest?.(
+        "a[href^='#']",
+      );
       if (!anchor) return;
       const href = anchor.getAttribute("href");
       if (!href || href === "#") return;
@@ -45,6 +50,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       lenis.scrollTo(target as HTMLElement, { offset: -56, duration: 1.35 });
     };
     document.addEventListener("click", onAnchorClick);
+
+    requestAnimationFrame(() => ScrollTrigger.refresh());
 
     return () => {
       document.removeEventListener("click", onAnchorClick);

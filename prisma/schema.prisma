@@ -188,3 +188,19 @@ model DinoScore {
   @@index([bestScore(sort: Desc)])
   @@map("dino_score")
 }
+
+/// Public Get in Touch form submissions
+model Inquiry {
+  id        String   @id @default(cuid())
+  email     String
+  name      String?
+  message   String?  @db.Text
+  source    String   @default("get-in-touch")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([email])
+  @@index([read])
+  @@map("inquiry")
+}

@@ -11,6 +11,8 @@ import { BloubFace } from "@/components/cms/bloub-face";
 const TITLES: Array<{ match: (path: string) => boolean; title: string; eyebrow: string }> = [
   { match: (p) => p === "/cms" || p === "/cms/", title: "Dashboard", eyebrow: "Overview" },
   { match: (p) => p.startsWith("/cms/projects"), title: "Projects", eyebrow: "Content" },
+  { match: (p) => p.startsWith("/cms/site"), title: "Site", eyebrow: "Content" },
+  { match: (p) => p.startsWith("/cms/inquiries"), title: "Inquiries", eyebrow: "Inbox" },
 ];
 
 export function CmsTopbar({ email }: { email: string }) {

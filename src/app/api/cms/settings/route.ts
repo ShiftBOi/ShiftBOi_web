@@ -12,7 +12,15 @@ async function requireAdmin(request: NextRequest) {
   return session;
 }
 
-const KEYS = ["hero", "stats", "focus", "engagement", "contact", "brand"] as const;
+const KEYS = [
+  "hero",
+  "stats",
+  "focus",
+  "engagement",
+  "contact",
+  "services",
+  "brand",
+] as const;
 
 export async function GET(request: NextRequest) {
   if (!(await requireAdmin(request))) {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { HeadGeometryTip } from "@/components/web/head-geometry-tip";
 import styles from "./matrix-portrait.module.css";
 
 /** Classic ASCII density ramp (dark → bright) */
@@ -343,26 +344,28 @@ export function MatrixPortrait() {
   }, []);
 
   return (
-    <div ref={rootRef} className={styles.root}>
-      <video
-        ref={videoRef}
-        className={styles.sourceVideo}
-        src="/videos/ai-hologram-purple-cubic.mp4"
-        poster="/videos/ai-hologram-purple-cubic-poster.jpg"
-        aria-hidden
-        autoPlay
-        loop
-        muted
-        playsInline
-        preload="metadata"
-      />
-      <canvas ref={glowRef} className={styles.glow} aria-hidden />
-      <canvas
-        ref={canvasRef}
-        className={styles.ascii}
-        aria-label="ASCII neural portrait hologram"
-        role="img"
-      />
-    </div>
+    <HeadGeometryTip className={styles.root}>
+      <div ref={rootRef} className={styles.rootInner}>
+        <video
+          ref={videoRef}
+          className={styles.sourceVideo}
+          src="/videos/ai-hologram-purple-cubic.mp4"
+          poster="/videos/ai-hologram-purple-cubic-poster.jpg"
+          aria-hidden
+          autoPlay
+          loop
+          muted
+          playsInline
+          preload="metadata"
+        />
+        <canvas ref={glowRef} className={styles.glow} aria-hidden />
+        <canvas
+          ref={canvasRef}
+          className={styles.ascii}
+          aria-label="ASCII neural portrait hologram"
+          role="img"
+        />
+      </div>
+    </HeadGeometryTip>
   );
 }

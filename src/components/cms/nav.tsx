@@ -45,6 +45,44 @@ const NAV_SECTIONS = [
           </svg>
         ),
       },
+      {
+        href: "/cms/site",
+        label: "Site",
+        match: "site" as const,
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.5" />
+            <path
+              d="M4.5 12h15M12 4.5c2.4 2.6 2.4 12.4 0 15M12 4.5c-2.4 2.6-2.4 12.4 0 15"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
+          </svg>
+        ),
+      },
+      {
+        href: "/cms/inquiries",
+        label: "Inquiries",
+        match: "inquiries" as const,
+        icon: (
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+            <path
+              d="M4.5 6.5h15v11H4.5z"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M4.5 7.5 12 13l7.5-5.5"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ),
+      },
     ],
   },
 ];
@@ -84,6 +122,8 @@ function isActive(pathname: string, item: (typeof NAV_SECTIONS)[number]["items"]
     return pathname === "/cms" || pathname === "/cms/";
   }
   if (item.match === "projects") return pathname.startsWith("/cms/projects");
+  if (item.match === "site") return pathname.startsWith("/cms/site");
+  if (item.match === "inquiries") return pathname.startsWith("/cms/inquiries");
   return false;
 }
 

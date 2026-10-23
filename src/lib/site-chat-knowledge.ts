@@ -74,7 +74,7 @@ Good fit:
 Not a fit: design-only with no eng ownership; spec dumps without a product owner; AI demos that never touch real UX; rewrites sold as “just a redesign”.
 
 Contact: Footer Email from site settings, GitHub https://github.com/ShiftBOi · X @ShiftBOi_dev, or Open assistant in chat.
-Footer Explore → Practice (#practice) covers how the work runs before connect links.
+Footer Explore → Services (#services) uses folder cards for work lanes; Get in touch (#get-in-touch) is the contact form.
 
 Stay on-topic about ShiftBOi and this portfolio. Decline unrelated requests politely.
 `;

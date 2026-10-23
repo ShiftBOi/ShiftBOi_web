@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 264.8 198.6" class="sb-fig" data-fig="brand" role="img" aria-hidden="true">
+  <defs>
+    <style>
+.sb-fig{
+  --body:#f3f1f8;--deck:#ffffff;--line:#1f1630;--detail:#b8b0c8;--recess:#ebe6f4;
+  --ink:#6b6480;--ink-hi:#140c25;--glass:#ffffff;
+  --accent:#7c3aed;--accent-hi:#a78bfa;
+  --lit-fill:#f3e8ff;--lit-top:#ffffff;--glass-hot:#ede9fe;--chip-fill:#ffffff;
+}
+.sb-fig .face{fill:var(--body);stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+.sb-fig .face.top{fill:var(--deck)}
+.sb-fig .face.recess{fill:var(--recess)}
+.sb-fig .face.lit{fill:var(--lit-fill);stroke:var(--accent)}
+.sb-fig .face.top.lit{fill:var(--lit-top);stroke:var(--accent-hi)}
+.sb-fig .detail{fill:none;stroke:var(--detail);stroke-width:.9;vector-effect:non-scaling-stroke}
+.sb-fig .wire{fill:none;stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke;stroke-linecap:round;stroke-linejoin:round}
+.sb-fig .wire.hot{stroke:var(--accent);filter:url(#soft);stroke-dasharray:5 9;opacity:.9}
+.sb-fig .glass{fill:var(--glass);stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke}
+.sb-fig .glass.hot{fill:var(--glass-hot);stroke:var(--accent);filter:url(#soft)}
+.sb-fig .label{fill:var(--ink);font:500 11px ui-sans-serif,system-ui,sans-serif}
+.sb-fig .label.hi{fill:var(--ink-hi)}
+.sb-fig .label.accent{fill:var(--accent);font-weight:600}
+.sb-fig .chip{fill:var(--chip-fill);stroke:var(--accent);stroke-width:1;vector-effect:non-scaling-stroke}
+.sb-fig .led{fill:var(--accent);filter:url(#soft)}
+.sb-fig .halo{fill:var(--accent);opacity:.14;filter:url(#bloom)}
+</style>
+    <filter id="soft" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000"><feGaussianBlur stdDeviation="2.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+    <filter id="bloom" filterUnits="userSpaceOnUse" x="-2000" y="-2000" width="6000" height="6000"><feGaussianBlur stdDeviation="9"/></filter>
+  </defs>
+  <defs>
+    <clipPath id="clip-win"><rect width="152" height="102" rx="8"/></clipPath>
+    <clipPath id="clip-rail"><rect width="36" height="78" rx="6"/></clipPath>
+    <clipPath id="clip-stage"><rect width="72" height="78" rx="7"/></clipPath>
+    <clipPath id="clip-props"><rect width="34" height="78" rx="6"/></clipPath>
+  </defs><path class="face" d="M238.34 115.81L238.31 116.26L238.22 116.70L238.07 117.13L237.86 117.56L237.60 117.98L237.27 118.38L236.90 118.77L236.47 119.14L235.99 119.49L235.47 119.81L160.99 162.81L159.83 163.39L158.51 163.85L157.09 164.19L155.60 164.40L154.07 164.47L152.53 164.40L151.04 164.19L149.62 163.85L148.31 163.39L147.14 162.81L29.36 94.81L28.84 94.49L28.36 94.14L27.93 93.77L27.56 93.38L27.23 92.98L26.97 92.56L26.76 92.13L26.61 91.70L26.52 91.26L26.49 90.81L26.49 87.41L26.52 87.86L26.61 88.30L26.76 88.73L26.97 89.16L27.23 89.58L27.56 89.98L27.93 90.37L28.36 90.74L28.84 91.09L29.36 91.41L147.14 159.41L148.31 159.99L149.62 160.45L151.04 160.79L152.53 161.00L154.07 161.07L155.60 161.00L157.09 160.79L158.51 160.45L159.83 159.99L160.99 159.41L235.47 116.41L235.99 116.09L236.47 115.74L236.90 115.37L237.27 114.98L237.60 114.58L237.86 114.16L238.07 113.73L238.22 113.30L238.31 112.86L238.34 112.41Z"/><path class="face top" d="M235.47 108.41L236.47 109.09L237.27 109.84L237.86 110.66L238.22 111.53L238.34 112.41L238.22 113.30L237.86 114.16L237.27 114.98L236.47 115.74L235.47 116.41L160.99 159.41L159.83 159.99L158.51 160.45L157.09 160.79L155.60 161.00L154.07 161.07L152.53 161.00L151.04 160.79L149.62 160.45L148.31 159.99L147.14 159.41L29.36 91.41L28.36 90.74L27.56 89.98L26.97 89.16L26.61 88.30L26.49 87.41L26.61 86.53L26.97 85.66L27.56 84.84L28.36 84.09L29.36 83.41L103.84 40.41L105.01 39.83L106.32 39.37L107.74 39.03L109.23 38.82L110.76 38.75L112.30 38.82L113.79 39.03L115.21 39.37L116.52 39.83L117.69 40.41Z"/><g transform="matrix(0.8660254037844387 0.49999999999999994 -0.8660254037844387 0.49999999999999994 110.7646491440297 36.41146317898053)" clip-path="url(#clip-win)">
+    <rect fill="#ffffff" width="152" height="102" rx="8"/>
+    <rect fill="#140c25" width="152" height="14"/>
+    <circle fill="#7c3aed" cx="9" cy="7" r="1.8"/>
+    <circle fill="#6b6480" cx="16" cy="7" r="1.8"/>
+    <circle fill="#6b6480" cx="23" cy="7" r="1.8"/>
+    <text fill="#c4b5fd" font-family="ui-monospace,monospace" font-size="4.8" font-weight="700" text-anchor="middle" x="76" y="9.2">ShiftBOi · kit</text>
+  </g><path class="face" d="M126.77 62.81L126.75 63.14L126.68 63.48L126.57 63.80L126.41 64.12L126.21 64.44L125.97 64.74L125.69 65.03L125.37 65.31L125.01 65.57L124.62 65.81L67.46 98.81L66.59 99.24L65.60 99.59L64.54 99.85L63.42 100.00L62.27 100.05L61.12 100.00L60.00 99.85L58.93 99.59L57.95 99.24L57.07 98.81L36.29 86.81L35.89 86.57L35.54 86.31L35.22 86.03L34.94 85.74L34.69 85.44L34.49 85.12L34.34 84.80L34.22 84.48L34.16 84.14L34.13 83.81L34.13 80.41L34.16 80.74L34.22 81.08L34.34 81.40L34.49 81.72L34.69 82.04L34.94 82.34L35.22 82.63L35.54 82.91L35.89 83.17L36.29 83.41L57.07 95.41L57.95 95.84L58.93 96.19L60.00 96.45L61.12 96.60L62.27 96.65L63.42 96.60L64.54 96.45L65.60 96.19L66.59 95.84L67.46 95.41L124.62 62.41L125.01 62.17L125.37 61.91L125.69 61.63L125.97 61.34L126.21 61.04L126.41 60.72L126.57 60.40L126.68 60.08L126.75 59.74L126.77 59.41Z"/><path class="face top" d="M124.62 56.41L125.37 56.92L125.97 57.49L126.41 58.10L126.68 58.75L126.77 59.41L126.68 60.08L126.41 60.72L125.97 61.34L125.37 61.91L124.62 62.41L67.46 95.41L66.59 95.84L65.60 96.19L64.54 96.45L63.42 96.60L62.27 96.65L61.12 96.60L60.00 96.45L58.93 96.19L57.95 95.84L57.07 95.41L36.29 83.41L35.54 82.91L34.94 82.34L34.49 81.72L34.22 81.08L34.13 80.41L34.22 79.75L34.49 79.10L34.94 78.49L35.54 77.92L36.29 77.41L93.44 44.41L94.32 43.98L95.30 43.63L96.37 43.38L97.49 43.22L98.64 43.17L99.79 43.22L100.91 43.38L101.98 43.63L102.96 43.98L103.84 44.41Z"/><g transform="matrix(0.8660254037844387 0.49999999999999994 -0.8660254037844387 0.49999999999999994 98.64029349104756 41.411463178980526)" clip-path="url(#clip-rail)">
+    <rect fill="#ffffff" width="36" height="78" rx="6"/>
+    <text fill="#6b6480" font-family="ui-sans-serif,system-ui,sans-serif" font-size="3.6" font-weight="700" x="4" y="9">Tokens</text>
+    <rect fill="#7c3aed" x="4" y="14" width="10" height="10" rx="2.2"/>
+    <rect fill="#a78bfa" x="16" y="14" width="10" height="10" rx="2.2"/>
+    <rect fill="#140c25" x="4" y="28" width="10" height="10" rx="2.2"/>
+    <rect fill="#e9e4f6" stroke="#c4b5fd" x="16" y="28" width="10" height="10" rx="2.2"/>
+    <text fill="#6b6480" font-family="ui-monospace,monospace" font-size="2.8" x="4" y="48">space/4</text>
+    <rect fill="#f3e8ff" x="4" y="52" width="28" height="5" rx="1.5"/>
+    <rect fill="#ede9fe" x="4" y="60" width="22" height="5" rx="1.5"/>
+    <rect fill="#ddd6fe" x="4" y="68" width="16" height="5" rx="1.5"/>
+  </g><path class="face" d="M192.08 97.81L192.06 98.20L191.98 98.59L191.85 98.97L191.66 99.34L191.43 99.71L191.15 100.06L190.82 100.40L190.45 100.72L190.03 101.03L189.57 101.31L134.15 133.31L133.12 133.82L131.98 134.22L130.73 134.52L129.43 134.70L128.09 134.76L126.74 134.70L125.44 134.52L124.19 134.22L123.05 133.82L122.02 133.31L71.79 104.31L71.34 104.03L70.92 103.72L70.55 103.40L70.22 103.06L69.94 102.71L69.70 102.34L69.52 101.97L69.39 101.59L69.31 101.20L69.28 100.81L69.28 97.41L69.31 97.80L69.39 98.19L69.52 98.57L69.70 98.94L69.94 99.31L70.22 99.66L70.55 100.00L70.92 100.32L71.34 100.63L71.79 100.91L122.02 129.91L123.05 130.42L124.19 130.82L125.44 131.12L126.74 131.30L128.09 131.36L129.43 131.30L130.73 131.12L131.98 130.82L133.12 130.42L134.15 129.91L189.57 97.91L190.03 97.63L190.45 97.32L190.82 97.00L191.15 96.66L191.43 96.31L191.66 95.94L191.85 95.57L191.98 95.19L192.06 94.80L192.08 94.41Z"/><path class="face top" d="M189.57 90.91L190.45 91.50L191.15 92.16L191.66 92.88L191.98 93.64L192.08 94.41L191.98 95.19L191.66 95.94L191.15 96.66L190.45 97.32L189.57 97.91L134.15 129.91L133.12 130.42L131.98 130.82L130.73 131.12L129.43 131.30L128.09 131.36L126.74 131.30L125.44 131.12L124.19 130.82L123.05 130.42L122.02 129.91L71.79 100.91L70.92 100.32L70.22 99.66L69.70 98.94L69.39 98.19L69.28 97.41L69.39 96.64L69.70 95.88L70.22 95.16L70.92 94.50L71.79 93.91L127.22 61.91L128.24 61.41L129.39 61.00L130.63 60.70L131.94 60.52L133.28 60.46L134.62 60.52L135.93 60.70L137.17 61.00L138.32 61.41L139.34 61.91Z"/><g transform="matrix(0.8660254037844387 0.49999999999999994 -0.8660254037844387 0.49999999999999994 133.2813096424251 58.411463178980526)" clip-path="url(#clip-stage)">
+    <rect fill="#ffffff" width="72" height="78" rx="7"/>
+    <rect fill="#f3e8ff" width="72" height="11"/>
+    <text fill="#140c25" font-family="ui-sans-serif,system-ui,sans-serif" font-size="4.4" font-weight="800" x="5" y="8">Hero block</text>
+    <rect fill="#140c25" x="8" y="20" width="40" height="6" rx="1.5"/>
+    <rect fill="#c4b5fd" x="8" y="30" width="56" height="3.5" rx="1"/>
+    <rect fill="#ddd6fe" x="8" y="37" width="44" height="3.5" rx="1"/>
+    <rect fill="none" stroke="#7c3aed" stroke-width="1.2" x="8" y="46" width="34" height="18" rx="3">
+      <animate attributeName="width" values="34;40;28;34" dur="5.5s" repeatCount="indefinite"/>
+    </rect>
+    <rect fill="#7c3aed" x="12" y="52" width="18" height="6" rx="3"/>
+    <text fill="#fff" font-family="ui-sans-serif,system-ui,sans-serif" font-size="3" font-weight="700" x="15" y="56.5">CTA</text>
+  </g><path class="face" d="M225.50 119.81L225.48 120.14L225.41 120.48L225.30 120.80L225.14 121.12L224.94 121.44L224.70 121.74L224.42 122.03L224.10 122.31L223.74 122.57L223.35 122.81L166.19 155.81L165.31 156.24L164.33 156.59L163.26 156.85L162.14 157.00L160.99 157.05L159.84 157.00L158.72 156.85L157.66 156.59L156.67 156.24L155.80 155.81L136.75 144.81L136.35 144.57L136.00 144.31L135.68 144.03L135.39 143.74L135.15 143.44L134.95 143.12L134.80 142.80L134.68 142.48L134.62 142.14L134.59 141.81L134.59 138.41L134.62 138.74L134.68 139.08L134.80 139.40L134.95 139.72L135.15 140.04L135.39 140.34L135.68 140.63L136.00 140.91L136.35 141.17L136.75 141.41L155.80 152.41L156.67 152.84L157.66 153.19L158.72 153.45L159.84 153.60L160.99 153.65L162.14 153.60L163.26 153.45L164.33 153.19L165.31 152.84L166.19 152.41L223.35 119.41L223.74 119.17L224.10 118.91L224.42 118.63L224.70 118.34L224.94 118.04L225.14 117.72L225.30 117.40L225.41 117.08L225.48 116.74L225.50 116.41Z"/><path class="face top" d="M223.35 113.41L224.10 113.92L224.70 114.49L225.14 115.10L225.41 115.75L225.50 116.41L225.41 117.08L225.14 117.72L224.70 118.34L224.10 118.91L223.35 119.41L166.19 152.41L165.31 152.84L164.33 153.19L163.26 153.45L162.14 153.60L160.99 153.65L159.84 153.60L158.72 153.45L157.66 153.19L156.67 152.84L155.80 152.41L136.75 141.41L136.00 140.91L135.39 140.34L134.95 139.72L134.68 139.08L134.59 138.41L134.68 137.75L134.95 137.10L135.39 136.49L136.00 135.92L136.75 135.41L193.90 102.41L194.78 101.98L195.76 101.63L196.83 101.38L197.95 101.22L199.10 101.17L200.25 101.22L201.37 101.38L202.44 101.63L203.42 101.98L204.30 102.41Z"/><g transform="matrix(0.8660254037844387 0.49999999999999994 -0.8660254037844387 0.49999999999999994 199.09924033004245 99.41146317898051)" clip-path="url(#clip-props)">
+    <rect fill="#ffffff" width="34" height="78" rx="6"/>
+    <text fill="#140c25" font-family="ui-sans-serif,system-ui,sans-serif" font-size="4" font-weight="700" x="4" y="9">Props</text>
+    <text fill="#6b6480" font-family="ui-monospace,monospace" font-size="2.8" x="4" y="20">radius</text>
+    <rect fill="#f3e8ff" stroke="#c4b5fd" x="4" y="23" width="26" height="6" rx="1.8"/>
+    <text fill="#140c25" font-family="ui-monospace,monospace" font-size="2.9" x="8" y="27.5">12</text>
+    <text fill="#6b6480" font-family="ui-monospace,monospace" font-size="2.8" x="4" y="40">tone</text>
+    <rect fill="#7c3aed" x="4" y="43" width="8" height="8" rx="2"/>
+    <rect fill="#a78bfa" x="14" y="43" width="8" height="8" rx="2"/>
+    <rect fill="#140c25" x="24" y="43" width="6" height="8" rx="2"/>
+    <text fill="#6b6480" font-family="ui-monospace,monospace" font-size="2.8" x="4" y="62">weight</text>
+    <rect fill="#ebe6f4" x="4" y="65" width="26" height="6" rx="1.8"/>
+    <text fill="#140c25" font-family="ui-monospace,monospace" font-size="2.8" x="8" y="69.5">Bold</text>
+  </g><g transform="matrix(0.8660254037844387 0.49999999999999994 -0.8660254037844387 0.49999999999999994 133.2813096424251 58.01146317898053)">
+    <g>
+      <animateTransform attributeName="transform" type="translate" values="46 58;52 54;46 58" dur="5.2s" repeatCount="indefinite"/>
+      <path fill="#7c3aed" d="M0 0h2v1h1v1h1v1h1v1h1v1h1v1h1v1h1v6h-1v1h-1v1h-1v1h-1v1H5v1H4v1H3v1H2v-3H1v-1H0V0z"/>
+    </g>
+  </g>
+</svg>

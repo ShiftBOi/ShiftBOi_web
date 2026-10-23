@@ -1,8 +1,7 @@
 "use client";
 
-import { HydraFooterRule, ShiftBoiMark } from "@/components/web/hydra-primitives";
-import { MatrixPortrait } from "@/components/web/matrix-portrait";
 import { useSiteChat } from "@/components/web/site-chat";
+import { FooterDinos } from "@/components/web/footer-dinos";
 
 type FooterProject = {
   slug: string;
@@ -14,158 +13,64 @@ type Props = {
   contactEmail?: string;
 };
 
-const EXPLORE_LINKS = [
+const LEFT_LINKS = [
+  ["About", "/#use-cases"],
   ["Work", "/#work"],
-  ["Focus", "/#use-cases"],
-  ["Stack", "/#stack"],
-  ["Practice", "/#practice"],
+  ["Contact", "/#get-in-touch"],
 ] as const;
 
-const SOCIAL_LINKS = [
+const RIGHT_LINKS = [
   ["GitHub", "https://github.com/ShiftBOi"],
   ["X / Twitter", "https://x.com/ShiftBOi_dev"],
 ] as const;
 
+const YEAR = new Date().getFullYear();
+
 export function SiteFooter({
-  selectedProjects = [],
+  selectedProjects: _selectedProjects = [],
   contactEmail = "rapeepongapic@gmail.com",
 }: Props) {
   const { openChat } = useSiteChat();
-  const selected = selectedProjects.slice(0, 6);
   const mailto = `mailto:${contactEmail}`;
 
   return (
     <footer id="site-footer" className="site-footer">
-      <HydraFooterRule />
-      <div className="site-footer-grid" aria-hidden />
+      <div className="site-footer-bar">
+        <nav className="site-footer-bar-left" aria-label="Footer">
+          {LEFT_LINKS.map(([label, href]) => (
+            <a key={label} href={href} className="site-footer-bar-link">
+              {label}
+            </a>
+          ))}
+          <button
+            type="button"
+            className="site-footer-bar-link"
+            onClick={openChat}
+          >
+            Chat
+          </button>
+        </nav>
 
-      <div className="site-footer-table">
-        <div className="site-footer-row site-footer-row-body">
-          <div className="site-footer-row-inner site-footer-row-inner-body">
-            <div className="site-footer-main">
-              <div className="site-footer-brand">
-                <a href="/" className="site-footer-logo">
-                  <ShiftBoiMark className="site-footer-mark" />
-                  <span>ShiftBOi</span>
-                </a>
-                <p className="site-footer-tagline">
-                  Full-stack Web &amp; Mobile Developer — Rapeepong Apichanakulchai
-                </p>
-              </div>
-              <div className="site-footer-nav">
-                <div className="site-footer-col">
-                  <p className="site-footer-col-title">Explore</p>
-                  <ul>
-                    {EXPLORE_LINKS.map(([label, href]) => (
-                      <li key={label}>
-                        <a href={href} className="site-footer-link">
-                          {label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="site-footer-col">
-                  <p className="site-footer-col-title">Selected</p>
-                  <ul>
-                    {selected.length > 0 ? (
-                      selected.map((project) => (
-                        <li key={project.slug}>
-                          <a
-                            href={`/projects/${project.slug}`}
-                            className="site-footer-link"
-                          >
-                            {project.title}
-                          </a>
-                        </li>
-                      ))
-                    ) : (
-                      <li>
-                        <a href="/#work" className="site-footer-link">
-                          View work
-                        </a>
-                      </li>
-                    )}
-                  </ul>
-                </div>
-
-                <div className="site-footer-col">
-                  <p className="site-footer-col-title">Connect</p>
-                  <ul>
-                    <li>
-                      <a href={mailto} className="site-footer-link">
-                        Email
-                      </a>
-                    </li>
-                    {SOCIAL_LINKS.map(([label, href]) => (
-                      <li key={label}>
-                        <a
-                          href={href}
-                          className="site-footer-link"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          {label}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="site-footer-col">
-                  <p className="site-footer-col-title">Chat</p>
-                  <ul>
-                    <li>
-                      <button
-                        type="button"
-                        className="site-footer-link"
-                        onClick={openChat}
-                      >
-                        Open assistant
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="site-footer-aside">
-              <div className="site-footer-media">
-                <div className="site-footer-media-stage">
-                  <div className="site-footer-media-portrait" aria-hidden>
-                    <MatrixPortrait />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="site-footer-row site-footer-row-credit">
-          <div className="site-footer-row-inner site-footer-row-inner-credit">
-            <p className="site-footer-credit">
-              Head geometry adapted from{" "}
-              <a
-                href="https://github.com/mrdoob/three.js/tree/dev/examples/models/gltf/LeePerrySmith"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Infinite, 3D Head Scan
-              </a>{" "}
-              by Lee Perry-Smith (
-              <a
-                href="https://creativecommons.org/licenses/by/3.0/"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                CC BY 3.0
-              </a>
-              ).
-            </p>
-          </div>
+        <div className="site-footer-bar-right">
+          <a href={mailto} className="site-footer-bar-link">
+            Email
+          </a>
+          {RIGHT_LINKS.map(([label, href]) => (
+            <a
+              key={label}
+              href={href}
+              className="site-footer-bar-link"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {label}
+            </a>
+          ))}
+          <span className="site-footer-bar-copy">© {YEAR} ShiftBOi</span>
         </div>
       </div>
+
+      <FooterDinos />
     </footer>
   );
 }

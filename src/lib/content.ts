@@ -38,10 +38,38 @@ export type EngagementTier = {
 };
 
 export type ContactContent = {
+  /** Section eyebrow, e.g. // Get in touch // */
+  eyebrow: string;
   title: string;
   body: string;
   ctaLabel: string;
   email: string;
+  /** Hint under the form */
+  helper: string;
+  successMessage: string;
+  github?: string;
+  githubUrl?: string;
+  linkedin?: string;
+  linkedinUrl?: string;
+  place?: string;
+};
+
+export type ServiceItem = {
+  id: string;
+  title: string;
+  summary: string;
+  tags: string[];
+  /** Folder accent, e.g. #7c3aed */
+  color?: string;
+  /** Isometric SVG under /brand/services/ */
+  figure?: string;
+};
+
+export type ServicesContent = {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  items: ServiceItem[];
 };
 
 export type BrandContent = {
@@ -56,6 +84,7 @@ export type SiteContent = {
   focus: FocusItem[];
   engagement: EngagementTier[];
   contact: ContactContent;
+  services: ServicesContent;
   brand: BrandContent;
 };
 
@@ -78,13 +107,99 @@ const DEFAULT_SITE: SiteContent = {
   focus: [],
   engagement: [],
   contact: {
-    title: "Reach out",
-    body: "Prefer chat or email from the footer when you want to connect.",
-    ctaLabel: "Open chat",
+    eyebrow: "// Get in touch //",
+    title: "Get in touch",
+    body: "I'm currently available for freelance work, partnering with founders and teams on product design and the engineering that ships it.",
+    ctaLabel: "Send",
     email: "rapeepongapic@gmail.com",
+    helper: "I read every note.",
+    successMessage: "Sent — I’ll reply by email.",
+    github: "@ShiftBOi",
+    githubUrl: "https://github.com/ShiftBOi",
+    linkedin: "ShiftBOi",
+    linkedinUrl: "https://x.com/ShiftBOi_dev",
+    place: "Thailand · remote",
+  },
+  services: {
+    eyebrow: "ShiftBOi.web®",
+    title: "Services",
+    lead: "Design, build, ship, and keep it healthy — from brand to launch and beyond.",
+    items: [
+      {
+        id: "brand",
+        title: "Brand & Interface",
+        summary:
+          "Product UI systems and brand surfaces that stay coherent from marketing to the app shell.",
+        tags: ["UI", "Design system", "Web"],
+        figure: "/brand/services/01-brand.svg",
+      },
+      {
+        id: "develop",
+        title: "Develop",
+        summary:
+          "Full-stack product builds — public pages, CMS, and the APIs that keep them honest.",
+        tags: ["Full-stack", "CMS", "Admin"],
+        figure: "/brand/services/02-web.svg",
+      },
+      {
+        id: "performance",
+        title: "Performance",
+        summary:
+          "Core Web Vitals, bundle discipline, and shipping fast without throwing away craft.",
+        tags: ["Perf", "CWV", "Bundle"],
+        figure: "/brand/services/03-opt.svg",
+      },
+      {
+        id: "seo",
+        title: "SEO",
+        summary:
+          "Structure, meta, and sitemap work so the product can actually be found.",
+        tags: ["Meta", "Schema", "Sitemap"],
+        figure: "/brand/services/04-seo.svg",
+      },
+      {
+        id: "ship",
+        title: "Ship Product",
+        summary:
+          "CI/CD, hosting, and preview pipelines so demos survive the jump to production.",
+        tags: ["CI/CD", "Hosting", "Preview"],
+        figure: "/brand/services/05-devops.svg",
+      },
+      {
+        id: "maint",
+        title: "Maintenance",
+        summary:
+          "Support, updates, and monitoring so the thing you shipped stays healthy.",
+        tags: ["Support", "Updates", "Monitor"],
+        figure: "/brand/services/06-maint.svg",
+      },
+    ],
   },
   brand: { name: "ShiftBOi", tagline: "Full-stack Web & Mobile" },
 };
+
+function asServiceItems(value: unknown): ServiceItem[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((raw, index) => {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+      const row = raw as Record<string, unknown>;
+      const title = String(row.title ?? "").trim();
+      if (!title) return null;
+      const tags = Array.isArray(row.tags)
+        ? row.tags.map((t) => String(t)).filter(Boolean)
+        : [];
+      return {
+        id: String(row.id ?? `service-${index}`),
+        title,
+        summary: String(row.summary ?? ""),
+        tags,
+        color: row.color ? String(row.color) : undefined,
+        figure: row.figure ? String(row.figure) : undefined,
+      } satisfies ServiceItem;
+    })
+    .filter((item): item is ServiceItem => Boolean(item));
+}
 
 function asObject(value: Prisma.JsonValue | null | undefined): Record<string, unknown> | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -164,9 +279,11 @@ export async function getSiteContent(): Promise<SiteContent> {
   const hero = asObject(byKey.hero);
   const brand = asObject(byKey.brand);
   const contact = asObject(byKey.contact);
+  const services = asObject(byKey.services);
   const stats = asArray(byKey.stats) as StatItem[];
   const focus = asArray(byKey.focus) as FocusItem[];
   const engagement = asArray(byKey.engagement) as EngagementTier[];
+  const serviceItems = asServiceItems(services?.items);
 
   return {
     hero: {
@@ -181,10 +298,32 @@ export async function getSiteContent(): Promise<SiteContent> {
     focus,
     engagement,
     contact: {
+      eyebrow: String(contact?.eyebrow ?? DEFAULT_SITE.contact.eyebrow),
       title: String(contact?.title ?? DEFAULT_SITE.contact.title),
       body: String(contact?.body ?? DEFAULT_SITE.contact.body),
       ctaLabel: String(contact?.ctaLabel ?? DEFAULT_SITE.contact.ctaLabel),
       email: String(contact?.email ?? DEFAULT_SITE.contact.email),
+      helper: String(contact?.helper ?? DEFAULT_SITE.contact.helper),
+      successMessage: String(
+        contact?.successMessage ?? DEFAULT_SITE.contact.successMessage,
+      ),
+      github: String(contact?.github ?? DEFAULT_SITE.contact.github ?? ""),
+      githubUrl: String(
+        contact?.githubUrl ?? DEFAULT_SITE.contact.githubUrl ?? "",
+      ),
+      linkedin: String(
+        contact?.linkedin ?? DEFAULT_SITE.contact.linkedin ?? "",
+      ),
+      linkedinUrl: String(
+        contact?.linkedinUrl ?? DEFAULT_SITE.contact.linkedinUrl ?? "",
+      ),
+      place: String(contact?.place ?? DEFAULT_SITE.contact.place ?? ""),
+    },
+    services: {
+      eyebrow: String(services?.eyebrow ?? DEFAULT_SITE.services.eyebrow),
+      title: String(services?.title ?? DEFAULT_SITE.services.title),
+      lead: String(services?.lead ?? DEFAULT_SITE.services.lead),
+      items: serviceItems.length ? serviceItems : DEFAULT_SITE.services.items,
     },
     brand: {
       name: String(brand?.name ?? DEFAULT_SITE.brand.name),

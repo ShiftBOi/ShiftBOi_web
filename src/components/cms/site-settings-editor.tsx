@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { SiteContent } from "@/lib/content";
 import { InlineEditField } from "@/components/cms/inline-edit-field";
+import { CmsTouchCardEditor } from "@/components/cms/cms-touch-card-editor";
 
 async function patchSetting(key: string, value: unknown) {
   const res = await fetch("/api/cms/settings", {
@@ -33,6 +34,19 @@ export function SiteSettingsEditor({ initial }: { initial: SiteContent }) {
     await patchSetting("contact", next);
     setSite((s) => ({ ...s, contact: next }));
     router.refresh();
+  }
+
+  async function saveServices(partial: Partial<SiteContent["services"]>) {
+    const next = { ...site.services, ...partial };
+    await patchSetting("services", next);
+    setSite((s) => ({ ...s, services: next }));
+    router.refresh();
+  }
+
+  async function saveServicesItemsJson(raw: string) {
+    const parsed = JSON.parse(raw) as SiteContent["services"]["items"];
+    if (!Array.isArray(parsed)) throw new Error("Services items must be an array");
+    await saveServices({ items: parsed });
   }
 
   async function saveBrand(partial: Partial<SiteContent["brand"]>) {
@@ -65,6 +79,70 @@ export function SiteSettingsEditor({ initial }: { initial: SiteContent }) {
 
   return (
     <div className="cms-site-page">
+      <section className="cms-panel cms-panel--accent">
+        <div className="cms-panel-head-row">
+          <div>
+            <p className="cms-dash-kicker">Public card</p>
+            <h2 className="cms-panel-title">Get in touch</h2>
+            <p className="cms-panel-lead">
+              Click text on the card to edit in place. Messages land in{" "}
+              <a href="/cms/inquiries">Inquiries</a>.
+            </p>
+          </div>
+          <a href="/#get-in-touch" className="cms-dash-action" target="_blank" rel="noreferrer">
+            Preview card
+          </a>
+        </div>
+        <CmsTouchCardEditor contact={site.contact} onSave={saveContact} />
+      </section>
+
+      <section className="cms-panel">
+        <div className="cms-panel-head-row">
+          <div>
+            <p className="cms-dash-kicker">Public folders</p>
+            <h2 className="cms-panel-title">Services</h2>
+            <p className="cms-panel-lead">
+              Soft service cards on the homepage. Each item needs{" "}
+              <code>id</code>, <code>title</code>, <code>summary</code>,{" "}
+              <code>tags</code>, optional <code>figure</code> (SVG path).
+            </p>
+          </div>
+          <a href="/#services" className="cms-dash-action" target="_blank" rel="noreferrer">
+            Preview
+          </a>
+        </div>
+        <div className="cms-form-stack">
+          <InlineEditField
+            label="Eyebrow"
+            value={site.services.eyebrow}
+            onSave={(v) => saveServices({ eyebrow: v })}
+          />
+          <InlineEditField
+            label="Title"
+            value={site.services.title}
+            onSave={(v) => saveServices({ title: v })}
+          />
+          <InlineEditField
+            label="Lead"
+            value={site.services.lead}
+            multiline
+            onSave={(v) => saveServices({ lead: v })}
+          />
+          <InlineEditField
+            label="Items JSON"
+            value={JSON.stringify(site.services.items, null, 2)}
+            multiline
+            onSave={async (raw) => {
+              try {
+                await saveServicesItemsJson(raw);
+              } catch {
+                throw new Error("Invalid JSON for service items");
+              }
+            }}
+          />
+        </div>
+      </section>
+
       <section className="cms-panel">
         <h2 className="cms-panel-title">Hero</h2>
         <div className="cms-form-stack">
@@ -102,33 +180,6 @@ export function SiteSettingsEditor({ initial }: { initial: SiteContent }) {
             label="CTA label"
             value={site.hero.ctaLabel}
             onSave={(v) => saveHero({ ctaLabel: v })}
-          />
-        </div>
-      </section>
-
-      <section className="cms-panel">
-        <h2 className="cms-panel-title">Contact</h2>
-        <div className="cms-form-stack">
-          <InlineEditField
-            label="Title"
-            value={site.contact.title}
-            onSave={(v) => saveContact({ title: v })}
-          />
-          <InlineEditField
-            label="Body"
-            value={site.contact.body}
-            multiline
-            onSave={(v) => saveContact({ body: v })}
-          />
-          <InlineEditField
-            label="CTA label"
-            value={site.contact.ctaLabel}
-            onSave={(v) => saveContact({ ctaLabel: v })}
-          />
-          <InlineEditField
-            label="Email"
-            value={site.contact.email}
-            onSave={(v) => saveContact({ email: v })}
           />
         </div>
       </section>
