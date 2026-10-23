@@ -2,6 +2,12 @@ import { createHash } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
+import {
+  clientIp,
+  pruneRateLimits,
+  rateLimit,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -66,6 +72,12 @@ export async function GET(request: NextRequest) {
  * One row per person/device — not per attempt.
  */
 export async function POST(request: NextRequest) {
+  pruneRateLimits();
+  const limited = rateLimit(`dino:${clientIp(request)}`, 30, 60_000);
+  if (!limited.ok) {
+    return rateLimitResponse(limited.retryAfterSec);
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = postSchema.safeParse(body);
   if (!parsed.success) {

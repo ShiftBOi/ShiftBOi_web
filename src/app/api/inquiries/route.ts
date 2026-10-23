@@ -3,15 +3,30 @@ import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { getSiteContent } from "@/lib/content";
 import { sendInquiryEmails } from "@/lib/email";
+import {
+  clientIp,
+  pruneRateLimits,
+  rateLimit,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 
 const schema = z.object({
   email: z.string().trim().email().max(255),
   name: z.string().trim().max(120).optional().nullable(),
   message: z.string().trim().max(4000).optional().nullable(),
   source: z.string().trim().max(64).optional(),
+  /** Honeypot — bots fill this; humans leave it empty */
+  website: z.string().max(200).optional().nullable(),
 });
 
 export async function POST(request: NextRequest) {
+  pruneRateLimits();
+  const ip = clientIp(request);
+  const limited = rateLimit(`inquiry:${ip}`, 5, 60 * 60_000);
+  if (!limited.ok) {
+    return rateLimitResponse(limited.retryAfterSec);
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = schema.safeParse(body);
   if (!parsed.success) {
@@ -19,6 +34,11 @@ export async function POST(request: NextRequest) {
       { error: "A valid name, email, and message are required." },
       { status: 400 },
     );
+  }
+
+  /* Silent success for honeypot fills — don't tip off bots */
+  if (parsed.data.website?.trim()) {
+    return NextResponse.json({ ok: true, emailed: false, confirmed: false });
   }
 
   const email = parsed.data.email.toLowerCase();

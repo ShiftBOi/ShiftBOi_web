@@ -2,13 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { ADMIN_EMAIL } from "@/lib/constants";
 import { isSmtpConfigured } from "@/lib/email";
+import {
+  clientIp,
+  pruneRateLimits,
+  rateLimit,
+  rateLimitResponse,
+} from "@/lib/rate-limit";
 
 /**
  * CMS OTP request — always targets the locked admin email.
  * Client-supplied email is ignored so outsiders cannot probe other inboxes.
+ * OTP is never returned in the HTTP body.
  */
 export async function POST(request: NextRequest) {
   try {
+    pruneRateLimits();
+    const limited = rateLimit(`otp:${clientIp(request)}`, 5, 60 * 60_000);
+    if (!limited.ok) {
+      return rateLimitResponse(limited.retryAfterSec);
+    }
+
     // Discard body email if present; only the system admin address is used.
     await request.json().catch(() => null);
     const email = ADMIN_EMAIL;
@@ -22,25 +35,13 @@ export async function POST(request: NextRequest) {
     });
 
     const smtpReady = isSmtpConfigured();
-    let devOtp: string | null = null;
-
-    if (!smtpReady && process.env.NODE_ENV !== "production") {
-      const otpResult = await auth.api.getVerificationOTP({
-        query: {
-          email,
-          type: "sign-in",
-        },
-      });
-      devOtp = otpResult?.otp ?? null;
-    }
 
     return NextResponse.json({
       success: true,
       delivery: smtpReady ? "email" : "console",
       message: smtpReady
         ? "OTP sent to the admin inbox."
-        : "SMTP is not configured. Use the on-screen code (also in the server console).",
-      ...(devOtp ? { devOtp } : {}),
+        : "SMTP is not configured. Check the server console for the code.",
     });
   } catch (error) {
     const message =

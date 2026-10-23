@@ -10,6 +10,7 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 import { OtpDigitInput, OTP_LENGTH } from "@/components/cms/otp-digit-input";
+import { safeNextPath } from "@/lib/safe-next-path";
 
 type Mode = "otp" | "passkey";
 type Step = "ready" | "code";
@@ -27,14 +28,13 @@ function formatCountdown(total: number) {
 export function CmsLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextPath = searchParams.get("next") || "/cms";
+  const nextPath = safeNextPath(searchParams.get("next"), "/cms");
 
   const [mode, setMode] = useState<Mode>("otp");
   const [step, setStep] = useState<Step>("ready");
   const [otp, setOtp] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const [devOtp, setDevOtp] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [passkeyPending, setPasskeyPending] = useState(false);
@@ -65,7 +65,6 @@ export function CmsLoginForm() {
     event?.preventDefault();
     setError(null);
     setInfo(null);
-    setDevOtp(null);
     setOtp("");
     lastAutoVerified.current = "";
 
@@ -84,17 +83,11 @@ export function CmsLoginForm() {
     }
 
     setResendIn(RESEND_SECONDS);
-
-    if (typeof data.devOtp === "string" && /^\d{6}$/.test(data.devOtp)) {
-      setDevOtp(data.devOtp);
-      setInfo(`Dev mode — code ready: ${data.devOtp}`);
-    } else {
-      setInfo(
-        data.delivery === "email"
-          ? "Code sent to the admin inbox. Check email & spam."
-          : "SMTP off — check the server terminal for the code.",
-      );
-    }
+    setInfo(
+      data.delivery === "email"
+        ? "Code sent to the admin inbox. Check email & spam."
+        : "SMTP off — check the server terminal for the code.",
+    );
   }
 
   async function resendOtp() {
@@ -115,17 +108,11 @@ export function CmsLoginForm() {
     }
 
     setResendIn(RESEND_SECONDS);
-
-    if (typeof data.devOtp === "string" && /^\d{6}$/.test(data.devOtp)) {
-      setDevOtp(data.devOtp);
-      setInfo(`Dev mode — new code: ${data.devOtp}`);
-    } else {
-      setInfo(
-        data.delivery === "email"
-          ? "New code sent to the admin inbox."
-          : "New code logged in the server terminal.",
-      );
-    }
+    setInfo(
+      data.delivery === "email"
+        ? "New code sent to the admin inbox."
+        : "New code logged in the server terminal.",
+    );
   }
 
   const verifyOtp = useCallback(
@@ -257,12 +244,6 @@ export function CmsLoginForm() {
               Enter the {OTP_LENGTH}-digit code sent to the admin inbox.
             </p>
           </div>
-
-          {devOtp ? (
-            <p className="cms-login-dev" role="status">
-              DEV {devOtp}
-            </p>
-          ) : null}
 
           <div className={sending ? "cms-login-otp is-busy" : "cms-login-otp"}>
             <OtpDigitInput

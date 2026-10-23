@@ -29,6 +29,7 @@
     "@simplewebauthn/browser": "^14.0.0",
     "@simplewebauthn/server": "^14.0.2",
     "ai": "^7.0.102",
+    "ascii-reveal": "github:quanhoangindex/ascii-reveal",
     "better-auth": "^1.7.5",
     "clsx": "^2.1.1",
     "framer-motion": "^13.3.0",

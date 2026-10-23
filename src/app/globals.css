@@ -1677,6 +1677,11 @@ a.site-nav-link:focus-visible::after {
 }
 
 .sb-svc__stage {
+  --ascii-accent: #7c3aed;
+  --ascii-flash: #a78bfa;
+  --ascii-glyph: rgba(24, 24, 27, 0.42);
+  --ascii-font: var(--font-family-pixel), ui-monospace, monospace;
+  --ascii-surface: #ffffff;
   width: 100%;
   max-width: 100%;
   margin: 0;
@@ -1703,6 +1708,10 @@ a.site-nav-link:focus-visible::after {
   overflow-x: hidden;
   cursor: default;
   touch-action: none;
+}
+
+.sb-svc__card--dither {
+  isolation: isolate;
 }
 
 .sb-svc__stage::-webkit-scrollbar {
@@ -2095,6 +2104,16 @@ a.sb-touch__line:hover .sb-touch__line-value {
   grid-row: 1 / span 2;
   position: relative;
   min-width: 0;
+}
+
+/* Bot honeypot — off-screen, not focusable for humans */
+.sb-touch__hp {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
 }
 
 .sb-touch__fields {

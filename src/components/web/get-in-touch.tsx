@@ -193,6 +193,7 @@ export function GetInTouchCard({ contact }: Props) {
           email: data.get("email"),
           message,
           source: "get-in-touch",
+          website: data.get("website"),
         }),
       });
       const body = await response.json().catch(() => ({}));
@@ -287,6 +288,16 @@ export function GetInTouchCard({ contact }: Props) {
               </div>
             ) : (
               <form onSubmit={onSubmit} className="sb-touch__form">
+                {/* Honeypot — leave empty; bots often fill hidden fields */}
+                <label className="sb-touch__hp" aria-hidden="true">
+                  <span>Website</span>
+                  <input
+                    name="website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                  />
+                </label>
                 <div className="sb-touch__fields">
                   <label className="sb-touch__field">
                     <FieldLabel icon={<IconUser />}>Name</FieldLabel>
