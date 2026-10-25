@@ -6,15 +6,17 @@ import styles from "./site-loading-overlay.module.css";
 
 type Props = {
   label?: string;
+  eyebrow?: string;
   open?: boolean;
   leaving?: boolean;
   onSkip?: () => void;
   className?: string;
 };
 
-/** Minimal boot / route splash — soft bg + centered mark + wordmark. */
+/** Shared by the initial boot sequence, Next's route fallback and the design preview. */
 export function SiteLoadingOverlay({
-  label = "shiftboi",
+  label = "ShiftBOi",
+  eyebrow = "Ideas into experiences.",
   open = true,
   leaving = false,
   onSkip,
@@ -27,28 +29,19 @@ export function SiteLoadingOverlay({
     const root = rootRef.current;
     if (!open || !root) return;
     const previousFocus = document.activeElement;
+    // Only the boot intro is modal; the route fallback remains a polite status.
     const siblings = interactive
       ? Array.from(root.parentElement?.children ?? []).filter(
-          (element): element is HTMLElement =>
-            element instanceof HTMLElement &&
-            element !== root &&
-            !["SCRIPT", "STYLE", "LINK"].includes(element.tagName),
+          (element): element is HTMLElement => element instanceof HTMLElement
+            && element !== root && !["SCRIPT", "STYLE", "LINK"].includes(element.tagName),
         )
       : [];
     const originalInert = siblings.map((element) => element.inert);
-    siblings.forEach((element) => {
-      element.inert = true;
-    });
+    siblings.forEach((element) => { element.inert = true; });
     if (interactive) root.focus({ preventScroll: true });
     return () => {
-      siblings.forEach((element, index) => {
-        element.inert = originalInert[index]!;
-      });
-      if (
-        interactive &&
-        previousFocus instanceof HTMLElement &&
-        previousFocus.isConnected
-      ) {
+      siblings.forEach((element, index) => { element.inert = originalInert[index]; });
+      if (interactive && previousFocus instanceof HTMLElement && previousFocus.isConnected) {
         previousFocus.focus({ preventScroll: true });
       }
     };
@@ -82,22 +75,30 @@ export function SiteLoadingOverlay({
       }}
     >
       <div className={styles.backdrop} aria-hidden />
-      <div className={styles.haze} aria-hidden />
+      <div className={styles.panels} aria-hidden>
+        {[0, 1, 2, 3].map((index) => (
+          <span key={index} className={styles.panel} style={{ "--order": index } as CSSProperties} />
+        ))}
+      </div>
 
       <div className={styles.scene}>
         <div className={styles.lockup}>
           <span className={styles.mark} aria-hidden>
-            <i />
-            <i />
-            <i />
+            {[0, 1, 2].map((index) => <i key={index} />)}
           </span>
-          <p className={styles.title}>{label}</p>
+          <p className={styles.title} aria-label={label}>
+            {Array.from(label).map((letter, index) => (
+              <span className={styles.letterMask} key={`${letter}-${index}`} aria-hidden>
+                <span className={styles.letter} style={{ "--letter": index } as CSSProperties}>{letter === " " ? "\u00a0" : letter}</span>
+              </span>
+            ))}
+          </p>
+          <span className={styles.fullStop} aria-hidden />
         </div>
+        <div className={styles.subtitleMask}><p className={styles.subtitle}>{eyebrow}</p></div>
       </div>
 
-      <noscript>
-        <style>{"[data-site-loader]{display:none!important}"}</style>
-      </noscript>
+      <noscript><style>{"[data-site-loader]{display:none!important}"}</style></noscript>
     </div>
   );
 }
