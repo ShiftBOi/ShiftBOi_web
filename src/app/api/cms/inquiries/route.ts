@@ -17,14 +17,25 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const inquiries = await prisma.inquiry.findMany({
-    orderBy: { createdAt: "desc" },
-    take: 100,
-  });
+  const [inquiries, unread, sent] = await Promise.all([
+    prisma.inquiry.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: {
+        replies: {
+          orderBy: { createdAt: "desc" },
+          take: 5,
+        },
+      },
+    }),
+    prisma.inquiry.count({ where: { read: false } }),
+    prisma.inquiryReply.findMany({
+      orderBy: { createdAt: "desc" },
+      take: 100,
+    }),
+  ]);
 
-  const unread = await prisma.inquiry.count({ where: { read: false } });
-
-  return NextResponse.json({ inquiries, unread });
+  return NextResponse.json({ inquiries, unread, sent });
 }
 
 const patchSchema = z.object({

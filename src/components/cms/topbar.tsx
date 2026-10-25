@@ -4,22 +4,28 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
-import { useCmsTheme } from "@/components/cms/theme-provider";
+import { useCmsTheme } from "@/components/management/cms-theme";
 import { useCmsChat } from "@/components/cms/chat-context";
 import { BloubFace } from "@/components/cms/bloub-face";
 
-const TITLES: Array<{ match: (path: string) => boolean; title: string; eyebrow: string }> = [
+const TITLES: Array<{
+  match: (path: string) => boolean;
+  title: string;
+  eyebrow: string;
+}> = [
   { match: (p) => p === "/cms" || p === "/cms/", title: "Dashboard", eyebrow: "Overview" },
   { match: (p) => p.startsWith("/cms/projects"), title: "Projects", eyebrow: "Content" },
-  { match: (p) => p.startsWith("/cms/site"), title: "Site", eyebrow: "Content" },
   { match: (p) => p.startsWith("/cms/inquiries"), title: "Inquiries", eyebrow: "Inbox" },
+  { match: (p) => p.startsWith("/cms/storage"), title: "Storage", eyebrow: "Media" },
+  { match: (p) => p.startsWith("/cms/settings"), title: "Settings", eyebrow: "Account" },
+  { match: (p) => p.startsWith("/cms/site"), title: "Site", eyebrow: "Content" },
 ];
 
 export function CmsTopbar({ email }: { email: string }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { theme, toggleTheme } = useCmsTheme();
+  const { theme, toggle } = useCmsTheme();
   const { open: chatOpen, toggleChat } = useCmsChat();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -86,7 +92,7 @@ export function CmsTopbar({ email }: { email: string }) {
         <button
           type="button"
           className="cms-sidebar-icon-btn"
-          onClick={toggleTheme}
+          onClick={toggle}
           aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
           title={theme === "dark" ? "Light" : "Dark"}
         >

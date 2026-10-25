@@ -1,6 +1,7 @@
 import { cache } from "react";
 import type { Project, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { publicAssetUrl } from "@/lib/public-asset";
 import type {
   PortfolioProject,
   ProjectSection,
@@ -12,6 +13,11 @@ import {
   resolveBands,
   resolveDetails,
 } from "@/lib/project-draft";
+
+function mediaUrl(src: string | null | undefined): string | undefined {
+  if (!src) return undefined;
+  return publicAssetUrl(src) || src;
+}
 
 export type HeroContent = {
   eyebrow: string;
@@ -196,7 +202,7 @@ function asServiceItems(value: unknown): ServiceItem[] {
       tags,
     };
     if (row.color) item.color = String(row.color);
-    if (row.figure) item.figure = String(row.figure);
+    if (row.figure) item.figure = mediaUrl(String(row.figure)) || String(row.figure);
     items.push(item);
   });
   return items;
@@ -249,18 +255,35 @@ export function mapProjectToPortfolio(row: Project): PortfolioProject {
     media: media
       ? {
           type: media.type,
-          src: media.src,
-          poster: media.poster,
-          colorSrc: media.colorSrc,
-          bwSrc: media.bwSrc,
+          src: mediaUrl(media.src) || media.src,
+          poster: mediaUrl(media.poster),
+          colorSrc: mediaUrl(media.colorSrc),
+          bwSrc: mediaUrl(media.bwSrc),
           objectPosition: media.objectPosition,
         }
       : undefined,
-    bands,
-    collage: asCollage(row.collage),
+    bands: bands.map((band) => ({
+      ...band,
+      media: band.media
+        ? {
+            ...band.media,
+            src: mediaUrl(band.media.src) || band.media.src,
+            poster: mediaUrl(band.media.poster),
+          }
+        : band.media,
+    })),
+    collage: (() => {
+      const collage = asCollage(row.collage);
+      if (!collage) return collage;
+      return collage.map((item) => ({
+        ...item,
+        src: mediaUrl(item.src) || item.src,
+        poster: mediaUrl(item.poster),
+      }));
+    })(),
     details,
-    introSrc: row.introSrc ?? row.coverImage ?? undefined,
-    titleIcon: row.titleIcon ?? undefined,
+    introSrc: mediaUrl(row.introSrc ?? row.coverImage ?? undefined),
+    titleIcon: mediaUrl(row.titleIcon ?? undefined),
     download: download
       ? {
           label: String(download.label ?? "Download"),
@@ -324,7 +347,15 @@ export async function getSiteContent(): Promise<SiteContent> {
       eyebrow: String(services?.eyebrow ?? DEFAULT_SITE.services.eyebrow),
       title: String(services?.title ?? DEFAULT_SITE.services.title),
       lead: String(services?.lead ?? DEFAULT_SITE.services.lead),
-      items: serviceItems.length ? serviceItems : DEFAULT_SITE.services.items,
+      items: (serviceItems.length
+        ? serviceItems
+        : DEFAULT_SITE.services.items
+      ).map((item) => ({
+        ...item,
+        figure: item.figure
+          ? mediaUrl(item.figure) || item.figure
+          : item.figure,
+      })),
     },
     brand: {
       name: String(brand?.name ?? DEFAULT_SITE.brand.name),
@@ -424,7 +455,7 @@ export async function getOtherProjects(slug: string, take = 3) {
     title: row.title,
     summary: row.summary,
     year: row.year ?? "",
-    introSrc: row.introSrc ?? row.coverImage ?? undefined,
+    introSrc: mediaUrl(row.introSrc ?? row.coverImage ?? undefined),
   }));
 }
 

@@ -1,18 +1,16 @@
-import { Outfit, Syne } from "next/font/google";
+import type { Metadata } from "next";
+import { CmsThemeProvider } from "@/components/management/cms-theme";
+import "./cms-tokens.css";
 import "./cms.css";
-import { CmsThemeProvider } from "@/components/cms/theme-provider";
+import "./cms-topbar-chat.css";
 
-const cmsSans = Outfit({
-  subsets: ["latin"],
-  variable: "--font-cms-sans",
-  display: "swap",
-});
-
-const cmsDisplay = Syne({
-  subsets: ["latin"],
-  variable: "--font-cms-display",
-  display: "swap",
-});
+export const metadata: Metadata = {
+  robots: { index: false, follow: false, nocache: true },
+  title: {
+    default: "ShiftBOi CMS",
+    template: "%s · ShiftBOi CMS",
+  },
+};
 
 export default function CmsRootLayout({
   children,
@@ -20,7 +18,7 @@ export default function CmsRootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`cms-root ${cmsSans.variable} ${cmsDisplay.variable}`}>
+    <div className="cms-root">
       <CmsThemeProvider>{children}</CmsThemeProvider>
     </div>
   );

@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { isAllowedAdminEmail } from "@/lib/constants";
 import { isR2Configured, uploadFileToR2 } from "@/lib/r2";
-import { uploadFileLocal } from "@/lib/local-upload";
 
 export const runtime = "nodejs";
 
@@ -54,25 +53,20 @@ export async function POST(request: NextRequest) {
 
   try {
     if (!isR2Configured()) {
-      const onVercel = Boolean(process.env.VERCEL);
-      if (onVercel || process.env.NODE_ENV === "production") {
-        return NextResponse.json(
-          {
-            error:
-              "Cloudflare R2 is not configured. Set R2_* env vars before uploading in production.",
-          },
-          { status: 503 },
-        );
-      }
+      return NextResponse.json(
+        {
+          error:
+            "Cloudflare R2 is required for CMS media. Set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET, and R2_PUBLIC_URL.",
+        },
+        { status: 503 },
+      );
     }
-    const result = isR2Configured()
-      ? await uploadFileToR2(file, opts)
-      : await uploadFileLocal(file, opts);
+    const result = await uploadFileToR2(file, opts);
     return NextResponse.json({
       url: result.url,
       pathname: result.key,
       key: result.key,
-      storage: isR2Configured() ? "r2" : "local",
+      storage: "r2" as const,
     });
   } catch (error) {
     console.error("[cms/upload]", error);

@@ -53,12 +53,16 @@ async function checkDatabase(): Promise<ServiceStatus> {
 async function checkR2(): Promise<ServiceStatus> {
   const start = Date.now();
   if (!isR2Configured()) {
+    const onVercel = Boolean(process.env.VERCEL);
     return {
       id: "r2",
-      name: "Media storage",
-      status: "online",
+      name: "Cloudflare R2",
+      status: onVercel || process.env.NODE_ENV === "production" ? "offline" : "degraded",
       ping: 0,
-      description: "Local · public/uploads (R2 not set)",
+      description:
+        onVercel || process.env.NODE_ENV === "production"
+          ? "Not configured — set R2_* env vars"
+          : "Dev fallback · public/uploads (R2 not set)",
     };
   }
   try {
@@ -68,7 +72,7 @@ async function checkR2(): Promise<ServiceStatus> {
       name: "Cloudflare R2",
       status: "online",
       ping: Date.now() - start,
-      description: `Bucket · ${R2_BUCKET}`,
+      description: `Ready · bucket ${R2_BUCKET}`,
     };
   } catch {
     return {
@@ -76,7 +80,7 @@ async function checkR2(): Promise<ServiceStatus> {
       name: "Cloudflare R2",
       status: "offline",
       ping: 0,
-      description: `Bucket · ${R2_BUCKET}`,
+      description: `Unreachable · bucket ${R2_BUCKET}`,
     };
   }
 }
@@ -231,14 +235,36 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [database, r2, chatAi, tables, content, traffic] = await Promise.all([
-    checkDatabase(),
-    checkR2(),
-    checkChatAi(),
-    getTableCounts().catch(() => []),
-    getContentOverview().catch(() => null),
-    getTrafficSummary().catch(() => null),
-  ]);
+  const since = new Date();
+  since.setDate(since.getDate() - 30);
+
+  const [database, r2, chatAi, tables, content, traffic, storage, aiUsage, inquiries] =
+    await Promise.all([
+      checkDatabase(),
+      checkR2(),
+      checkChatAi(),
+      getTableCounts().catch(() => []),
+      getContentOverview().catch(() => null),
+      getTrafficSummary().catch(() => null),
+      import("@/lib/cms-storage")
+        .then((m) => m.storageSummary())
+        .catch(() => null),
+      prisma.cmsAiUsageLog
+        ? prisma.cmsAiUsageLog
+            .aggregate({
+              where: { createdAt: { gte: since } },
+              _sum: { tokensIn: true, tokensOut: true },
+              _count: true,
+            })
+            .catch(() => null)
+        : Promise.resolve(null),
+      Promise.all([
+        prisma.inquiry.count(),
+        prisma.inquiry.count({ where: { read: false } }),
+      ])
+        .then(([total, unread]) => ({ total, unread }))
+        .catch(() => null),
+    ]);
 
   const services = [database, r2, chatAi, checkGemini()];
   const online = services.filter((s) => s.status === "online").length;
@@ -258,6 +284,15 @@ export async function GET(request: NextRequest) {
     tables,
     content,
     traffic,
+    storage,
+    inquiries,
+    aiUsage: aiUsage
+      ? {
+          calls: aiUsage._count,
+          tokensIn: aiUsage._sum.tokensIn ?? 0,
+          tokensOut: aiUsage._sum.tokensOut ?? 0,
+        }
+      : null,
     ai: getCmsAiProviderInfo(),
     checkedAt: new Date().toISOString(),
   });

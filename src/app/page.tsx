@@ -8,10 +8,16 @@ import {
   getSecretProjects,
   getSiteContent,
 } from "@/lib/content";
+import { publicAssetUrl } from "@/lib/public-asset";
 import { asMedia } from "@/lib/project-draft";
 
 /** Cache the marketing homepage; CMS save calls revalidatePath("/"). */
 export const revalidate = 60;
+
+function r2(src: string | null | undefined) {
+  if (!src) return src ?? null;
+  return publicAssetUrl(src) || src;
+}
 
 export default async function HomePage() {
   const [projectRows, secrets, site] = await Promise.all([
@@ -20,10 +26,23 @@ export default async function HomePage() {
     getSiteContent(),
   ]);
 
-  const projects = projectRows.map((row) => ({
-    ...row,
-    media: asMedia(row.media),
-  }));
+  const projects = projectRows.map((row) => {
+    const media = asMedia(row.media);
+    return {
+      ...row,
+      coverImage: r2(row.coverImage),
+      introSrc: r2(row.introSrc),
+      media: media
+        ? {
+            ...media,
+            src: r2(media.src) || media.src,
+            poster: r2(media.poster) || undefined,
+            colorSrc: r2(media.colorSrc) || undefined,
+            bwSrc: r2(media.bwSrc) || undefined,
+          }
+        : media,
+    };
+  });
 
   return (
     <SmoothScroll>

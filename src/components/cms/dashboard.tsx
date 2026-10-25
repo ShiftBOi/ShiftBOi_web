@@ -55,6 +55,15 @@ type StatusPayload = {
     totalVisitors: number;
     last7: Array<{ day: string; pageViews: number; visitors: number }>;
   } | null;
+  storage: {
+    storage: string;
+    totalFiles: number;
+    totalSize: number;
+    limitBytes: number;
+    limitLabel: string;
+  } | null;
+  inquiries: { total: number; unread: number } | null;
+  aiUsage: { calls: number; tokensIn: number; tokensOut: number } | null;
   ai: { provider: string; model: string; configured: boolean };
   checkedAt: string;
 };
@@ -206,8 +215,102 @@ export function CmsDashboard() {
       })
     : "—";
 
+  const storagePct = status?.storage
+    ? Math.min(
+        100,
+        Math.round(
+          (status.storage.totalSize / Math.max(1, status.storage.limitBytes)) *
+            100,
+        ),
+      )
+    : 0;
+
+  const contentBars = [
+    { label: "Published", value: content?.published ?? 0 },
+    { label: "Drafts", value: content?.drafts ?? 0 },
+    { label: "Featured", value: content?.featured ?? 0 },
+    { label: "Secret", value: content?.confidential ?? 0 },
+  ];
+  const contentMax = Math.max(1, ...contentBars.map((b) => b.value));
+
   return (
     <div className="cms-dash">
+      <div className="cms-dash-charts">
+        <div className="cms-dash-card">
+          <h3>Storage</h3>
+          <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+            <div
+              className="cms-ring"
+              style={{ ["--p" as string]: storagePct }}
+              data-label={`${storagePct}%`}
+            />
+            <div>
+              <p className="cms-panel-lead" style={{ margin: 0 }}>
+                {status?.storage
+                  ? `${status.storage.totalFiles} files · ${(
+                      status.storage.totalSize /
+                      (1024 * 1024)
+                    ).toFixed(1)} MB`
+                  : loading
+                    ? "Loading…"
+                    : "—"}
+              </p>
+              <p className="cms-panel-lead" style={{ margin: "0.25rem 0 0" }}>
+                Limit {status?.storage?.limitLabel ?? "—"} ·{" "}
+                {status?.storage?.storage ?? ""}
+              </p>
+              <Link href="/cms/storage" className="cms-dash-panel-link">
+                Open drive
+              </Link>
+            </div>
+          </div>
+        </div>
+        <div className="cms-dash-card">
+          <h3>AI usage · 30d</h3>
+          <p className="cms-dash-metric-value cms-dash-metric-value-sm">
+            {status?.aiUsage?.calls ?? (loading ? "—" : 0)}
+          </p>
+          <p className="cms-panel-lead">
+            {(status?.aiUsage?.tokensIn ?? 0).toLocaleString()} in ·{" "}
+            {(status?.aiUsage?.tokensOut ?? 0).toLocaleString()} out
+          </p>
+          <p className="cms-dash-panel-link" style={{ opacity: 0.7, cursor: "default" }}>
+            Open Bloub from the top bar
+          </p>
+        </div>
+        <div className="cms-dash-card">
+          <h3>Inquiries</h3>
+          <p className="cms-dash-metric-value cms-dash-metric-value-sm">
+            {status?.inquiries?.unread ?? (loading ? "—" : 0)}
+          </p>
+          <p className="cms-panel-lead">
+            unread of {status?.inquiries?.total ?? 0} total
+          </p>
+          <Link href="/cms/inquiries" className="cms-dash-panel-link">
+            Open inbox
+          </Link>
+        </div>
+        <div className="cms-dash-card is-wide">
+          <h3>Project mix</h3>
+          <div className="cms-path-bars">
+            {contentBars.map((bar) => (
+              <div key={bar.label} className="cms-path-bar-row">
+                <span>{bar.label}</span>
+                <div className="cms-path-bar-track">
+                  <div
+                    className="cms-path-bar-fill"
+                    style={{
+                      width: `${Math.round((bar.value / contentMax) * 100)}%`,
+                    }}
+                  />
+                </div>
+                <strong>{bar.value}</strong>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="cms-dash-grid">
         <section className="cms-dash-panel">
           <div className="cms-dash-panel-head">

@@ -2,7 +2,13 @@
 
 import { useEffect, useRef } from "react";
 import { HeadGeometryTip } from "@/components/web/head-geometry-tip";
+import { publicAssetUrl } from "@/lib/public-asset";
 import styles from "./matrix-portrait.module.css";
+
+const HOLOGRAM_SRC = publicAssetUrl("/videos/ai-hologram-purple-cubic.mp4");
+const HOLOGRAM_POSTER = publicAssetUrl(
+  "/videos/ai-hologram-purple-cubic-poster.jpg",
+);
 
 /** Classic ASCII density ramp (dark → bright) */
 const ASCII = " .'`^\",:;Il!i~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
@@ -349,14 +355,16 @@ export function MatrixPortrait() {
         <video
           ref={videoRef}
           className={styles.sourceVideo}
-          src="/videos/ai-hologram-purple-cubic.mp4"
-          poster="/videos/ai-hologram-purple-cubic-poster.jpg"
+          src={HOLOGRAM_SRC}
+          poster={HOLOGRAM_POSTER}
+          // R2 CORS enabled — required so canvas can sample frames for ASCII.
+          crossOrigin="anonymous"
           aria-hidden
           autoPlay
           loop
           muted
           playsInline
-          preload="metadata"
+          preload="auto"
         />
         <canvas ref={glowRef} className={styles.glow} aria-hidden />
         <canvas

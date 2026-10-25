@@ -18,7 +18,6 @@ type Stats = {
 };
 
 type ViewMode = "all" | "selected";
-type FilterMode = "all" | "live" | "draft" | "featured";
 
 export function ProjectsManager({
   projects,
@@ -36,7 +35,6 @@ export function ProjectsManager({
   const router = useRouter();
   const pathname = usePathname();
   const [view, setViewState] = useState<ViewMode>(initialView);
-  const [filter, setFilter] = useState<FilterMode>("all");
   const [query, setQuery] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,11 +54,8 @@ export function ProjectsManager({
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    if (!q) return projects;
     return projects.filter((p) => {
-      if (filter === "live" && !p.published) return false;
-      if (filter === "draft" && p.published) return false;
-      if (filter === "featured" && !p.featured) return false;
-      if (!q) return true;
       return (
         p.title.toLowerCase().includes(q) ||
         p.slug.toLowerCase().includes(q) ||
@@ -68,7 +63,7 @@ export function ProjectsManager({
         (p.year ?? "").includes(q)
       );
     });
-  }, [projects, filter, query]);
+  }, [projects, query]);
 
   function onCreate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -216,29 +211,6 @@ export function ProjectsManager({
                   aria-label="Search projects"
                 />
               </label>
-              <div
-                className="cms-page-switch cms-folder-filters"
-                role="group"
-                aria-label="Filter folders"
-              >
-                {(
-                  [
-                    ["all", "All"],
-                    ["live", "Live"],
-                    ["draft", "Draft"],
-                    ["featured", "Featured"],
-                  ] as const
-                ).map(([id, label]) => (
-                  <button
-                    key={id}
-                    type="button"
-                    className={filter === id ? "is-active" : ""}
-                    onClick={() => setFilter(id)}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
             </div>
 
             {filtered.length > 0 ? (

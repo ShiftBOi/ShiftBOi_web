@@ -33,9 +33,9 @@ type CmsChatContextValue = {
 const CmsChatContext = createContext<CmsChatContextValue | null>(null);
 
 const WIDTH_KEY = "webport-cms-chat-width";
-const DEFAULT_WIDTH = 360;
+const DEFAULT_WIDTH = 400;
 const MIN_WIDTH = 280;
-const MAX_WIDTH = 560;
+const MAX_WIDTH = 640;
 
 export function clampChatWidth(w: number) {
   if (typeof window === "undefined") {

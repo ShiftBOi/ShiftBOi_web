@@ -191,16 +191,121 @@ model DinoScore {
 
 /// Public Get in Touch form submissions
 model Inquiry {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   email     String
   name      String?
-  message   String?  @db.Text
-  source    String   @default("get-in-touch")
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  message   String?        @db.Text
+  source    String         @default("get-in-touch")
+  read      Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  replies   InquiryReply[]
 
   @@index([createdAt])
   @@index([email])
   @@index([read])
   @@map("inquiry")
+}
+
+/// Outbound CMS replies to inquiries (mail Sent folder)
+model InquiryReply {
+  id        String   @id @default(cuid())
+  inquiryId String?
+  inquiry   Inquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  to        String
+  subject   String
+  body      String   @db.Text
+  kind      String   @default("reply")
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([inquiryId])
+  @@map("inquiry_reply")
+}
+
+/// CMS AI assistant chat thread
+model CmsChatThread {
+  id        String           @id @default(cuid())
+  title     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  messages  CmsChatMessage[]
+
+  @@index([updatedAt])
+  @@map("cms_chat_thread")
+}
+
+model CmsChatMessage {
+  id        String        @id @default(cuid())
+  threadId  String
+  thread    CmsChatThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  role      String
+  content   String        @db.Text
+  createdAt DateTime      @default(now())
+
+  @@index([threadId, createdAt])
+  @@map("cms_chat_message")
+}
+
+model CmsAiMemory {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("cms_ai_memory")
+}
+
+model CmsAiKnowledge {
+  id        String   @id @default(cuid())
+  title     String
+  content   String   @db.Text
+  source    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([updatedAt])
+  @@map("cms_ai_knowledge")
+}
+
+model CmsAiUsageLog {
+  id        String   @id @default(cuid())
+  provider  String
+  model     String
+  tokensIn  Int      @default(0)
+  tokensOut Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("cms_ai_usage_log")
+}
+
+/// CMS Activities & Updates (not yet on public site)
+model ActivityType {
+  id         String     @id @default(cuid())
+  type       String
+  color      String     @default("#e82434")
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  activities Activity[]
+
+  @@map("activity_type")
+}
+
+model Activity {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  title          String
+  detail         String?       @db.Text
+  coverImage     String?
+  isPublished    Boolean       @default(false)
+  publishedAt    DateTime      @default(now())
+  activityTypeId String?
+  activityType   ActivityType? @relation(fields: [activityTypeId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([publishedAt])
+  @@index([isPublished])
+  @@map("activity")
 }

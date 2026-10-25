@@ -1,0 +1,66 @@
+.content,
+.subContent {
+  min-width: 12.5rem;
+  z-index: 120;
+  pointer-events: auto;
+}
+
+.subContent {
+  min-width: 11rem;
+  z-index: 130;
+}
+
+.label {
+  padding: 6px 11px 4px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.subTrigger {
+  justify-content: flex-start;
+}
+
+/* Opener stays visibly active while its submenu is open */
+.subTrigger[data-state="open"],
+.subTrigger[aria-expanded="true"] {
+  color: var(--foreground);
+}
+
+.subLabel {
+  flex: 1;
+  min-width: 0;
+}
+
+.trailing {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  margin-left: 8px;
+}
+
+.chevron {
+  flex: none;
+  margin-left: 6px;
+  color: var(--text-muted);
+}
+
+.radioItem {
+  padding-right: 28px;
+}
+
+.indicator {
+  position: absolute;
+  right: 10px;
+  display: grid;
+  place-items: center;
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--foreground);
+}

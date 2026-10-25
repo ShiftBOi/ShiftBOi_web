@@ -190,3 +190,44 @@ function escapeHtml(value: string) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 }
+
+export type InquiryReplyPayload = {
+  to: string;
+  subject: string;
+  text: string;
+  html?: string;
+  replyTo?: string;
+};
+
+/** Admin reply / forward from the CMS inquiries mail UI. */
+export async function sendInquiryReply(
+  payload: InquiryReplyPayload,
+): Promise<{ sent: boolean; previewLogged: boolean }> {
+  const transporter = createTransporter();
+  const from =
+    process.env.SMTP_FROM ||
+    `ShiftBOi <${process.env.SMTP_USER || "noreply@localhost"}>`;
+  const html =
+    payload.html ||
+    `<!DOCTYPE html><html><body style="margin:0;padding:24px;font-family:system-ui,sans-serif;line-height:1.5;white-space:pre-wrap;">${escapeHtml(payload.text)}</body></html>`;
+
+  if (!transporter) {
+    console.info("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    console.info(`[dev inquiry reply] to=${payload.to}`);
+    console.info(`subject=${payload.subject}`);
+    console.info(payload.text);
+    console.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+    return { sent: false, previewLogged: true };
+  }
+
+  await transporter.sendMail({
+    from,
+    to: payload.to,
+    subject: payload.subject,
+    text: payload.text,
+    html,
+    replyTo: payload.replyTo,
+  });
+
+  return { sent: true, previewLogged: false };
+}

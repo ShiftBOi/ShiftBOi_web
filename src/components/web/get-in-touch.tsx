@@ -1,7 +1,11 @@
 "use client";
 
-import { FormEvent, useId, useState } from "react";
+import { FormEvent, useEffect, useId, useState } from "react";
 import type { ContactContent } from "@/lib/content";
+import {
+  preloadSentSuccess,
+  SentSuccess,
+} from "@/components/web/sent-success";
 import { TouchAscii } from "@/components/web/touch-ascii";
 
 const SUBJECTS = [
@@ -166,11 +170,17 @@ export function GetInTouchCard({ contact }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [subject, setSubject] = useState("");
   const [subjectOpen, setSubjectOpen] = useState(false);
+  const [sentEmail, setSentEmail] = useState("");
+
+  useEffect(() => {
+    void preloadSentSuccess();
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
     const data = new FormData(form);
+    const email = String(data.get("email") ?? "").trim();
     const phone = String(data.get("phone") ?? "").trim();
     const note = String(data.get("message") ?? "").trim();
     const message = [
@@ -190,7 +200,7 @@ export function GetInTouchCard({ contact }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: data.get("name"),
-          email: data.get("email"),
+          email,
           message,
           source: "get-in-touch",
           website: data.get("website"),
@@ -198,6 +208,7 @@ export function GetInTouchCard({ contact }: Props) {
       });
       const body = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(body.error || "Could not send");
+      setSentEmail(email);
       setStatus("done");
       setSubject("");
       form.reset();
@@ -225,7 +236,11 @@ export function GetInTouchCard({ contact }: Props) {
             <noscript>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src="/brand/touch-ascii.png"
+                src={
+                  process.env.NEXT_PUBLIC_R2_PUBLIC_URL
+                    ? `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL.replace(/\/$/, "")}/brand/touch-ascii.png`
+                    : "/brand/touch-ascii.png"
+                }
                 alt=""
                 className="sb-touch__ascii-fallback"
               />
@@ -273,19 +288,16 @@ export function GetInTouchCard({ contact }: Props) {
             </ul>
 
             {status === "done" ? (
-              <div className="sb-touch__success" role="status">
-                <p className="sb-touch__success-kicker">Sent</p>
-                <p className="sb-touch__success-title">
-                  {contact.successMessage}
-                </p>
-                <button
-                  type="button"
-                  className="sb-touch__again"
-                  onClick={() => setStatus("idle")}
-                >
-                  Send another
-                </button>
-              </div>
+              <SentSuccess
+                email={sentEmail || contact.email}
+                title="Message sent"
+                body="Thanks for getting in touch. I'll reply soon to"
+                note="Check your inbox for a confirmation"
+                onAgain={() => {
+                  setStatus("idle");
+                  setSentEmail("");
+                }}
+              />
             ) : (
               <form onSubmit={onSubmit} className="sb-touch__form">
                 {/* Honeypot — leave empty; bots often fill hidden fields */}

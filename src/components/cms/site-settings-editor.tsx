@@ -1,10 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
-import type { SiteContent } from "@/lib/content";
+import { useEffect, useMemo, useState } from "react";
+import type {
+  EngagementTier,
+  FocusItem,
+  SiteContent,
+  StatItem,
+} from "@/lib/content";
 import { InlineEditField } from "@/components/cms/inline-edit-field";
 import { CmsTouchCardEditor } from "@/components/cms/cms-touch-card-editor";
+import { CmsFloatingSave } from "@/components/cms/cms-floating-save";
+import { useCmsNotify } from "@/components/cms/cms-notify";
 
 async function patchSetting(key: string, value: unknown) {
   const res = await fetch("/api/cms/settings", {
@@ -18,9 +25,35 @@ async function patchSetting(key: string, value: unknown) {
   }
 }
 
+function newFocusId() {
+  return `focus-${Date.now().toString(36)}`;
+}
+
 export function SiteSettingsEditor({ initial }: { initial: SiteContent }) {
   const router = useRouter();
+  const notify = useCmsNotify();
   const [site, setSite] = useState(initial);
+  const [statsDraft, setStatsDraft] = useState<StatItem[]>(initial.stats);
+  const [focusDraft, setFocusDraft] = useState<FocusItem[]>(initial.focus);
+  const [engagementDraft, setEngagementDraft] = useState<EngagementTier[]>(
+    initial.engagement,
+  );
+  const [savingLists, setSavingLists] = useState(false);
+
+  useEffect(() => {
+    setSite(initial);
+    setStatsDraft(initial.stats);
+    setFocusDraft(initial.focus);
+    setEngagementDraft(initial.engagement);
+  }, [initial]);
+
+  const listsDirty = useMemo(() => {
+    return (
+      JSON.stringify(statsDraft) !== JSON.stringify(site.stats) ||
+      JSON.stringify(focusDraft) !== JSON.stringify(site.focus) ||
+      JSON.stringify(engagementDraft) !== JSON.stringify(site.engagement)
+    );
+  }, [statsDraft, focusDraft, engagementDraft, site]);
 
   async function saveHero(partial: Partial<SiteContent["hero"]>) {
     const next = { ...site.hero, ...partial };
@@ -56,26 +89,48 @@ export function SiteSettingsEditor({ initial }: { initial: SiteContent }) {
     router.refresh();
   }
 
-  async function saveStatsJson(raw: string) {
-    const parsed = JSON.parse(raw) as SiteContent["stats"];
-    await patchSetting("stats", parsed);
-    setSite((s) => ({ ...s, stats: parsed }));
-    router.refresh();
+  async function saveListSections() {
+    setSavingLists(true);
+    try {
+      await Promise.all([
+        patchSetting("stats", statsDraft),
+        patchSetting("focus", focusDraft),
+        patchSetting("engagement", engagementDraft),
+      ]);
+      setSite((s) => ({
+        ...s,
+        stats: statsDraft,
+        focus: focusDraft,
+        engagement: engagementDraft,
+      }));
+      notify.success("Site lists saved");
+      router.refresh();
+    } catch (err) {
+      notify.error(
+        "Could not save lists",
+        err instanceof Error ? err.message : "Unknown error",
+      );
+    } finally {
+      setSavingLists(false);
+    }
   }
 
-  async function saveFocusJson(raw: string) {
-    const parsed = JSON.parse(raw) as SiteContent["focus"];
-    await patchSetting("focus", parsed);
-    setSite((s) => ({ ...s, focus: parsed }));
-    router.refresh();
+  function discardLists() {
+    setStatsDraft(site.stats);
+    setFocusDraft(site.focus);
+    setEngagementDraft(site.engagement);
   }
 
-  async function saveEngagementJson(raw: string) {
-    const parsed = JSON.parse(raw) as SiteContent["engagement"];
-    await patchSetting("engagement", parsed);
-    setSite((s) => ({ ...s, engagement: parsed }));
-    router.refresh();
-  }
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (!(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "s") return;
+      if (!listsDirty || savingLists) return;
+      e.preventDefault();
+      void saveListSections();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   return (
     <div className="cms-site-page">
@@ -201,55 +256,266 @@ export function SiteSettingsEditor({ initial }: { initial: SiteContent }) {
       </section>
 
       <section className="cms-panel">
-        <h2 className="cms-panel-title">Stats (JSON)</h2>
-        <p className="cms-panel-lead">
-          Array of {"{ value, label }"}. Confirm after editing.
-        </p>
-        <InlineEditField
-          label="Stats JSON"
-          value={JSON.stringify(site.stats, null, 2)}
-          multiline
-          onSave={async (raw) => {
-            try {
-              await saveStatsJson(raw);
-            } catch {
-              throw new Error("Invalid JSON for stats");
+        <div className="cms-panel-head-row">
+          <div>
+            <h2 className="cms-panel-title">Stats</h2>
+            <p className="cms-panel-lead">Homepage metric chips.</p>
+          </div>
+          <button
+            type="button"
+            className="cms-btn"
+            onClick={() =>
+              setStatsDraft((rows) => [...rows, { value: "New", label: "Label" }])
             }
-          }}
-        />
+          >
+            Add stat
+          </button>
+        </div>
+        <div className="cms-form-stack">
+          {statsDraft.map((row, index) => (
+            <div key={`stat-${index}`} className="cms-passkey-row">
+              <label className="cms-field" style={{ flex: 1 }}>
+                <span>Value</span>
+                <input
+                  value={row.value}
+                  onChange={(e) =>
+                    setStatsDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index ? { ...r, value: e.target.value } : r,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <label className="cms-field" style={{ flex: 2 }}>
+                <span>Label</span>
+                <input
+                  value={row.label}
+                  onChange={(e) =>
+                    setStatsDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index ? { ...r, label: e.target.value } : r,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <button
+                type="button"
+                className="cms-btn is-danger"
+                onClick={() =>
+                  setStatsDraft((rows) => rows.filter((_, i) => i !== index))
+                }
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="cms-panel">
-        <h2 className="cms-panel-title">Focus tabs (JSON)</h2>
-        <InlineEditField
-          label="Focus JSON"
-          value={JSON.stringify(site.focus, null, 2)}
-          multiline
-          onSave={async (raw) => {
-            try {
-              await saveFocusJson(raw);
-            } catch {
-              throw new Error("Invalid JSON for focus");
+        <div className="cms-panel-head-row">
+          <div>
+            <h2 className="cms-panel-title">Focus tabs</h2>
+            <p className="cms-panel-lead">Structured focus cards for the public site.</p>
+          </div>
+          <button
+            type="button"
+            className="cms-btn"
+            onClick={() =>
+              setFocusDraft((rows) => [
+                ...rows,
+                {
+                  id: newFocusId(),
+                  label: "New",
+                  teaser: "",
+                  title: "Untitled",
+                  points: [""],
+                },
+              ])
             }
-          }}
-        />
+          >
+            Add focus
+          </button>
+        </div>
+        <div className="cms-form-stack">
+          {focusDraft.map((row, index) => (
+            <div key={row.id || `focus-${index}`} className="cms-ai-card">
+              <label className="cms-field">
+                <span>Label</span>
+                <input
+                  value={row.label}
+                  onChange={(e) =>
+                    setFocusDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index ? { ...r, label: e.target.value } : r,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <label className="cms-field">
+                <span>Title</span>
+                <input
+                  value={row.title}
+                  onChange={(e) =>
+                    setFocusDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index ? { ...r, title: e.target.value } : r,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <label className="cms-field">
+                <span>Teaser</span>
+                <input
+                  value={row.teaser}
+                  onChange={(e) =>
+                    setFocusDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index ? { ...r, teaser: e.target.value } : r,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <label className="cms-field">
+                <span>Points (one per line)</span>
+                <textarea
+                  value={row.points.join("\n")}
+                  onChange={(e) =>
+                    setFocusDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index
+                          ? {
+                              ...r,
+                              points: e.target.value
+                                .split("\n")
+                                .map((p) => p.trimEnd()),
+                            }
+                          : r,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <button
+                type="button"
+                className="cms-btn is-danger"
+                onClick={() =>
+                  setFocusDraft((rows) => rows.filter((_, i) => i !== index))
+                }
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="cms-panel">
-        <h2 className="cms-panel-title">Engagement (JSON)</h2>
-        <InlineEditField
-          label="Engagement JSON"
-          value={JSON.stringify(site.engagement, null, 2)}
-          multiline
-          onSave={async (raw) => {
-            try {
-              await saveEngagementJson(raw);
-            } catch {
-              throw new Error("Invalid JSON for engagement");
+        <div className="cms-panel-head-row">
+          <div>
+            <h2 className="cms-panel-title">Engagement tiers</h2>
+            <p className="cms-panel-lead">Pricing / engagement cards.</p>
+          </div>
+          <button
+            type="button"
+            className="cms-btn"
+            onClick={() =>
+              setEngagementDraft((rows) => [
+                ...rows,
+                {
+                  name: "New tier",
+                  price: "",
+                  detail: "",
+                  featured: false,
+                },
+              ])
             }
-          }}
-        />
+          >
+            Add tier
+          </button>
+        </div>
+        <div className="cms-form-stack">
+          {engagementDraft.map((row, index) => (
+            <div key={`eng-${index}`} className="cms-ai-card">
+              <label className="cms-field">
+                <span>Name</span>
+                <input
+                  value={row.name}
+                  onChange={(e) =>
+                    setEngagementDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index ? { ...r, name: e.target.value } : r,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <label className="cms-field">
+                <span>Price</span>
+                <input
+                  value={row.price}
+                  onChange={(e) =>
+                    setEngagementDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index ? { ...r, price: e.target.value } : r,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <label className="cms-field">
+                <span>Detail</span>
+                <textarea
+                  value={row.detail}
+                  onChange={(e) =>
+                    setEngagementDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index ? { ...r, detail: e.target.value } : r,
+                      ),
+                    )
+                  }
+                />
+              </label>
+              <label className="cms-field" style={{ flexDirection: "row", gap: "0.5rem" }}>
+                <input
+                  type="checkbox"
+                  checked={row.featured}
+                  onChange={(e) =>
+                    setEngagementDraft((rows) =>
+                      rows.map((r, i) =>
+                        i === index ? { ...r, featured: e.target.checked } : r,
+                      ),
+                    )
+                  }
+                />
+                <span>Featured</span>
+              </label>
+              <button
+                type="button"
+                className="cms-btn is-danger"
+                onClick={() =>
+                  setEngagementDraft((rows) => rows.filter((_, i) => i !== index))
+                }
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+        </div>
       </section>
+
+      <CmsFloatingSave
+        dirty={listsDirty}
+        saving={savingLists}
+        onSave={() => void saveListSections()}
+        onDiscard={discardLists}
+        label="Unsaved stats / focus / engagement"
+      />
     </div>
   );
 }

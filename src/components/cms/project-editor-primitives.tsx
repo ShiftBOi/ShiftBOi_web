@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { EditableField } from "@/lib/project-draft";
+import { R2Finder } from "@/components/cms/r2-finder";
 
 export type {
   DetailBlock,
@@ -214,6 +215,7 @@ export function ProjectImagePicker({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [drag, setDrag] = useState(false);
+  const [finderOpen, setFinderOpen] = useState(false);
   const [reframing, setReframing] = useState(false);
   const [pos, setPos] = useState(() => parseObjectPosition(objectPositionProp));
   const draggingRef = useRef(false);
@@ -473,6 +475,14 @@ export function ProjectImagePicker({
         </div>
 
         <div className="cms-image-picker-actions">
+          <button
+            type="button"
+            className="cms-btn cms-btn-ghost"
+            disabled={uploading}
+            onClick={() => setFinderOpen(true)}
+          >
+            Browse library
+          </button>
           <button type="button" className="cms-btn cms-btn-ghost" onClick={onClose}>
             Cancel
           </button>
@@ -489,6 +499,21 @@ export function ProjectImagePicker({
         </div>
 
         {error ? <p className="cms-error">{error}</p> : null}
+
+        <R2Finder
+          open={finderOpen}
+          onClose={() => setFinderOpen(false)}
+          folder={folder}
+          title="Browse storage"
+          accept={allowVideo ? "image/*,video/*" : "image/*"}
+          onSelect={(next) => {
+            setFinderOpen(false);
+            setUrl(next);
+            setPos({ x: 50, y: 50 });
+            setReframing(false);
+            commit(next, kindFromUrl(next), true);
+          }}
+        />
       </div>
     </div>
   );

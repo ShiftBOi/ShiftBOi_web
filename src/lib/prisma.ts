@@ -6,7 +6,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump when schema enums/fields change so the Next.js global singleton is rebuilt. */
-const SCHEMA_VERSION = "scope-collage-v2";
+const SCHEMA_VERSION = "cms-ai-models-v2";
 
 function createPrismaClient() {
   return new PrismaClient({
@@ -24,6 +24,11 @@ if (
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
+
+/** Alias used by ported CMS assistant code from ttianqii-web-original. */
+export function getPrisma() {
+  return prisma;
+}
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
