@@ -110,6 +110,7 @@ function useDustHover(
   wrapRef: RefObject<HTMLElement | null>,
   rootRef: RefObject<HTMLElement | null>,
   dustRef: RefObject<HTMLElement | null>,
+  resetRef: RefObject<(() => void) | null>,
 ) {
   const hoveringRef = useRef(false);
   const emitTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -218,7 +219,7 @@ function useDustHover(
     };
 
     const leave = () => {
-      if (!hoveringRef.current) return;
+      if (!hoveringRef.current && frame.inset === 0) return;
       hoveringRef.current = false;
       stopEmit();
       gsap.killTweensOf(frame);
@@ -231,22 +232,28 @@ function useDustHover(
       });
     };
 
+    resetRef.current = leave;
+
     wrap.addEventListener("pointerenter", enter);
     wrap.addEventListener("pointerleave", leave);
+    // Only keyboard focus should light the ring — mouse click focus sticks after
+    // closing via the panel X (focus is restored to the FAB).
     root.addEventListener("focus", enter);
     root.addEventListener("blur", leave);
 
     return () => {
       hoveringRef.current = false;
       stopEmit();
+      resetRef.current = null;
       wrap.removeEventListener("pointerenter", enter);
       wrap.removeEventListener("pointerleave", leave);
       root.removeEventListener("focus", enter);
       root.removeEventListener("blur", leave);
       gsap.killTweensOf(frame);
       dust.replaceChildren();
+      root.style.boxShadow = "";
     };
-  }, [wrapRef, rootRef, dustRef]);
+  }, [wrapRef, rootRef, dustRef, resetRef]);
 }
 
 function ChatIcon({ open }: { open: boolean }) {
@@ -290,10 +297,11 @@ function SiteChatWidget() {
   const wrapRef = useRef<HTMLDivElement>(null);
   const fabRef = useRef<HTMLButtonElement>(null);
   const dustRef = useRef<HTMLSpanElement>(null);
+  const resetDustRef = useRef<(() => void) | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const stickToBottomRef = useRef(true);
 
-  useDustHover(wrapRef, fabRef, dustRef);
+  useDustHover(wrapRef, fabRef, dustRef, resetDustRef);
 
   const { messages, sendMessage, status, error, setMessages } = useChat({
     transport: new DefaultChatTransport({ api: "/api/chat" }),
@@ -326,7 +334,12 @@ function SiteChatWidget() {
   }, [messages, busy, hydrated]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      // Closing via panel X restores focus to the FAB and retriggers dust hover.
+      fabRef.current?.blur();
+      resetDustRef.current?.();
+      return;
+    }
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") closeChat();
     };
@@ -334,12 +347,19 @@ function SiteChatWidget() {
     const prev = document.activeElement as HTMLElement | null;
     const panel = document.querySelector<HTMLElement>(".site-chat-card.is-open");
     const focusable = panel?.querySelector<HTMLElement>(
-      "button, [href], input, textarea, [tabindex]:not([tabindex='-1'])",
+      "input, textarea, button, [href], [tabindex]:not([tabindex='-1'])",
     );
     focusable?.focus();
     return () => {
       window.removeEventListener("keydown", onKey);
-      prev?.focus?.();
+      // Prefer returning focus for a11y, but never leave the FAB "hovered"
+      // when the pointer isn't on it (panel X / Escape close).
+      if (prev && prev !== fabRef.current && document.contains(prev)) {
+        prev.focus?.();
+      } else {
+        fabRef.current?.blur();
+      }
+      resetDustRef.current?.();
     };
   }, [open, closeChat]);
 
