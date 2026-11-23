@@ -47,5 +47,5 @@
       <animate attributeName="r" values="7;12;7" dur="4.5s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values=".55;0;.55" dur="4.5s" repeatCount="indefinite"/>
     </circle>
-  </g>
+    </g>
 </svg>

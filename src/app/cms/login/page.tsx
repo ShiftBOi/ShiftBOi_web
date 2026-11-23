@@ -1,5 +1,7 @@
 "use client";
 
+import { AsciiKoiPond } from "@/components/cms/ascii-koi-pond";
+import { OtpBoxes } from "@/components/cms/otp-boxes";
 import { CmsMark } from "@/components/management/cms-mark";
 import { CmsThemeToggle } from "@/components/management/cms-theme";
 import { authClient } from "@/lib/auth-client";
@@ -87,35 +89,39 @@ export default function CmsLoginPage() {
     }
   }
 
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 5
+      ? "Still up?"
+      : hour < 12
+        ? "Good morning"
+        : hour < 18
+          ? "Good afternoon"
+          : "Good evening";
+
   return (
-    <div className="cms-login">
-      <aside className="cms-login__brand">
+    <div className="cms-login cms-login--koi">
+      <AsciiKoiPond className="cms-login__pond" count={32} />
+
+      <div className="cms-login__top">
         <Link href="/" className="cms-login__mark">
           <CmsMark className="cms-login__icon" title="ShiftBOi" />
           <span className="cms-login__meta">shiftboi.xyz</span>
         </Link>
-
-        <div className="cms-login__brand-copy">
-          <p className="cms-login__meta">Content studio</p>
-          <h1>Sign in to CMS</h1>
-          <p>
-            Edit projects, case studies, and site content — same visual language
-            as the portfolio, built for fast publishing.
-          </p>
-        </div>
-
-        <p className="cms-login__meta">OTP · Passkey · Shared DB</p>
-      </aside>
-
-      <section className="cms-login__panel">
         <CmsThemeToggle className="cms-login__theme" />
+      </div>
 
-        <div className="cms-login__card">
+      <div className="cms-login__center">
+        <p className="cms-login__greeting">
+          {greeting} <span>Sign in to CMS</span>
+        </p>
+
+        <div className="cms-login__glass">
           <p className="cms-eyebrow">Authentication</p>
           <h2>{step === "email" ? "Welcome back" : "Enter code"}</h2>
-          <p>
+          <p className="cms-login__lead">
             {step === "email"
-              ? "Request a one-time code for the locked admin inbox, or continue with a registered passkey."
+              ? "Request a one-time code, or continue with a registered passkey. Click the pond to feed the koi."
               : `We sent a 6-digit code to ${ADMIN_EMAIL}.`}
           </p>
 
@@ -169,21 +175,14 @@ export default function CmsLoginPage() {
                 </p>
               </div>
               <div>
-                <label htmlFor="otp" className="cms-label">
+                <p className="cms-label" id="otp-label">
                   6-digit code
-                </label>
-                <input
+                </p>
+                <OtpBoxes
                   id="otp"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  required
-                  maxLength={6}
                   value={otp}
-                  onChange={(e) =>
-                    setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
-                  }
-                  className="cms-input"
-                  style={{ letterSpacing: "0.28em" }}
+                  onChange={setOtp}
+                  disabled={loading}
                 />
               </div>
               <button
@@ -196,7 +195,10 @@ export default function CmsLoginPage() {
               <button
                 type="button"
                 className="cms-btn cms-btn--ghost w-full"
-                onClick={() => setStep("email")}
+                onClick={() => {
+                  setStep("email");
+                  setOtp("");
+                }}
               >
                 Back
               </button>
@@ -205,7 +207,7 @@ export default function CmsLoginPage() {
 
           {status ? <p className="cms-login__status">{status}</p> : null}
         </div>
-      </section>
+      </div>
     </div>
   );
 }
