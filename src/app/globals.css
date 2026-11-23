@@ -1992,8 +1992,9 @@ a.site-nav-link:focus-visible::after {
 .sb-touch__ascii {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .sb-touch__ascii canvas {

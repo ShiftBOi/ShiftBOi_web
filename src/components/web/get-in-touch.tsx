@@ -6,7 +6,7 @@ import {
   preloadSentSuccess,
   SentSuccess,
 } from "@/components/web/sent-success";
-import { TouchAscii } from "@/components/web/touch-ascii";
+import { AsciiKoiPond } from "@/components/cms/ascii-koi-pond";
 
 const SUBJECTS = [
   { group: "Work", items: ["Hire me", "Project work", "Product build", "Collaboration"] },
@@ -225,26 +225,7 @@ export function GetInTouchCard({ contact }: Props) {
       <div className="sb-touch-shell">
         <div className="sb-touch">
           <div className="sb-touch__visual">
-            <TouchAscii
-              className="sb-touch__ascii"
-              width="100%"
-              height="100%"
-              interactive
-              animation="beam-sweep"
-              mouseMode="push"
-            />
-            <noscript>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={
-                  process.env.NEXT_PUBLIC_R2_PUBLIC_URL
-                    ? `${process.env.NEXT_PUBLIC_R2_PUBLIC_URL.replace(/\/$/, "")}/brand/touch-ascii.png`
-                    : "/brand/touch-ascii.png"
-                }
-                alt=""
-                className="sb-touch__ascii-fallback"
-              />
-            </noscript>
+            <AsciiKoiPond className="sb-touch__ascii" count={10} />
           </div>
 
           <div className="sb-touch__grid">

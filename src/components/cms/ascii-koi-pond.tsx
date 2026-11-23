@@ -597,6 +597,7 @@ export function AsciiKoiPond({ className, count = 32 }: Props) {
         ctx.textBaseline = "middle";
         ctx.fillText("·", cx, cy + 0.5);
       }
+
       ctx.globalAlpha = 1;
     };
 
@@ -663,7 +664,7 @@ export function AsciiKoiPond({ className, count = 32 }: Props) {
       ref={canvasRef}
       className={className}
       aria-hidden
-      style={{ display: "block", width: "100%", height: "100%" }}
+      style={{ display: "block", width: "100%", height: "100%", cursor: "crosshair" }}
     />
   );
 }
